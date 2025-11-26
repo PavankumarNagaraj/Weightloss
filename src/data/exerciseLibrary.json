@@ -1,0 +1,83 @@
+{
+  "exercises": [
+    {
+      "id": "ex_001",
+      "name": "Neck Circles",
+      "category": "Warmup",
+      "difficulty": "beginner",
+      "equipment": "none",
+      "duration": "30s",
+      "instructions": "Slowly rotate your neck in circular motions, 15 seconds each direction",
+      "targetMuscles": ["Neck", "Upper Trapezius"],
+      "caloriesBurn": 2,
+      "tags": ["warmup", "mobility"],
+      "createdAt": "2025-11-23"
+    },
+    {
+      "id": "ex_002",
+      "name": "Shoulder Rolls",
+      "category": "Warmup",
+      "difficulty": "beginner",
+      "equipment": "none",
+      "duration": "30s",
+      "instructions": "Roll shoulders backward in large circles",
+      "targetMuscles": ["Shoulders", "Upper Back"],
+      "caloriesBurn": 2,
+      "tags": ["warmup", "mobility"],
+      "createdAt": "2025-11-23"
+    },
+    {
+      "id": "ex_003",
+      "name": "Bodyweight Squats",
+      "category": "Lower Body",
+      "difficulty": "beginner",
+      "equipment": "none",
+      "duration": "30s",
+      "reps": "15",
+      "instructions": "Stand with feet shoulder-width apart, lower hips back and down, keep chest up",
+      "targetMuscles": ["Quadriceps", "Glutes", "Hamstrings"],
+      "caloriesBurn": 5,
+      "tags": ["strength", "lower-body"],
+      "createdAt": "2025-11-23"
+    },
+    {
+      "id": "ex_004",
+      "name": "High Knees",
+      "category": "Cardio",
+      "difficulty": "intermediate",
+      "equipment": "none",
+      "duration": "40s",
+      "instructions": "Run in place bringing knees up to hip level",
+      "targetMuscles": ["Hip Flexors", "Quadriceps", "Calves"],
+      "caloriesBurn": 8,
+      "tags": ["cardio", "warmup"],
+      "createdAt": "2025-11-23"
+    },
+    {
+      "id": "ex_005",
+      "name": "Burpees",
+      "category": "Full Body",
+      "difficulty": "advanced",
+      "equipment": "none",
+      "duration": "45s",
+      "reps": "10",
+      "instructions": "From standing, drop to plank, do push-up, jump feet to hands, jump up",
+      "targetMuscles": ["Full Body", "Cardio"],
+      "caloriesBurn": 12,
+      "tags": ["cardio", "strength", "full-body"],
+      "createdAt": "2025-11-23"
+    }
+  ],
+  "categories": [
+    "Warmup",
+    "Cardio",
+    "Upper Body",
+    "Lower Body",
+    "Core",
+    "Full Body",
+    "Stretch",
+    "Outdoor"
+  ],
+  "difficulties": ["beginner", "intermediate", "advanced"],
+  "equipment": ["none", "dumbbells", "resistance-band", "yoga-mat", "bench"]
+}

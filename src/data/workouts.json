@@ -1,0 +1,541 @@
+{
+  "program_name": "30-Day Zero-Equipment Progressive Weight Loss Program",
+  "session_structure_minutes": {
+    "warmup": 5,
+    "circuit_block_1": 20,
+    "break_1": 3,
+    "circuit_block_2": 20,
+    "break_2": 3,
+    "stretch": 5,
+    "total": 56
+  },
+  "phases": {
+    "days_1_6": "Low Impact",
+    "days_7_12": "Mixed",
+    "days_13_30": "Moderate (except outdoor days)"
+  },
+  "days": [
+    {
+      "day": 1,
+      "intensity": "Low Impact",
+      "type": "Indoor",
+      "warmup": ["gNeck circles 30s", "Shoulder rolls 30s", "March in place 2 min", "Side step reach 2 min"],
+      "circuit_block_1": [
+        "Bodyweight squats 30s","Side steps 30s","Hip hinge 30s","Glute bridge 30s","March in place 30s",
+        "Wall pushups 30s","Standing knee lifts 30s","Mini squats 30s","Calf raises 30s","Slow step taps 30s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Seated knee tucks 30s","Heel touches 30s","Dead bug 30s","Standing oblique crunch 30s","Bird dog standing 30s",
+        "Back kicks 30s","Side leg raises 30s","March + reach 30s","Hip circles 30s","Arm circles 30s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring stretch 30s","Quad stretch 30s","Back stretch 30s","Breathing 1 min"]
+    },
+
+    {
+      "day": 2,
+      "intensity": "Low Impact",
+      "type": "Indoor",
+      "warmup": ["Cat-cow 1 min","Hip circles 1 min","March 2 min","Torso twist 1 min"],
+      "circuit_block_1": [
+        "Half squats 30s","Side leg raise 30s","Reverse lunges slow 30s","Calf raises 30s","March medium pace 30s",
+        "Incline wall pushups 30s","Hip circles 30s","Step touch 30s","Glute squeezes 30s","Toe taps 30s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Dead bug 30s","Knee plank 20s","Seated twists 30s","Side plank knees 20s/side","Leg raises 30s",
+        "Standing side crunch 30s","Back kicks 30s","Slow high knees 30s","Front reach 30s","Back stretch 30s"
+      ],
+      "break_2": 3,
+      "stretch": ["Calf stretch 30s","Hip flexor 30s","Child's pose 1 min","Breathing 1 min"]
+    },
+
+    {
+      "day": 3,
+      "intensity": "Low Impact",
+      "type": "Indoor",
+      "warmup": ["March 2 min","Hip openers 1 min","Side bends 1 min","Shoulder circles 1 min"],
+      "circuit_block_1": [
+        "Half squats 30s","Side steps 30s","Standing leg curls 30s","Y-raises 30s","March 30s",
+        "Good mornings 30s","Back kicks 30s","Seated get-ups 30s","Calf raises 30s","Torso rotations 30s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Knee plank 25s","Heel taps 30s","Dead bug 30s","Side crunch 30s","Leg lift hold 15s",
+        "Glute bridge 30s","Knee-to-elbow standing 30s","March twist 30s","Hip circles 30s","Back rolls 30s"
+      ],
+      "break_2": 3,
+      "stretch": ["Forward fold 30s","Calf stretch 30s","Side stretch 30s","Deep breathing 1 min"]
+    },
+
+    {
+      "day": 4,
+      "intensity": "Low Impact",
+      "type": "Indoor",
+      "warmup": ["March slow 2 min","Hip mobility 1 min","Ankle rolls 1 min","Torso twist 1 min"],
+      "circuit_block_1": [
+        "Squats 30s","Reverse lunges assisted 30s","Side tap reach 30s","Glute bridge 30s","Leg curls standing 30s",
+        "Wall pushups 30s","March with arms 30s","Hip shift 30s","Mini squat pulses 30s","Step touches 30s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Dead bug 30s","Knee plank 25s","Slow climbers 30s","Leg raises 30s","Side plank knees 20s/side",
+        "Standing oblique bend 30s","Cat-cow standing 30s","March 30s","Hip flexor pulses 30s","Arm circles 30s"
+      ],
+      "break_2": 3,
+      "stretch": ["Full body stretch 1 min","Hip flexor stretch 30s","Back stretch 30s","Breathing 1 min"]
+    },
+
+    {
+      "day": 5,
+      "intensity": "Low Impact",
+      "type": "Indoor",
+      "warmup": ["March 2 min","Leg swings 1 min","Side swings 1 min","Shoulder openers 1 min"],
+      "circuit_block_1": [
+        "Step taps 30s","Squats 30s","Glute bridges 30s","Side leg raise 30s","Squat hold 20s",
+        "Back kicks 30s","Hip hinge 30s","Back extension standing 30s","March 30s","Calf raises 30s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Knee plank 25s","Dead bug 30s","Heel taps 30s","Leg lifts 30s","Knee-to-chest 30s",
+        "Standing oblique crunch 30s","Bird dog standing 30s","Side step reach 30s","Hip circles 30s","Back stretch 30s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring stretch 30s","Quad stretch 30s","Side bend 30s","Breathing 1 min"]
+    },
+
+    {
+      "day": 6,
+      "intensity": "Outdoor",
+      "type": "Outdoor Walk/Run",
+      "warmup": ["Dynamic joint mobility 2 min","Leg swings 1 min","Easy march 2 min"],
+      "circuit_block_1": [
+        "Brisk walk 2 min","Bench step-ups 2 min","Squats 2 min","Walking lunges 2 min","Standing calf raises 2 min",
+        "Fast walk or light jog optional 2 min","Incline walk 2 min","Glute kickbacks 2 min","Side shuffles slow 2 min","Standing twist 2 min"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "3 min brisk walk + 2 min mobility",
+        "3 min walk or jog + 2 min dead bug/heel taps",
+        "3 min incline walk + 2 min standing glutes",
+        "3 min cool walk + 2 min breathing mobility"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring 45s","Quad 45s","Calf stretch 30s/side","Back stretch 30s","Breathing 30s"]
+    },
+
+    {
+      "day": 7,
+      "rest": true
+    },
+
+
+    {
+      "day": 8,
+      "intensity": "Mixed",
+      "type": "Indoor",
+      "warmup": ["March 2 min","Hip mobility 1 min","Arm swings 1 min","Torso twist 1 min"],
+      "circuit_block_1": [
+        "Squats 40s","Reverse lunges 40s","Fast step taps 40s","Glute bridge 40s","Side leg raise 40s",
+        "Calf raises 40s","Good mornings 40s","Side steps quick 40s","Squat pulses 40s","High knee march slow 40s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank knees 30s","Leg raises 40s","Dead bug 40s","Slow climbers 40s","Oblique crunch 40s",
+        "Side plank 25s/side","Hip circles 40s","Back kicks 40s","Torso twist 40s","Fast march 40s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring stretch 30s","Back stretch 30s","Breathing 1 min"]
+    },
+
+    {
+      "day": 9,
+      "intensity": "Mixed",
+      "type": "Indoor",
+      "warmup": ["March 2 min","Hip circles 1 min","Shoulder mobility 1 min","Torso twist 1 min"],
+      "circuit_block_1": [
+        "Squats 40s","Side lunges 40s","Step taps fast 40s","Glute bridge 40s","Reverse lunges 40s",
+        "Calf raises 40s","Back extensions 40s","High knee march 40s","Squat pulses 40s","Side steps 40s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 30s","Leg lifts 40s","Dead bug 40s","Slow climbers 40s","Oblique crunch 40s",
+        "Side plank 25s","Bird dog 40s","Heel taps 40s","Hip circles 40s","March fast 40s"
+      ],
+      "break_2": 3,
+      "stretch": ["Calf stretch 30s","Quad 30s","Breathing 1 min"]
+    },
+
+    {
+      "day": 10,
+      "intensity": "Mixed",
+      "type": "Indoor",
+      "warmup": ["March + reach 2 min","Hip rotations 1 min","Shoulder rotations 1 min","Side bends 1 min"],
+      "circuit_block_1": [
+        "Squats 45s","Reverse lunges 45s","Fast step run (no jump) 45s","Glute bridge 45s","Side lunges 45s",
+        "Calf raises 45s","Good mornings 45s","High knees slow 45s","Squat pulses 45s","Side steps fast 45s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 35s","Leg raises 45s","Dead bug 45s","Slow climbers 45s","Side plank 25s",
+        "Oblique crunch 45s","Flutter kicks 40s","Heel taps 40s","Hip circles 40s","March fast 40s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring 30s","Hip flexor 30s","Breathing 1 min"]
+    },
+
+    {
+      "day": 11,
+      "intensity": "Mixed",
+      "type": "Indoor",
+      "warmup": ["March 2 min","Torso twist 1 min","Leg mobility 1 min","Shoulder mobility 1 min"],
+      "circuit_block_1": [
+        "Squats 45s","Side steps fast 45s","Reverse lunges 45s","Glute bridge 45s","Side lunges 45s",
+        "Calf raises 45s","Good mornings 45s","High knee march 45s","Squat pulses 45s","Leg curls standing 45s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 35s","Leg raises 45s","Dead bug 45s","Side plank 25s","Oblique crunch 45s",
+        "Slow climbers 45s","Heel taps 45s","Flutter kicks 40s","Bird dog 40s","March fast 40s"
+      ],
+      "break_2": 3,
+      "stretch": ["Quad stretch 30s","Calf stretch 30s","Breathing 1 min"]
+    },
+
+    {
+      "day": 12,
+      "intensity": "Mixed",
+      "type": "Indoor",
+      "warmup": ["March 2 min","Side bends 1 min","Hip mobility 1 min","Arm swings 1 min"],
+      "circuit_block_1": [
+        "Squats 45s","Reverse lunges 45s","Side lunges 45s","Glute bridge 45s","Step taps fast 45s",
+        "Calf raises 45s","Leg curls standing 45s","Good mornings 45s","Wide march 45s","Mini pulses 45s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 40s","Leg raises 45s","Dead bug 45s","Slow climbers 45s","Side plank 30s",
+        "Oblique crunch 45s","Flutter kicks 40s","Heel taps 40s","Bird dog 40s","March fast 40s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring stretch 45s","Hip flexor 45s","Breathing 1 min"]
+    },
+
+    {
+      "day": 13,
+      "intensity": "Outdoor",
+      "type": "Outdoor Walk/Run",
+      "warmup": ["Joint mobility 2 min","Leg swings 1 min","March 2 min"],
+      "circuit_block_1": [
+        "Brisk walk 2 min","Bench step-ups 2 min","Reverse lunges 2 min","Side steps quick 2 min","Calf raises 2 min",
+        "Fast walk or light jog optional 2 min","Incline walk 2 min","Glute pulses 2 min","Lateral lunges 2 min","Recovery walk 2 min"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "3 min brisk walk + 2 min oblique standing",
+        "3 min brisk walk/jog + 2 min glute bridges",
+        "3 min incline walk + 2 min balance work",
+        "3 min cool walk + 2 min mobility"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring 45s","Calf stretch 30s","Hip flexor 30s","Breathing 45s"]
+    },
+
+    {
+      "day": 14,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 50s","Reverse lunges 50s","Fast step taps 50s","Glute bridge 50s","Side lunges 50s",
+        "Calf raises 50s","Good mornings 50s","High knees march 50s","Squat hold 25s","Side steps fast 50s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 45s","Leg raises 45s","Dead bug 45s","Slow climbers 45s","Oblique crunch 45s",
+        "Side plank 30s","Flutter kicks 40s","Heel taps 40s","Bird dog 40s","March fast 45s"
+      ],
+      "break_2": 3,
+      "stretch": ["Leg stretch 1 min","Back stretch 1 min","Breathing 1 min"]
+    },
+
+    {
+      "day": 15,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["March + reach 2 min","Hip circles 1 min","Leg swings 1 min","Side bends 1 min"],
+      "circuit_block_1": [
+        "Squats 50s","Reverse lunges 50s","Side lunges 50s","Glute bridge 50s","Fast step run 50s",
+        "Calf raises 50s","Good mornings 50s","Wide march 50s","Squat pulses 50s","High knee march 50s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 45s","Leg raises 45s","Dead bug 45s","Climbers slow 45s","Side plank 30s",
+        "Oblique crunch 45s","Flutter kicks 45s","Heel taps 45s","Bird dog 45s","March fast 45s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring stretch 45s","Hip stretch 45s","Breathing 1 min"]
+    },
+
+    {
+      "day": 16,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 55s","Reverse lunges 55s","Side lunges 55s","Glute bridge 55s","Fast steps 55s",
+        "Calf raises 55s","Good mornings 55s","High knee march 55s","Squat pulses 55s","Side steps 55s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 50s","Leg raises 50s","Dead bug 50s","Slow climbers 50s","Side plank 30s",
+        "Oblique crunch 50s","Flutter kicks 45s","Heel taps 45s","Bird dog 45s","Fast march 45s"
+      ],
+      "break_2": 3,
+      "stretch": ["Full stretch 1 min","Calf stretch 1 min","Breathing 1 min"]
+    },
+
+    {
+      "day": 17,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 55s","Side lunges 55s","Reverse lunges 55s","Glute bridges 55s","Fast steps 55s",
+        "Calf raises 55s","Good mornings 55s","High knee march 55s","Squat pulses 55s","Side steps quick 55s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 50s","Leg raises 50s","Dead bug 50s","Climbers slow 50s","Side plank 30s",
+        "Oblique crunch 50s","Heel taps 50s","Flutter kicks 50s","Bird dog 50s","March fast 50s"
+      ],
+      "break_2": 3,
+      "stretch": ["Quad stretch 30s","Hamstring stretch 30s","Back stretch 30s","Breathing 1 min"]
+    },
+
+    {
+      "day": 18,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["March 2 min","Mobility 3 min"],
+      "circuit_block_1": [
+        "Squats 55s","Step runs fast 55s","Side lunges 55s","Glute bridge 55s","Reverse lunges 55s",
+        "Calf raises 55s","Good mornings 55s","Side steps 55s","Squat hold 25s","High knee march 55s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 50s","Leg raises 50s","Dead bug 50s","Climbers slow 50s","Side plank 30s",
+        "Oblique crunch 50s","Heel taps 50s","Flutter kicks 50s","Bird dog 50s","March fast 50s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring 30s","Calf stretch 30s","Breathing 30s"]
+    },
+
+    {
+      "day": 19,
+      "rest": true
+    },
+
+    {
+      "day": 20,
+      "intensity": "Outdoor",
+      "type": "Outdoor Walk/Run",
+      "warmup": ["Dynamic warmup 2 min","Leg swings 1 min","March 2 min"],
+      "circuit_block_1": [
+        "Tempo walk 2 min","Step-ups 2 min","Walking lunges tempo 2 min","Side steps fast 2 min","Balance taps 2 min",
+        "Jog 45s + walk 75s optional","Incline walk 2 min","Glute pulses 2 min","Bodyweight squats 2 min","Recovery walk 2 min"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "3 min brisk walk + 2 min standing core",
+        "3 min walk/jog + 2 min glute activation",
+        "3 min incline walk + 2 min balance work",
+        "3 min cool walk + 2 min mobility"
+      ],
+      "break_2": 3,
+      "stretch": ["Full leg stretch 1 min","Calf stretch 30s","Quad 30s","Breathing 30s"]
+    },
+
+    {
+      "day": 21,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 55s","Side lunges 55s","Reverse lunges 55s","Glute bridges 55s","Fast step run 55s",
+        "Calf raises 55s","Good mornings 55s","Wide march 55s","Squat pulses 55s","Fast side steps 55s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 50s","Leg raises 50s","Dead bug 50s","Climbers slow 50s","Side plank 30s",
+        "Oblique crunch 50s","Heel taps 50s","Flutter kicks 50s","Bird dog 50s","Fast march 50s"
+      ],
+      "break_2": 3,
+      "stretch": ["Stretch full body 1 min","Back stretch 1 min","Breathing 1 min"]
+    },
+
+    {
+      "day": 22,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 55s","Forward/back step run 55s","Reverse lunges 55s","Glute bridges 55s","Side lunges 55s",
+        "Calf raises 55s","Leg curls standing 55s","Good mornings 55s","Squat pulses 55s","High knee march 55s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 50s","Leg raises 50s","Dead bug 50s","Climbers slow 50s","Side plank 30s",
+        "Oblique crunch 50s","Heel taps 50s","Flutter kicks 50s","Bird dog 50s","March fast 50s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring 45s","Quad 45s","Breathing 1 min"]
+    },
+
+    {
+      "day": 23,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 55s","Side lunges 55s","Glute bridges 55s","Reverse lunges 55s","Fast step taps 55s",
+        "Calf raises 55s","Good mornings 55s","High knee march 55s","Squat pulses 55s","Side steps 55s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 50s","Leg raises 50s","Dead bug 50s","Slow climbers 50s","Side plank 30s",
+        "Oblique crunch 50s","Heel taps 50s","Flutter kicks 50s","Bird dog 50s","Fast march 50s"
+      ],
+      "break_2": 3,
+      "stretch": ["Full body stretch 1 min","Back stretch 1 min","Breathing 1 min"]
+    },
+
+    {
+      "day": 24,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 60s","Reverse lunges 60s","Side lunges 60s","Glute bridge 60s","Fast step run 60s",
+        "Calf raises 60s","Back extensions 60s","Wide march 60s","Squat pulses 60s","Side steps fast 60s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 55s","Leg raises 55s","Dead bug 55s","Slow climbers 55s","Side plank 35s",
+        "Oblique crunch 55s","Heel taps 55s","Flutter kicks 55s","Bird dog 55s","March fast 55s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring stretch 45s","Hip flexor 45s","Breathing 1 min"]
+    },
+
+    {
+      "day": 25,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 60s","Side lunges 60s","Reverse lunges 60s","Glute bridges 60s","Step run fast 60s",
+        "Calf raises 60s","Leg curls standing 60s","Good mornings 60s","Squat pulses 60s","High knee march 60s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 55s","Leg raises 55s","Dead bug 55s","Climbers slow 55s","Side plank 35s",
+        "Oblique crunch 55s","Heel taps 55s","Flutter kicks 55s","Bird dog 55s","Fast march 55s"
+      ],
+      "break_2": 3,
+      "stretch": ["Calf stretch 45s","Back stretch 45s","Breathing 1 min"]
+    },
+
+    {
+      "day": 26,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 60s","Reverse lunges 60s","Side lunges 60s","Glute bridges 60s","Fast step taps 60s",
+        "Calf raises 60s","Good mornings 60s","High knees march 60s","Squat pulses 60s","Side steps fast 60s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 55s","Leg raises 55s","Dead bug 55s","Climbers slow 55s","Side plank 35s",
+        "Oblique crunch 55s","Heel taps 55s","Flutter kicks 55s","Bird dog 55s","Fast march 55s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring stretch 45s","Quad stretch 45s","Breathing 1 min"]
+    },
+
+    {
+      "day": 27,
+      "intensity": "Outdoor",
+      "type": "Outdoor Walk/Run",
+      "warmup": ["Mobility flow 2 min","March & reach 2 min","Ankle circles 1 min"],
+      "circuit_block_1": [
+        "Tempo walk 2 min","Bench step-ups 2 min","Lateral lunges 2 min","Glute bridges 2 min","Calf raises 2 min",
+        "Jog 30–45s (optional)","Incline walk 2 min","Standing oblique reach 2 min","Squats slow 2 min","Recovery walk 2 min"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "3 min brisk walk + 2 min core mat",
+        "3 min brisk walk + 2 min glute activation",
+        "3 min tempo walk + 2 min balance",
+        "3 min cool walk + 2 min breathwork"
+      ],
+      "break_2": 3,
+      "stretch": ["Full body stretch 1.5 min","Quad 30s","Hamstring 30s","Breathing 30s"]
+    },
+
+    {
+      "day": 28,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 60s","Reverse lunges 60s","Side lunges 60s","Glute bridges 60s","Fast step run 60s",
+        "Calf raises 60s","Back extension 60s","Wide march 60s","Squat pulses 60s","Side steps fast 60s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 60s","Leg raises 60s","Dead bug 60s","Climbers slow 60s","Side plank 40s",
+        "Oblique crunch 60s","Heel taps 60s","Flutter kicks 60s","Bird dog 60s","Fast march 60s"
+      ],
+      "break_2": 3,
+      "stretch": ["Stretch 1 min","Calf 30s","Breathing 1 min"]
+    },
+
+    {
+      "day": 29,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 60s","Reverse lunges 60s","Side lunges 60s","Glute bridges 60s","Fast steps 60s",
+        "Calf raises 60s","Good mornings 60s","High knee march 60s","Squat pulses 60s","Side steps 60s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 60s","Leg raises 60s","Dead bug 60s","Slow climbers 60s","Side plank 40s",
+        "Oblique crunch 60s","Heel taps 60s","Flutter kicks 60s","Bird dog 60s","March fast 60s"
+      ],
+      "break_2": 3,
+      "stretch": ["Hamstring 45s","Hip flexor 45s","Breathing 45s"]
+    },
+
+    {
+      "day": 30,
+      "intensity": "Moderate",
+      "type": "Indoor",
+      "warmup": ["Dynamic warmup 5 min"],
+      "circuit_block_1": [
+        "Squats 60s","Reverse lunges 60s","Side lunges 60s","Glute bridges 60s","Fast steps 60s",
+        "Calf raises 60s","Good mornings 60s","High knee march 60s","Squat pulses 60s","Side steps fast 60s"
+      ],
+      "break_1": 3,
+      "circuit_block_2": [
+        "Plank 60s","Leg raises 60s","Dead bug 60s","Slow climbers 60s","Side plank 40s",
+        "Oblique crunch 60s","Heel taps 60s","Flutter kicks 60s","Bird dog 60s","March fast 60s"
+      ],
+      "break_2": 3,
+      "stretch": ["Full body stretch 2 min","Breathing 1 min"]
+    }
+  ]
+}
