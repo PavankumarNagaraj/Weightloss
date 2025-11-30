@@ -61,6 +61,7 @@ const HomePage = () => {
       textColor: 'text-red-600',
       popular: true,
       features: [
+        'Breast piece of Chicken only nothing else',
         'Chicken per meal as per protein selected',
         'Eggs and Egg based dishes',
         'Fresh seasonal vegetables',
