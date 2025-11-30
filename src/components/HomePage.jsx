@@ -84,10 +84,11 @@ const HomePage = () => {
         { name: 'High Protein Sandwich', description: 'Chicken, Greek Yogurt as main ingredients' },
         { name: 'Rice & Maxican Salad', description: 'Chicken salad with Vegetables' },
         { name: 'Grilled Chicken Bowl', description: 'Grilled chicken breast with quinoa and roasted vegetables' },
-        { name: 'Chicken Tikka Masala', description: 'Tender chicken in creamy tomato sauce with brown rice' },
         { name: 'Lemon Herb Chicken', description: 'Herb-marinated chicken with sweet potato and greens' },
         { name: 'Chicken Stir Fry', description: 'Wok-tossed chicken with mixed vegetables and noodles' },
-        { name: 'BBQ Chicken Plate', description: 'BBQ glazed chicken with roasted veggies and rice' }
+        { name: 'BBQ Chicken Plate', description: 'BBQ glazed chicken with roasted veggies and rice' },
+        { name: 'Banana Oats Protein Shake', description: 'Protein shake made from banana and whey protein and Oats' }
+
       ]
     },
     'veg-eggs': {
@@ -124,6 +125,7 @@ const HomePage = () => {
         { name: 'Egg Fried Rice', description: 'Protein-packed fried rice with eggs and vegetables' },
         { name: 'High-Protein Egg Rice Bowl', description: 'Protein-packed fried rice with eggs and vegetables' },
         { name: 'Egg Salad Bowl (High Protein)', description: 'Protein-packed fried rice with eggs and vegetables' },
+        { name: 'Banana Oats Protein Shake', description: 'Protein shake made from banana and whey protein and Oats' }
       ]
     },
     'veg': {
@@ -162,6 +164,7 @@ const HomePage = () => {
         { name: 'Tofu Stir Fry Bowl', description: 'Crispy tofu with mixed vegetables' },
         { name: 'Soya Chunks + Paneer', description: 'Soya chunks with paneer and brown rice' },
         { name: 'Buddha Bowl', description: 'Roasted chickpeas with quinoa, avocado and greens' },
+        { name: 'Banana Oats Protein Shake', description: 'Protein shake made from banana and whey protein and Oats' }
       ]
     }
   };
