@@ -55,7 +55,7 @@ const Navbar = () => {
               }`}
             >
               <Calculator className="w-5 h-5" />
-              <span className="font-semibold">Calculator</span>
+              <span className="font-semibold">Nutrients Calculator</span>
             </button>
 
             {/* Call Button */}
@@ -108,7 +108,7 @@ const Navbar = () => {
               }`}
             >
               <Calculator className="w-5 h-5" />
-              <span className="font-semibold">Calculator</span>
+              <span className="font-semibold">Nutrients Calculator</span>
             </button>
 
             <a 
