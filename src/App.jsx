@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import HomePage from './components/HomePage';
 import TrainerLogin from './components/TrainerLogin';
 import TrainerDashboard from './components/TrainerDashboard';
 import UserDashboard from './components/UserDashboard';
+import NutrientCalculator from './components/NutrientCalculator';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -40,6 +42,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<HomePage />} />
         <Route 
           path="/login" 
           element={isAuthenticated ? <Navigate to="/dashboard" /> : <TrainerLogin onLogin={handleLogin} />} 
@@ -53,7 +56,7 @@ function App() {
           } 
         />
         <Route path="/user/:userId" element={<UserDashboard />} />
-        <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
+        <Route path="/calculator" element={<NutrientCalculator />} />
       </Routes>
     </Router>
   );

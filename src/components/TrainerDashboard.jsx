@@ -26,7 +26,6 @@ import Settings from './dashboard/Settings';
 import FoodsWorkouts from './dashboard/FoodsWorkouts';
 import AdvancedExercises from './dashboard/AdvancedExercises';
 import AddUserModal from './dashboard/AddUserModal';
-import NutrientCalculator from './NutrientCalculator';
 import Toast from './Toast';
 import { useToast } from '../hooks/useToast';
 import * as dataService from '../services/dataService';
@@ -41,7 +40,6 @@ const TrainerDashboard = ({ onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [showAddUser, setShowAddUser] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [showCalculator, setShowCalculator] = useState(false);
   const { toasts, showToast, removeToast } = useToast();
   
   // Get current user role and info
@@ -306,7 +304,7 @@ const TrainerDashboard = ({ onLogout }) => {
           </button>
 
           <button
-            onClick={() => setShowCalculator(true)}
+            onClick={() => window.open('/calculator', '_blank')}
             className="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition"
           >
             <Calculator className="w-5 h-5" />
@@ -437,12 +435,6 @@ const TrainerDashboard = ({ onLogout }) => {
           editUser={editingUser}
         />
       )}
-
-      {/* Nutrient Calculator Modal */}
-      <NutrientCalculator 
-        isOpen={showCalculator}
-        onClose={() => setShowCalculator(false)}
-      />
 
       {/* Toast Notifications */}
       {toasts.map(toast => (
