@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Navbar from './Navbar';
 import {
   Calculator,
   User,
@@ -29,11 +31,20 @@ import {
   ArrowLeft,
   Flame,
   Moon,
-  Sun
+  Sun,
+  Sparkles,
+  Package
 } from 'lucide-react';
 
 const NutrientCalculator = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  
+  // Scroll to top when component loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -147,84 +158,60 @@ const NutrientCalculator = () => {
 
   const getFoodSuggestions = () => {
     const suggestions = {
-      'non-veg': {
-        breakfast: [
-          { name: 'Scrambled Eggs (3 eggs)', protein: 18, carbs: 2, fats: 15, calories: 210 },
-          { name: 'Oatmeal with Milk', protein: 10, carbs: 45, fats: 5, calories: 260 },
-          { name: 'Chicken Sausage (2)', protein: 14, carbs: 3, fats: 8, calories: 140 },
-          { name: 'Whole Wheat Toast (2 slices)', protein: 8, carbs: 30, fats: 2, calories: 160 }
-        ],
-        lunch: [
-          { name: 'Grilled Chicken Breast (200g)', protein: 60, carbs: 0, fats: 8, calories: 320 },
-          { name: 'Brown Rice (1 cup)', protein: 5, carbs: 45, fats: 2, calories: 215 },
-          { name: 'Mixed Vegetables', protein: 3, carbs: 15, fats: 1, calories: 80 },
-          { name: 'Fish Curry (150g)', protein: 35, carbs: 5, fats: 10, calories: 250 }
-        ],
-        dinner: [
-          { name: 'Grilled Salmon (150g)', protein: 35, carbs: 0, fats: 15, calories: 280 },
-          { name: 'Quinoa (1 cup)', protein: 8, carbs: 40, fats: 4, calories: 220 },
-          { name: 'Turkey Breast (150g)', protein: 45, carbs: 0, fats: 3, calories: 210 },
-          { name: 'Sweet Potato (medium)', protein: 2, carbs: 25, fats: 0, calories: 110 }
-        ],
-        snacks: [
-          { name: 'Greek Yogurt (200g)', protein: 20, carbs: 10, fats: 5, calories: 160 },
-          { name: 'Protein Shake', protein: 25, carbs: 5, fats: 3, calories: 150 },
-          { name: 'Boiled Eggs (2)', protein: 12, carbs: 1, fats: 10, calories: 140 },
-          { name: 'Tuna Salad', protein: 30, carbs: 5, fats: 8, calories: 210 }
-        ]
-      },
-      'veg': {
-        breakfast: [
-          { name: 'Paneer Bhurji (150g)', protein: 20, carbs: 5, fats: 15, calories: 240 },
-          { name: 'Oatmeal with Nuts', protein: 12, carbs: 45, fats: 10, calories: 310 },
-          { name: 'Greek Yogurt with Berries', protein: 15, carbs: 20, fats: 5, calories: 180 },
-          { name: 'Whole Wheat Paratha (2)', protein: 8, carbs: 40, fats: 8, calories: 260 }
-        ],
-        lunch: [
-          { name: 'Dal (Lentils) - 1 cup', protein: 18, carbs: 40, fats: 1, calories: 230 },
-          { name: 'Brown Rice (1 cup)', protein: 5, carbs: 45, fats: 2, calories: 215 },
-          { name: 'Paneer Tikka (150g)', protein: 25, carbs: 8, fats: 18, calories: 300 },
-          { name: 'Mixed Vegetable Curry', protein: 5, carbs: 20, fats: 8, calories: 160 }
-        ],
-        dinner: [
-          { name: 'Chickpea Curry (1 cup)', protein: 15, carbs: 45, fats: 4, calories: 270 },
-          { name: 'Quinoa Salad', protein: 10, carbs: 35, fats: 8, calories: 240 },
-          { name: 'Cottage Cheese (200g)', protein: 28, carbs: 6, fats: 8, calories: 200 },
-          { name: 'Vegetable Stir-fry', protein: 6, carbs: 25, fats: 10, calories: 200 }
-        ],
-        snacks: [
-          { name: 'Paneer Cubes (100g)', protein: 18, carbs: 3, fats: 13, calories: 200 },
-          { name: 'Protein Smoothie', protein: 20, carbs: 25, fats: 5, calories: 220 },
-          { name: 'Roasted Chickpeas', protein: 8, carbs: 20, fats: 3, calories: 135 },
-          { name: 'Cheese & Crackers', protein: 12, carbs: 15, fats: 10, calories: 190 }
-        ]
-      },
-      'vegan': {
-        breakfast: [
-          { name: 'Tofu Scramble (200g)', protein: 20, carbs: 4, fats: 10, calories: 180 },
-          { name: 'Oatmeal with Almond Milk', protein: 8, carbs: 45, fats: 8, calories: 280 },
-          { name: 'Chia Pudding', protein: 6, carbs: 30, fats: 12, calories: 250 },
-          { name: 'Whole Grain Toast with Avocado', protein: 8, carbs: 35, fats: 15, calories: 300 }
-        ],
-        lunch: [
-          { name: 'Lentil Soup (2 cups)', protein: 18, carbs: 40, fats: 2, calories: 240 },
-          { name: 'Quinoa Bowl', protein: 12, carbs: 50, fats: 8, calories: 320 },
-          { name: 'Tempeh Stir-fry (150g)', protein: 25, carbs: 15, fats: 12, calories: 280 },
-          { name: 'Brown Rice & Beans', protein: 15, carbs: 55, fats: 3, calories: 300 }
-        ],
-        dinner: [
-          { name: 'Chickpea Curry (1.5 cups)', protein: 20, carbs: 60, fats: 6, calories: 360 },
-          { name: 'Tofu & Vegetable Stir-fry', protein: 22, carbs: 20, fats: 14, calories: 300 },
-          { name: 'Black Bean Burger', protein: 18, carbs: 40, fats: 8, calories: 300 },
-          { name: 'Seitan with Vegetables', protein: 30, carbs: 15, fats: 5, calories: 220 }
-        ],
-        snacks: [
-          { name: 'Hummus with Veggies', protein: 8, carbs: 20, fats: 10, calories: 200 },
-          { name: 'Vegan Protein Shake', protein: 25, carbs: 10, fats: 5, calories: 190 },
-          { name: 'Almond Butter & Apple', protein: 7, carbs: 25, fats: 16, calories: 270 },
-          { name: 'Edamame (1 cup)', protein: 17, carbs: 15, fats: 8, calories: 190 }
-        ]
-      }
+      'non-veg': [
+        { name: 'Grilled Chicken Breast (200g)', protein: 60, carbs: 0, fats: 8, calories: 320 },
+        { name: 'Scrambled Eggs (3 eggs)', protein: 18, carbs: 2, fats: 15, calories: 210 },
+        { name: 'Grilled Salmon (150g)', protein: 35, carbs: 0, fats: 15, calories: 280 },
+        { name: 'Turkey Breast (150g)', protein: 45, carbs: 0, fats: 3, calories: 210 },
+        { name: 'Fish Curry (150g)', protein: 35, carbs: 5, fats: 10, calories: 250 },
+        { name: 'Tuna Salad', protein: 30, carbs: 5, fats: 8, calories: 210 },
+        { name: 'Greek Yogurt (200g)', protein: 20, carbs: 10, fats: 5, calories: 160 },
+        { name: 'Protein Shake', protein: 25, carbs: 5, fats: 3, calories: 150 },
+        { name: 'Boiled Eggs (2)', protein: 12, carbs: 1, fats: 10, calories: 140 },
+        { name: 'Chicken Sausage (2)', protein: 14, carbs: 3, fats: 8, calories: 140 },
+        { name: 'Brown Rice (1 cup)', protein: 5, carbs: 45, fats: 2, calories: 215 },
+        { name: 'Quinoa (1 cup)', protein: 8, carbs: 40, fats: 4, calories: 220 },
+        { name: 'Sweet Potato (medium)', protein: 2, carbs: 25, fats: 0, calories: 110 },
+        { name: 'Mixed Vegetables', protein: 3, carbs: 15, fats: 1, calories: 80 },
+        { name: 'Oatmeal with Milk', protein: 10, carbs: 45, fats: 5, calories: 260 },
+        { name: 'Whole Wheat Toast (2 slices)', protein: 8, carbs: 30, fats: 2, calories: 160 }
+      ],
+      'veg': [
+        { name: 'Paneer Tikka (150g)', protein: 25, carbs: 8, fats: 18, calories: 300 },
+        { name: 'Cottage Cheese (200g)', protein: 28, carbs: 6, fats: 8, calories: 200 },
+        { name: 'Paneer Bhurji (150g)', protein: 20, carbs: 5, fats: 15, calories: 240 },
+        { name: 'Dal (Lentils) - 1 cup', protein: 18, carbs: 40, fats: 1, calories: 230 },
+        { name: 'Chickpea Curry (1 cup)', protein: 15, carbs: 45, fats: 4, calories: 270 },
+        { name: 'Paneer Cubes (100g)', protein: 18, carbs: 3, fats: 13, calories: 200 },
+        { name: 'Greek Yogurt with Berries', protein: 15, carbs: 20, fats: 5, calories: 180 },
+        { name: 'Protein Smoothie', protein: 20, carbs: 25, fats: 5, calories: 220 },
+        { name: 'Roasted Chickpeas', protein: 8, carbs: 20, fats: 3, calories: 135 },
+        { name: 'Oatmeal with Nuts', protein: 12, carbs: 45, fats: 10, calories: 310 },
+        { name: 'Brown Rice (1 cup)', protein: 5, carbs: 45, fats: 2, calories: 215 },
+        { name: 'Quinoa Salad', protein: 10, carbs: 35, fats: 8, calories: 240 },
+        { name: 'Mixed Vegetable Curry', protein: 5, carbs: 20, fats: 8, calories: 160 },
+        { name: 'Vegetable Stir-fry', protein: 6, carbs: 25, fats: 10, calories: 200 },
+        { name: 'Whole Wheat Paratha (2)', protein: 8, carbs: 40, fats: 8, calories: 260 },
+        { name: 'Cheese & Crackers', protein: 12, carbs: 15, fats: 10, calories: 190 }
+      ],
+      'vegan': [
+        { name: 'Tofu Scramble (200g)', protein: 20, carbs: 4, fats: 10, calories: 180 },
+        { name: 'Tempeh Stir-fry (150g)', protein: 25, carbs: 15, fats: 12, calories: 280 },
+        { name: 'Tofu & Vegetable Stir-fry', protein: 22, carbs: 20, fats: 14, calories: 300 },
+        { name: 'Seitan with Vegetables', protein: 30, carbs: 15, fats: 5, calories: 220 },
+        { name: 'Vegan Protein Shake', protein: 25, carbs: 10, fats: 5, calories: 190 },
+        { name: 'Chickpea Curry (1.5 cups)', protein: 20, carbs: 60, fats: 6, calories: 360 },
+        { name: 'Lentil Soup (2 cups)', protein: 18, carbs: 40, fats: 2, calories: 240 },
+        { name: 'Black Bean Burger', protein: 18, carbs: 40, fats: 8, calories: 300 },
+        { name: 'Edamame (1 cup)', protein: 17, carbs: 15, fats: 8, calories: 190 },
+        { name: 'Brown Rice & Beans', protein: 15, carbs: 55, fats: 3, calories: 300 },
+        { name: 'Quinoa Bowl', protein: 12, carbs: 50, fats: 8, calories: 320 },
+        { name: 'Hummus with Veggies', protein: 8, carbs: 20, fats: 10, calories: 200 },
+        { name: 'Oatmeal with Almond Milk', protein: 8, carbs: 45, fats: 8, calories: 280 },
+        { name: 'Almond Butter & Apple', protein: 7, carbs: 25, fats: 16, calories: 270 },
+        { name: 'Chia Pudding', protein: 6, carbs: 30, fats: 12, calories: 250 },
+        { name: 'Whole Grain Toast with Avocado', protein: 8, carbs: 35, fats: 15, calories: 300 }
+      ]
     };
 
     return suggestions[formData.dietType];
@@ -249,41 +236,87 @@ const NutrientCalculator = () => {
     });
   };
 
-  if (!isOpen && !isStandalone) return null;
+  const getRecommendedPackage = () => {
+    if (!results) return null;
+
+    const proteinPerMeal = Math.round(results.protein / 3); // Divide by 3 meals
+    const mealsPerDay = proteinPerMeal > 50 ? 3 : proteinPerMeal > 35 ? 2 : 1;
+    
+    // Determine protein tier (30g, 40g, 50g, 60g)
+    let proteinTier = 30;
+    if (proteinPerMeal >= 55) proteinTier = 60;
+    else if (proteinPerMeal >= 45) proteinTier = 50;
+    else if (proteinPerMeal >= 35) proteinTier = 40;
+
+    // Determine plan type
+    let planType = 'non-veg';
+    if (formData.dietType === 'veg') planType = 'veg';
+    else if (formData.dietType === 'vegan') planType = 'veg';
+
+    // Calculate pricing
+    const getPricePerMeal = (planKey, mealsPerDay, proteinGrams) => {
+      let basePrice;
+      if (planKey === 'non-veg') {
+        if (mealsPerDay === 1) basePrice = 279;
+        else if (mealsPerDay === 2) basePrice = 269;
+        else basePrice = 259;
+      } else if (planKey === 'veg-eggs') {
+        if (mealsPerDay === 1) basePrice = 219;
+        else if (mealsPerDay === 2) basePrice = 209;
+        else basePrice = 199;
+      } else {
+        if (mealsPerDay === 1) basePrice = 239;
+        else if (mealsPerDay === 2) basePrice = 229;
+        else basePrice = 219;
+      }
+      const proteinMultiplier = (proteinGrams - 30) / 10;
+      const additionalCost = proteinMultiplier * 30;
+      return Math.round(basePrice + additionalCost);
+    };
+
+    const pricePerMeal = getPricePerMeal(planType, mealsPerDay, proteinTier);
+    const monthlyPrice = pricePerMeal * mealsPerDay * 25; // 25 days per month
+
+    return {
+      planType,
+      planName: planType === 'non-veg' ? 'Non-Vegetarian' : planType === 'veg-eggs' ? 'Veg + Eggs' : 'Vegetarian',
+      mealsPerDay,
+      proteinTier,
+      pricePerMeal,
+      monthlyPrice,
+      totalMeals: mealsPerDay * 25
+    };
+  };
 
   return (
-    <div className={`${isStandalone ? '' : 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'}`}>
-      <div className={`bg-white rounded-xl shadow-2xl ${isStandalone ? 'w-full h-full' : 'max-w-4xl w-full max-h-[90vh]'} overflow-hidden flex flex-col`}>
-        {/* Header */}
-        <div className="bg-gradient-to-r from-primary to-primary/80 text-white px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Calculator className="w-6 h-6" />
-            <h2 className="text-2xl font-bold">Nutrient Calculator</h2>
-          </div>
-          {!isStandalone && (
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Navigation */}
+      <Navbar />
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {step === 1 ? (
             // Input Form
             <div className="space-y-6">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <h1 className="text-5xl font-black text-white mb-4">
+                  <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                    Nutrient Calculator
+                  </span>
+                </h1>
+                <p className="text-xl text-gray-300">Calculate your personalized nutrition plan</p>
+              </div>
+
               {/* Personal Information */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <User className="w-5 h-5 text-primary" />
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5 text-yellow-400" />
                   Personal Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Name</label>
                     <input
                       type="text"
                       name="name"
@@ -294,7 +327,7 @@ const NutrientCalculator = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Age</label>
                     <input
                       type="number"
                       name="age"
@@ -305,7 +338,7 @@ const NutrientCalculator = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Gender</label>
                     <select
                       name="gender"
                       value={formData.gender}
@@ -317,7 +350,7 @@ const NutrientCalculator = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Height (cm)</label>
                     <input
                       type="number"
                       name="height"
@@ -331,14 +364,14 @@ const NutrientCalculator = () => {
               </div>
 
               {/* Body Composition */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-primary" />
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-yellow-400" />
                   Body Composition
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Current Weight (kg)</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Current Weight (kg)</label>
                     <input
                       type="number"
                       name="weight"
@@ -349,7 +382,7 @@ const NutrientCalculator = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Target Weight (kg)</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Target Weight (kg)</label>
                     <input
                       type="number"
                       name="targetWeight"
@@ -360,7 +393,7 @@ const NutrientCalculator = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Muscle Mass (kg) - Optional</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Muscle Mass (kg) - Optional</label>
                     <input
                       type="number"
                       name="muscleMass"
@@ -371,7 +404,7 @@ const NutrientCalculator = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Body Fat (%) - Optional</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Body Fat (%) - Optional</label>
                     <input
                       type="number"
                       name="fatPercentage"
@@ -382,7 +415,7 @@ const NutrientCalculator = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Body Water (%) - Optional</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Body Water (%) - Optional</label>
                     <input
                       type="number"
                       name="waterContent"
@@ -396,14 +429,14 @@ const NutrientCalculator = () => {
               </div>
 
               {/* Goals & Preferences */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <Target className="w-5 h-5 text-primary" />
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <Target className="w-5 h-5 text-yellow-400" />
                   Goals & Preferences
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Activity Level</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Activity Level</label>
                     <select
                       name="activityLevel"
                       value={formData.activityLevel}
@@ -418,7 +451,7 @@ const NutrientCalculator = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Goal</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Goal</label>
                     <select
                       name="goal"
                       value={formData.goal}
@@ -431,7 +464,7 @@ const NutrientCalculator = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Diet Type</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-2">Diet Type</label>
                     <select
                       name="dietType"
                       value={formData.dietType}
@@ -497,9 +530,86 @@ const NutrientCalculator = () => {
                 </div>
               </div>
 
+              {/* Recommended Package */}
+              {getRecommendedPackage() && (
+                <div className="bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-2xl p-6 shadow-2xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Sparkles className="w-8 h-8 text-white" />
+                    <div>
+                      <h3 className="text-2xl font-black text-white">Recommended Package</h3>
+                      <p className="text-sm text-white/90">Based on your nutrition requirements</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/20 backdrop-blur-lg rounded-xl p-6 mb-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div className="text-center">
+                        <Package className="w-6 h-6 text-white mx-auto mb-2" />
+                        <div className="text-2xl font-bold text-white">{getRecommendedPackage().planName}</div>
+                        <div className="text-xs text-white/80">Plan Type</div>
+                      </div>
+                      <div className="text-center">
+                        <Beef className="w-6 h-6 text-white mx-auto mb-2" />
+                        <div className="text-2xl font-bold text-white">{getRecommendedPackage().mealsPerDay}</div>
+                        <div className="text-xs text-white/80">Meals/Day</div>
+                      </div>
+                      <div className="text-center">
+                        <Zap className="w-6 h-6 text-white mx-auto mb-2" />
+                        <div className="text-2xl font-bold text-white">{getRecommendedPackage().proteinTier}g</div>
+                        <div className="text-xs text-white/80">Protein/Meal</div>
+                      </div>
+                      <div className="text-center">
+                        <Calendar className="w-6 h-6 text-white mx-auto mb-2" />
+                        <div className="text-2xl font-bold text-white">{getRecommendedPackage().totalMeals}</div>
+                        <div className="text-xs text-white/80">Total Meals</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white/30 rounded-lg p-4 text-center">
+                      <div className="text-sm text-white/90 mb-1">Monthly Investment</div>
+                      <div className="text-4xl font-black text-white">₹{getRecommendedPackage().monthlyPrice.toLocaleString()}</div>
+                      <div className="text-sm text-white/80 mt-1">₹{getRecommendedPackage().pricePerMeal}/meal</div>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => navigate('/')}
+                    className="w-full bg-white text-orange-600 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition flex items-center justify-center gap-2"
+                  >
+                    <Package className="w-5 h-5" />
+                    View All Plans & Subscribe
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setStep(1)}
+                  className="flex items-center gap-2 px-6 py-3 bg-yellow-500/20 backdrop-blur-lg text-yellow-400 border-2 border-yellow-500/30 rounded-xl font-bold hover:bg-yellow-500/30 transition"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Edit Calculation
+                </button>
+                <button
+                  onClick={resetCalculator}
+                  className="flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg text-white border-2 border-white/30 rounded-xl font-bold hover:bg-white/20 transition"
+                >
+                  <RotateCcw className="w-5 h-5" />
+                  New Calculation
+                </button>
+              </div>
+
               {/* Calorie Information */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Calorie Requirements</h3>
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-white">Calorie Requirements</h3>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/30 rounded-lg font-bold hover:bg-green-500/30 transition text-sm">
+                    <Share2 className="w-4 h-4" />
+                    Send this Image
+                  </button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
                     <div className="flex items-center justify-between mb-2">
@@ -553,15 +663,15 @@ const NutrientCalculator = () => {
               </div>
 
               {/* Food Suggestions */}
-              <div className="bg-gray-50 rounded-lg p-6">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
                 <button
                   onClick={() => setShowFoodSuggestions(!showFoodSuggestions)}
-                  className="w-full flex items-center justify-between text-xl font-bold text-gray-800 mb-4"
+                  className="w-full flex items-center justify-between text-xl font-bold text-white mb-4"
                 >
                   <span className="flex items-center gap-2">
-                    {formData.dietType === 'non-veg' ? <Beef className="w-5 h-5 text-primary" /> :
-                     formData.dietType === 'veg' ? <Apple className="w-5 h-5 text-primary" /> :
-                     <Leaf className="w-5 h-5 text-primary" />}
+                    {formData.dietType === 'non-veg' ? <Beef className="w-5 h-5 text-yellow-400" /> :
+                     formData.dietType === 'veg' ? <Apple className="w-5 h-5 text-green-400" /> :
+                     <Leaf className="w-5 h-5 text-green-400" />}
                     Food Suggestions ({formData.dietType === 'non-veg' ? 'Non-Vegetarian' : 
                                        formData.dietType === 'veg' ? 'Vegetarian' : 'Vegan'})
                   </span>
@@ -569,22 +679,23 @@ const NutrientCalculator = () => {
                 </button>
 
                 {showFoodSuggestions && (
-                  <div className="space-y-4">
-                    {Object.entries(getFoodSuggestions()).map(([mealType, foods]) => (
-                      <div key={mealType} className="bg-white rounded-lg p-4">
-                        <h4 className="font-bold text-gray-800 mb-3 capitalize">{mealType}</h4>
-                        <div className="space-y-2">
-                          {foods.map((food, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                              <span className="text-sm font-medium text-gray-700">{food.name}</span>
-                              <div className="flex gap-3 text-xs">
-                                <span className="text-red-600">P: {food.protein}g</span>
-                                <span className="text-yellow-600">C: {food.carbs}g</span>
-                                <span className="text-orange-600">F: {food.fats}g</span>
-                                <span className="text-gray-600 font-bold">{food.calories} cal</span>
-                              </div>
-                            </div>
-                          ))}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {getFoodSuggestions().map((food, idx) => (
+                      <div key={idx} className="bg-white/5 backdrop-blur-lg rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all">
+                        <h4 className="font-bold text-white mb-2 text-sm">{food.name}</h4>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="bg-red-500/20 rounded px-2 py-1">
+                            <span className="text-red-400 font-bold">P: {food.protein}g</span>
+                          </div>
+                          <div className="bg-yellow-500/20 rounded px-2 py-1">
+                            <span className="text-yellow-400 font-bold">C: {food.carbs}g</span>
+                          </div>
+                          <div className="bg-orange-500/20 rounded px-2 py-1">
+                            <span className="text-orange-400 font-bold">F: {food.fats}g</span>
+                          </div>
+                          <div className="bg-blue-500/20 rounded px-2 py-1">
+                            <span className="text-blue-400 font-bold">{food.calories} cal</span>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -592,26 +703,8 @@ const NutrientCalculator = () => {
                 )}
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-4">
-                <button
-                  onClick={resetCalculator}
-                  className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-300 transition"
-                >
-                  New Calculation
-                </button>
-                {!isStandalone && (
-                  <button
-                    onClick={onClose}
-                    className="flex-1 bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition"
-                  >
-                    Close
-                  </button>
-                )}
-              </div>
             </div>
           )}
-        </div>
       </div>
     </div>
   );

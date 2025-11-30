@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ADMIN_CREDENTIALS } from '../FirebaseConfig';
 import { Lock, User, AlertCircle, Calculator } from 'lucide-react';
-import NutrientCalculator from './NutrientCalculator';
 
 const TrainerLogin = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showCalculator, setShowCalculator] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -121,7 +119,7 @@ const TrainerLogin = ({ onLogin }) => {
         {/* Nutrient Calculator Button */}
         <div className="mt-6">
           <button
-            onClick={() => setShowCalculator(true)}
+            onClick={() => navigate('/calculator')}
             className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition flex items-center justify-center gap-2"
           >
             <Calculator className="w-5 h-5" />
@@ -130,12 +128,6 @@ const TrainerLogin = ({ onLogin }) => {
           <p className="text-xs text-gray-500 text-center mt-2">Calculate your daily nutrient requirements</p>
         </div>
       </div>
-
-      {/* Nutrient Calculator Modal */}
-      <NutrientCalculator 
-        isOpen={showCalculator}
-        onClose={() => setShowCalculator(false)}
-      />
     </div>
   );
 };
