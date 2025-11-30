@@ -334,7 +334,7 @@ const HomePage = () => {
                         )}
                       </div>
                       <div className="mb-3">
-                        <div className="text-gray-400 text-xs sm:text-sm">Starting from</div>
+                        <br></br>
                         <div className="text-3xl sm:text-4xl font-black text-white">
                           ₹{monthlyPrice.toLocaleString()}
                           <span className="text-lg text-gray-400">/month</span>
@@ -342,6 +342,7 @@ const HomePage = () => {
                         <div className="text-sm text-gray-400 mt-1">
                           {selectedMeals} meal{selectedMeals > 1 ? 's' : ''} × 25 days
                         </div>
+                        <br></br>
                       </div>
                       <div className="flex items-center justify-between pt-3 border-t border-white/20">
                         <div>
