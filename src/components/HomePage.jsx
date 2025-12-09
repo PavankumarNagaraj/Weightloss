@@ -678,8 +678,24 @@ const HomePage = () => {
               </div>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 AFTERBURN. All rights reserved.</p>
+          <div className="border-t border-gray-800 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-gray-400">&copy; 2025 AFTERBURN. All rights reserved.</p>
+              <div className="flex gap-6">
+                <button
+                  onClick={() => navigate('/privacy-policy')}
+                  className="text-gray-400 hover:text-yellow-400 transition text-sm"
+                >
+                  Privacy Policy
+                </button>
+                <button
+                  onClick={() => navigate('/terms-conditions')}
+                  className="text-gray-400 hover:text-yellow-400 transition text-sm"
+                >
+                  Terms & Conditions
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

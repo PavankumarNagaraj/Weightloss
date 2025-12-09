@@ -11,6 +11,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SupabaseLogin from './components/SupabaseLogin';
 import SupabaseGoogleLogin from './components/SupabaseGoogleLogin';
 import GoogleFitDashboard from './components/GoogleFitDashboard';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsConditions from './components/TermsConditions';
 import { useAuth } from './contexts/AuthContext';
 
 function App() {
@@ -34,6 +36,8 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/cafe/*" element={<CafeManagement />} />
         <Route path="/calculator" element={<NutrientCalculator />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-conditions" element={<TermsConditions />} />
         
         {/* Weight Loss Routes */}
         <Route path="/weightloss" element={<Navigate to="/weightloss/auth" replace />} />
