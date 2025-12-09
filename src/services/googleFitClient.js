@@ -344,6 +344,5 @@ export default {
   getLastNightSleep,
   getWeeklySummary,
   getTodayStats,
-  getStatsForDate,
   isConnected,
 };

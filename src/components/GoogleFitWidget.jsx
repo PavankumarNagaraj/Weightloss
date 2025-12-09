@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Heart, Footprints, Flame, Moon, RefreshCw, ChevronLeft, ChevronRight, Database, Cloud, Calendar } from 'lucide-react';
+import { Activity, Heart, Footprints, Flame, Moon, RefreshCw, ChevronLeft, ChevronRight, Database, Cloud, Calendar, Download } from 'lucide-react';
 import { isConnected } from '../services/googleFitClient';
 import { getFitnessData, syncFitnessDataForDate } from '../services/googleFitSync';
-import { getRangeStats } from '../services/googleFitRanges';
+import { getRangeStats, syncDateRange } from '../services/googleFitRanges';
 import { useAuth } from '../contexts/AuthContext';
 
 const GoogleFitWidget = () => {
@@ -50,12 +50,42 @@ const GoogleFitWidget = () => {
     
     setSyncing(true);
     try {
-      // Force sync from Google Fit
-      const data = await syncFitnessDataForDate(user.id, selectedDate);
-      setStats({ ...data, fromCache: false });
+      if (viewMode === 'range') {
+        // Sync the entire range
+        await syncDateRange(user.id, selectedRange);
+        // Reload stats from DB
+        const data = await getRangeStats(user.id, selectedRange);
+        setStats(data);
+      } else {
+        // Force sync single day from Google Fit
+        const data = await syncFitnessDataForDate(user.id, selectedDate);
+        setStats({ ...data, fromCache: false });
+      }
     } catch (err) {
       console.error('Error syncing:', err);
       setError(err.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleSync30Days = async () => {
+    if (!user) return;
+    
+    if (!confirm('This will sync the last 30 days of Google Fit data. This may take a minute. Continue?')) {
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      const results = await syncDateRange(user.id, 'last30days');
+      const successCount = results.filter(r => r.success).length;
+      alert(`Synced ${successCount} out of ${results.length} days successfully!`);
+      // Reload current view
+      await checkConnectionAndLoadData();
+    } catch (err) {
+      console.error('Error syncing 30 days:', err);
+      alert('Error syncing data: ' + err.message);
     } finally {
       setSyncing(false);
     }
@@ -133,14 +163,25 @@ const GoogleFitWidget = () => {
             {viewMode === 'range' ? stats?.period || 'Activity' : 'Today\'s Activity'}
           </h3>
         </div>
-        <button
-          onClick={handleRefresh}
-          disabled={syncing}
-          className="p-2 hover:bg-white/50 rounded-lg transition disabled:opacity-50"
-          title="Refresh data"
-        >
-          <RefreshCw className={`w-4 h-4 text-gray-600 ${syncing ? 'animate-spin' : ''}`} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSync30Days}
+            disabled={syncing}
+            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+            title="Sync last 30 days from Google Fit"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Sync 30 Days</span>
+          </button>
+          <button
+            onClick={handleRefresh}
+            disabled={syncing}
+            className="p-2 hover:bg-white/50 rounded-lg transition disabled:opacity-50"
+            title="Refresh data"
+          >
+            <RefreshCw className={`w-4 h-4 text-gray-600 ${syncing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Range Selector */}
