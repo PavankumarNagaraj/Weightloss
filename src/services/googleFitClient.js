@@ -48,20 +48,22 @@ const fetchFitData = async (endpoint, options = {}) => {
 };
 
 /**
- * Get today's activity data (steps, calories, distance)
+ * Get activity data for a specific date
  * Query data sources directly instead of using aggregation
  */
-export const getTodayActivity = async () => {
+export const getActivityForDate = async (date = new Date()) => {
   try {
-    const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const targetDate = new Date(date);
+    const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
     
     const startTimeNanos = startOfDay.getTime() * 1000000; // Convert to nanoseconds
-    const endTimeNanos = now.getTime() * 1000000;
+    const endTimeNanos = endOfDay.getTime() * 1000000;
 
     console.log('Fetching activity data:', { 
+      date: targetDate.toDateString(),
       start: startOfDay.toISOString(), 
-      end: now.toISOString() 
+      end: endOfDay.toISOString() 
     });
 
     // Query steps directly from merge_step_deltas
@@ -332,11 +334,16 @@ export const getTodayStats = async () => {
   }
 };
 
+// Export getTodayActivity as alias for backward compatibility
+export const getTodayActivity = () => getActivityForDate(new Date());
+
 export default {
+  getActivityForDate,
   getTodayActivity,
   getTodayHeartRate,
   getLastNightSleep,
   getWeeklySummary,
   getTodayStats,
+  getStatsForDate,
   isConnected,
 };
