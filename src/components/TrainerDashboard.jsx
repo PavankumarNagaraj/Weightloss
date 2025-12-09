@@ -14,11 +14,22 @@ import {
   Apple,
   Dumbbell,
   Calculator,
+  CreditCard,
+  Target,
+  Zap,
+  Image as ImageIcon,
 } from 'lucide-react';
 import Overview from './dashboard/Overview';
-import Funnel from './dashboard/Funnel';
+import TodaysPriorities from './dashboard/TodaysPriorities';
+import PipelineView from './dashboard/PipelineView';
 import UsersList from './dashboard/UsersList';
+import UserEditPage from './dashboard/UserEditPage';
 import Reports from './dashboard/Reports';
+import AdvancedAnalytics from './dashboard/AdvancedAnalytics';
+import Billing from './dashboard/Billing';
+import FoodExerciseAnalytics from './dashboard/FoodExerciseAnalytics';
+import PhotoProgress from './dashboard/PhotoProgress';
+import CheckinScheduler from './dashboard/CheckinScheduler';
 import Attendance from './dashboard/AttendanceNew';
 import TrainerManagement from './dashboard/TrainerManagement';
 import BatchManagement from './dashboard/BatchManagement';
@@ -27,7 +38,9 @@ import FoodsWorkouts from './dashboard/FoodsWorkouts';
 import AdvancedExercises from './dashboard/AdvancedExercises';
 import AddUserModal from './dashboard/AddUserModal';
 import Toast from './Toast';
+import ConfirmModal from './ConfirmModal';
 import { useToast } from '../hooks/useToast';
+import { useConfirm } from '../hooks/useConfirm';
 import * as dataService from '../services/dataService';
 import { initializeExerciseLibrary } from '../utils/initializeExercises';
 
@@ -39,6 +52,7 @@ const TrainerDashboard = ({ onLogout }) => {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddUser, setShowAddUser] = useState(false);
+  const { confirmState, confirm, closeConfirm } = useConfirm();
   const [editingUser, setEditingUser] = useState(null);
   const { toasts, showToast, removeToast } = useToast();
   
@@ -49,16 +63,21 @@ const TrainerDashboard = ({ onLogout }) => {
 
   // Filter tabs based on role
   const allTabs = [
-    { name: 'Overview', path: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'trainer'] },
-    { name: 'Funnel', path: '/dashboard/funnel', icon: Filter, roles: ['admin'] },
-    { name: 'Users', path: '/dashboard/users', icon: Users, roles: ['admin', 'trainer'] },
-    { name: 'Trainers', path: '/dashboard/trainers', icon: Shield, roles: ['admin'] },
-    { name: 'Batches', path: '/dashboard/batches', icon: Layers, roles: ['admin'] },
-    { name: 'Foods & Workouts', path: '/dashboard/foods-workouts', icon: Apple, roles: ['admin', 'trainer'] },
-    { name: 'Advanced Exercises', path: '/dashboard/advanced-exercises', icon: Dumbbell, roles: ['admin', 'trainer'] },
-    { name: 'Attendance', path: '/dashboard/attendance', icon: Calendar, roles: ['admin', 'trainer'] },
-    { name: 'Reports', path: '/dashboard/reports', icon: TrendingUp, roles: ['admin', 'trainer'] },
-    { name: 'Settings', path: '/dashboard/settings', icon: SettingsIcon, roles: ['admin'] },
+    { name: 'Priorities', path: '/weightloss/dashboard', icon: Zap, roles: ['admin', 'trainer'] },
+    { name: 'Pipeline', path: '/weightloss/dashboard/pipeline', icon: Target, roles: ['admin', 'trainer'] },
+    { name: 'Overview', path: '/weightloss/dashboard/overview', icon: LayoutDashboard, roles: ['admin', 'trainer'] },
+    { name: 'Users', path: '/weightloss/dashboard/users', icon: Users, roles: ['admin', 'trainer'] },
+    { name: 'Check-ins', path: '/weightloss/dashboard/checkins', icon: Calendar, roles: ['admin', 'trainer'] },
+    { name: 'Analytics', path: '/weightloss/dashboard/analytics', icon: TrendingUp, roles: ['admin', 'trainer'] },
+    { name: 'Food & Exercise Analytics', path: '/weightloss/dashboard/food-exercise-analytics', icon: Apple, roles: ['admin', 'trainer'] },
+    { name: 'Billing', path: '/weightloss/dashboard/billing', icon: CreditCard, roles: ['admin'] },
+    { name: 'Trainers', path: '/weightloss/dashboard/trainers', icon: Shield, roles: ['admin'] },
+    { name: 'Batches', path: '/weightloss/dashboard/batches', icon: Layers, roles: ['admin'] },
+    { name: 'Foods & Workouts', path: '/weightloss/dashboard/foods-workouts', icon: Apple, roles: ['admin', 'trainer'] },
+    { name: 'Advanced Exercises', path: '/weightloss/dashboard/advanced-exercises', icon: Dumbbell, roles: ['admin', 'trainer'] },
+    { name: 'Attendance', path: '/weightloss/dashboard/attendance', icon: Calendar, roles: ['admin', 'trainer'] },
+    { name: 'Reports', path: '/weightloss/dashboard/reports', icon: TrendingUp, roles: ['admin', 'trainer'] },
+    { name: 'Settings', path: '/weightloss/dashboard/settings', icon: SettingsIcon, roles: ['admin'] },
   ];
   
   const tabs = allTabs.filter(tab => tab.roles.includes(userRole));
@@ -115,7 +134,7 @@ const TrainerDashboard = ({ onLogout }) => {
 
   const handleLogout = () => {
     onLogout();
-    navigate('/login');
+    navigate('/weightloss/login');
   };
 
   const handleAddUser = (userIdOrData, userData = null) => {
@@ -155,10 +174,27 @@ const TrainerDashboard = ({ onLogout }) => {
     setShowAddUser(true);
   };
 
-  const handleUpdateUser = (userId, updates) => {
+  const handleUpdateUser = (userIdOrObject, updates) => {
     try {
-      const updatedUser = dataService.updateUser(userId, updates);
-      setUsers(users.map(u => u.id === userId ? updatedUser : u));
+      // Handle both cases: (userId, updates) or (userObject)
+      let userId, updateData;
+      
+      if (typeof userIdOrObject === 'object' && userIdOrObject.id) {
+        // Called with user object (from Pipeline drag & drop)
+        userId = userIdOrObject.id;
+        const { id, ...rest } = userIdOrObject;
+        updateData = rest;
+      } else {
+        // Called with userId and updates separately
+        userId = userIdOrObject;
+        updateData = updates;
+      }
+      
+      const updatedUser = dataService.updateUser(userId, updateData);
+      
+      // Update state with new user data
+      setUsers(prevUsers => prevUsers.map(u => u.id === userId ? updatedUser : u));
+      
       showToast('User updated successfully!', 'success');
     } catch (error) {
       console.error('Error updating user:', error);
@@ -167,16 +203,25 @@ const TrainerDashboard = ({ onLogout }) => {
   };
 
   const handleDeleteUser = (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    const user = users.find(u => u.id === userId);
     
-    try {
-      dataService.deleteUser(userId);
-      setUsers(users.filter(u => u.id !== userId));
-      showToast('User deleted successfully!', 'success');
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      showToast('Failed to delete user. Please try again.', 'error');
-    }
+    confirm({
+      title: 'Delete User?',
+      message: `Are you sure you want to delete ${user?.name || 'this user'}? This action cannot be undone and will remove all their data including logs, photos, and payment history.`,
+      confirmText: 'Delete User',
+      cancelText: 'Cancel',
+      type: 'danger',
+      onConfirm: () => {
+        try {
+          dataService.deleteUser(userId);
+          setUsers(users.filter(u => u.id !== userId));
+          showToast('User deleted successfully!', 'success');
+        } catch (error) {
+          console.error('Error deleting user:', error);
+          showToast('Failed to delete user. Please try again.', 'error');
+        }
+      }
+    });
   };
 
   // Trainer Management
@@ -275,7 +320,7 @@ const TrainerDashboard = ({ onLogout }) => {
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = currentPath === tab.path || 
-              (tab.path === '/dashboard' && currentPath === '/dashboard/');
+              (tab.path === '/weightloss/dashboard' && currentPath === '/weightloss/dashboard/');
             
             return (
               <button
@@ -295,14 +340,6 @@ const TrainerDashboard = ({ onLogout }) => {
         </nav>
 
         <div className="p-4 border-t space-y-2">
-          <button
-            onClick={() => setShowAddUser(true)}
-            className="w-full flex items-center space-x-3 px-4 py-3 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition"
-          >
-            <UserPlus className="w-5 h-5" />
-            <span className="font-medium">Add User</span>
-          </button>
-
           <button
             onClick={() => window.open('/calculator', '_blank')}
             className="w-full flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition"
@@ -327,17 +364,24 @@ const TrainerDashboard = ({ onLogout }) => {
           <Route 
             path="/" 
             element={
-              <Overview 
+              <TodaysPriorities 
                 users={users} 
-                loading={loading}
+              />
+            } 
+          />
+          <Route 
+            path="/pipeline" 
+            element={
+              <PipelineView 
+                users={users} 
                 onUpdateUser={handleUpdateUser}
               />
             } 
           />
           <Route 
-            path="/funnel" 
+            path="/overview" 
             element={
-              <Funnel 
+              <Overview 
                 users={users} 
                 loading={loading}
                 onUpdateUser={handleUpdateUser}
@@ -353,6 +397,55 @@ const TrainerDashboard = ({ onLogout }) => {
                 onUpdateUser={handleUpdateUser}
                 onDeleteUser={handleDeleteUser}
                 onEditUser={handleEditUser}
+                onAddUser={() => setShowAddUser(true)}
+                showToast={showToast}
+              />
+            } 
+          />
+          <Route 
+            path="/users/:userId/edit" 
+            element={
+              <UserEditPage 
+                users={users}
+                onUpdateUser={handleUpdateUser}
+                onDeleteUser={handleDeleteUser}
+                showToast={showToast}
+              />
+            } 
+          />
+          <Route 
+            path="/checkins" 
+            element={
+              <CheckinScheduler 
+                users={users}
+                onUpdateUser={handleUpdateUser}
+                showToast={showToast}
+              />
+            } 
+          />
+          <Route 
+            path="/analytics" 
+            element={
+              <AdvancedAnalytics 
+                users={users}
+              />
+            } 
+          />
+          <Route 
+            path="/food-exercise-analytics" 
+            element={
+              <FoodExerciseAnalytics 
+                users={users}
+                showToast={showToast}
+              />
+            } 
+          />
+          <Route 
+            path="/billing" 
+            element={
+              <Billing 
+                users={users}
+                onUpdateUser={handleUpdateUser}
                 showToast={showToast}
               />
             } 
@@ -446,6 +539,18 @@ const TrainerDashboard = ({ onLogout }) => {
           duration={toast.duration}
         />
       ))}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        onClose={closeConfirm}
+        onConfirm={confirmState.onConfirm}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        type={confirmState.type}
+      />
     </div>
   );
 };
