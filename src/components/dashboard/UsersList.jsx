@@ -1,12 +1,29 @@
-import React, { useState } from 'react';
-import { Search, ExternalLink, Trash2, Edit } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Search, ExternalLink, Trash2, Edit, UserPlus } from 'lucide-react';
 import UserDetailModal from './UserDetailModal';
+import EnhancedUserProfile from './EnhancedUserProfile';
 
-const UsersList = ({ users, loading, onUpdateUser, onDeleteUser, showToast, onEditUser }) => {
+const UsersList = ({ users, loading, onUpdateUser, onDeleteUser, showToast, onEditUser, onAddUser }) => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [showEnhancedProfile, setShowEnhancedProfile] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterTrainer, setFilterTrainer] = useState('all');
+
+  // Check for userId in URL params
+  useEffect(() => {
+    const userId = searchParams.get('userId');
+    if (userId) {
+      const user = users.find(u => u.id === userId);
+      if (user) {
+        setSelectedUser(user);
+        setShowEnhancedProfile(true);
+      }
+    }
+  }, [searchParams, users]);
 
   if (loading) {
     return (
@@ -81,9 +98,20 @@ const UsersList = ({ users, loading, onUpdateUser, onDeleteUser, showToast, onEd
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Users Management</h1>
-        <p className="text-gray-600 mt-2">Manage all program participants</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Users Management</h1>
+          <p className="text-gray-600 mt-2">Manage all program participants</p>
+        </div>
+        {onAddUser && (
+          <button
+            onClick={onAddUser}
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition shadow-lg"
+          >
+            <UserPlus className="w-5 h-5" />
+            <span className="font-semibold">Add User</span>
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -148,8 +176,13 @@ const UsersList = ({ users, loading, onUpdateUser, onDeleteUser, showToast, onEd
             );
             const totalDays = user.programType === '60-day' ? 60 : 90;
 
+            const latestPhoto = user.photos && user.photos.length > 0 
+              ? [...user.photos].sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+              : null;
+
             return (
               <div key={user.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition">
+                {/* Header with Name and Status */}
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="text-lg font-bold text-gray-800">{user.name}</h3>
@@ -158,6 +191,21 @@ const UsersList = ({ users, loading, onUpdateUser, onDeleteUser, showToast, onEd
                   <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.progressStatus)}`}>
                     {getStatusLabel(user.progressStatus)}
                   </span>
+                </div>
+
+                {/* User Photo Thumbnail */}
+                <div className="mb-4 flex justify-center">
+                  {latestPhoto ? (
+                    <img
+                      src={latestPhoto.photoUrl}
+                      alt={user.name}
+                      className="w-32 h-32 rounded-lg object-cover border-2 border-primary shadow-md"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold text-4xl shadow-md">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-3 mb-4">
@@ -196,13 +244,16 @@ const UsersList = ({ users, loading, onUpdateUser, onDeleteUser, showToast, onEd
                 {/* Actions */}
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setSelectedUser(user)}
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setShowEnhancedProfile(true);
+                    }}
                     className="flex-1 px-3 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg transition text-sm font-medium"
                   >
                     Details
                   </button>
                   <button
-                    onClick={() => onEditUser && onEditUser(user)}
+                    onClick={() => navigate(`/weightloss/dashboard/users/${user.id}/edit`)}
                     className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg transition text-sm font-medium"
                   >
                     <Edit className="w-4 h-4" />
@@ -229,11 +280,23 @@ const UsersList = ({ users, loading, onUpdateUser, onDeleteUser, showToast, onEd
         )}
       </div>
 
-      {selectedUser && (
+      {selectedUser && !showEnhancedProfile && (
         <UserDetailModal
           user={selectedUser}
           onClose={() => setSelectedUser(null)}
           onUpdate={onUpdateUser}
+          showToast={showToast}
+        />
+      )}
+
+      {selectedUser && showEnhancedProfile && (
+        <EnhancedUserProfile
+          user={selectedUser}
+          onClose={() => {
+            setSelectedUser(null);
+            setShowEnhancedProfile(false);
+          }}
+          onUpdateUser={onUpdateUser}
           showToast={showToast}
         />
       )}

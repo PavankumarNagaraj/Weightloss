@@ -23,7 +23,7 @@ const TrainerLogin = ({ onLogin }) => {
         localStorage.setItem('userRole', 'admin');
         localStorage.setItem('currentUser', JSON.stringify({ username, role: 'admin' }));
         onLogin();
-        navigate('/dashboard');
+        navigate('/weightloss/dashboard');
       } else {
         // Check trainer credentials
         const trainers = JSON.parse(localStorage.getItem('weightloss_trainers') || '[]');
@@ -39,7 +39,7 @@ const TrainerLogin = ({ onLogin }) => {
             role: 'trainer' 
           }));
           onLogin();
-          navigate('/dashboard');
+          navigate('/weightloss/dashboard');
         } else {
           setError('Invalid username or password. Please try again.');
         }

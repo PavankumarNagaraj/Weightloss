@@ -1,0 +1,414 @@
+import React, { useState, useEffect } from 'react';
+import { Plus, AlertTriangle, Edit, Trash2, X } from 'lucide-react';
+import { getInventory, addInventoryItem, updateInventoryStock, getLowStockItems } from '../../services/cafeService';
+
+const CafeInventory = ({ showToast }) => {
+  const [inventory, setInventory] = useState([]);
+  const [lowStock, setLowStock] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    purchaseQuantity: '',
+    currentStock: 0,
+    minStock: '',
+    unit: 'g',
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [existingMaterials, setExistingMaterials] = useState([]);
+
+  // Helper function to convert any unit to grams for comparison
+  const convertToGrams = (quantity, unit) => {
+    const qty = parseFloat(quantity);
+    switch(unit) {
+      case 'kg': return qty * 1000;
+      case 'l': return qty * 1000;
+      case 'ml': return qty;
+      case 'g': return qty;
+      case 'pcs': return qty;
+      default: return qty;
+    }
+  };
+
+  useEffect(() => {
+    loadInventory();
+    loadExistingMaterials();
+    
+    // Reload inventory when window gains focus (switching tabs)
+    const handleFocus = () => {
+      console.log('🔄 Reloading inventory on focus');
+      loadInventory();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  const loadInventory = () => {
+    setInventory(getInventory());
+    setLowStock(getLowStockItems());
+  };
+
+  const loadExistingMaterials = () => {
+    // Get unique material names from inventory
+    const materials = getInventory().map(item => item.name);
+    setExistingMaterials([...new Set(materials)]);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    const purchaseQty = parseFloat(formData.purchaseQuantity);
+    const existingItem = inventory.find(item => item.name.toLowerCase() === formData.name.toLowerCase());
+    
+    if (existingItem) {
+      // Update existing item - add purchase quantity to current stock
+      const newStock = parseFloat(existingItem.currentStock) + purchaseQty;
+      updateInventoryStock(existingItem.id, newStock, 'set');
+      showToast(`Added ${purchaseQty}${formData.unit} to ${formData.name}. New stock: ${newStock}${formData.unit}`);
+    } else {
+      // Add new item
+      const newItem = {
+        name: formData.name,
+        currentStock: purchaseQty,
+        minStock: parseFloat(formData.minStock),
+        unit: formData.unit,
+      };
+      addInventoryItem(newItem);
+      
+      // Add to existing materials list
+      if (!existingMaterials.includes(formData.name)) {
+        setExistingMaterials([...existingMaterials, formData.name]);
+      }
+      
+      showToast(`New item added: ${formData.name} - ${purchaseQty}${formData.unit}`);
+    }
+    
+    resetForm();
+    loadInventory();
+  };
+
+  const resetForm = () => {
+    setFormData({ name: '', purchaseQuantity: '', currentStock: 0, minStock: '', unit: 'g' });
+    setSearchTerm('');
+    setEditingItem(null);
+    setShowModal(false);
+    setShowDropdown(false);
+  };
+
+  const handleMaterialSelect = (materialName) => {
+    const existingItem = inventory.find(item => item.name === materialName);
+    if (existingItem) {
+      setFormData({
+        name: materialName,
+        purchaseQuantity: '',
+        currentStock: existingItem.currentStock,
+        minStock: existingItem.minStock,
+        unit: existingItem.unit,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        name: materialName,
+      });
+    }
+    setSearchTerm(materialName);
+    setShowDropdown(false);
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    setFormData({ ...formData, name: value });
+    setShowDropdown(true);
+    
+    // Check if material exists
+    const existingItem = inventory.find(item => item.name.toLowerCase() === value.toLowerCase());
+    if (existingItem) {
+      setFormData({
+        name: value,
+        purchaseQuantity: '',
+        currentStock: existingItem.currentStock,
+        minStock: existingItem.minStock,
+        unit: existingItem.unit,
+      });
+    }
+  };
+
+  const filteredMaterials = existingMaterials.filter(material =>
+    material.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleDelete = (id) => {
+    if (confirm('Delete this inventory item?')) {
+      const items = getInventory();
+      const updatedItems = items.filter(item => item.id !== id);
+      localStorage.setItem('cafe_inventory', JSON.stringify(updatedItems));
+      loadInventory();
+      showToast('Inventory item deleted');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Inventory Management</h2>
+          <p className="text-gray-600 font-semibold mt-1">Track your raw materials and stock levels</p>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+        >
+          <Plus className="w-5 h-5" />
+          Add Inventory
+        </button>
+      </div>
+
+      {lowStock.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 text-red-700 font-semibold mb-2">
+            <AlertTriangle className="w-5 h-5" />
+            Low Stock Alert
+          </div>
+          <p className="text-sm text-red-600">{lowStock.length} items are running low on stock</p>
+        </div>
+      )}
+
+      {/* Inventory Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Material Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Current Stock</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Min Stock</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Unit</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {inventory.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                  No inventory items yet. Add items to track stock levels.
+                </td>
+              </tr>
+            ) : (
+              inventory.map((item) => {
+                // Convert current stock to grams for comparison
+                const currentStockInGrams = convertToGrams(item.currentStock, item.unit);
+                const isLowStock = currentStockInGrams <= item.minStock;
+                
+                return (
+                  <tr key={item.id} className={`hover:bg-gray-50 ${isLowStock ? 'bg-red-50' : ''}`}>
+                    <td className="px-6 py-4">
+                      <span className="font-semibold text-gray-900">{item.name}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-gray-900'}`}>
+                        {item.currentStock}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-gray-600">{item.minStock} g</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-gray-600">{item.unit}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {isLowStock ? (
+                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                          Low Stock
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                          OK
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingItem(item);
+                            setFormData(item);
+                            setShowModal(true);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Add/Edit Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-2xl">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold">{editingItem ? 'Update' : 'Add'} Inventory Item</h3>
+                <button onClick={resetForm}>
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Searchable Material Dropdown */}
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Material Name</label>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onFocus={() => setShowDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Type to search or add new material..."
+                    required
+                  />
+                  
+                  {/* Dropdown */}
+                  {showDropdown && searchTerm && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border-2 border-orange-300 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                      {filteredMaterials.length > 0 ? (
+                        filteredMaterials.map((material, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => handleMaterialSelect(material)}
+                            className="w-full px-4 py-2 text-left hover:bg-orange-50 transition border-b border-gray-100 last:border-0"
+                          >
+                            <span className="font-semibold text-gray-900">{material}</span>
+                            {inventory.find(item => item.name === material) && (
+                              <span className="text-xs text-gray-500 ml-2">
+                                (Current: {inventory.find(item => item.name === material).currentStock}
+                                {inventory.find(item => item.name === material).unit})
+                              </span>
+                            )}
+                          </button>
+                        ))
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setShowDropdown(false)}
+                          className="w-full px-4 py-3 text-left bg-orange-50 hover:bg-orange-100 transition"
+                        >
+                          <p className="font-semibold text-orange-600">✓ Add new: "{searchTerm}"</p>
+                          <p className="text-xs text-gray-600 mt-1">Click to continue with this name</p>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Current Stock Display (Read-only) */}
+                {formData.currentStock > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-blue-900">
+                      Current Stock: {formData.currentStock} {formData.unit}
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Minimum Stock: {formData.minStock} g
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Purchase Quantity <span className="text-orange-600">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.purchaseQuantity}
+                      onChange={(e) => setFormData({...formData, purchaseQuantity: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="How much are you buying?"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
+                    <select
+                      value={formData.unit}
+                      onChange={(e) => setFormData({...formData, unit: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      disabled={formData.currentStock > 0}
+                    >
+                      <option value="g">g</option>
+                      <option value="kg">kg</option>
+                      <option value="ml">ml</option>
+                      <option value="l">l</option>
+                      <option value="pcs">pcs</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Min Stock - Only for new items */}
+                {formData.currentStock === 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Minimum Stock Level (in g) <span className="text-orange-600">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.minStock}
+                      onChange={(e) => setFormData({...formData, minStock: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Alert when stock falls below this (in grams)"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* New Stock Preview */}
+                {formData.purchaseQuantity && formData.currentStock > 0 && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-green-900">
+                      New Stock After Purchase: {parseFloat(formData.currentStock) + parseFloat(formData.purchaseQuantity)} {formData.unit}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition"
+                  >
+                    {editingItem ? 'Update' : 'Add'} Item
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CafeInventory;

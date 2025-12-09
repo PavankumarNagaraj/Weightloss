@@ -1,11 +1,10 @@
 // LocalStorage-based data service (replaces Firestore)
+import { generateUserId } from '../utils/idGenerator';
 
 const STORAGE_KEY = 'weightloss_users';
 
-// Generate unique ID
-const generateId = () => {
-  return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-};
+// Use centralized ID generator
+const generateId = generateUserId;
 
 // Generate batch-based user ID
 const generateBatchUserId = (batchId) => {
@@ -122,5 +121,51 @@ export const clearAllData = () => {
   } catch (error) {
     console.error('Error clearing data:', error);
     throw error;
+  }
+};
+
+// Create user with subscription
+export const createUserWithSubscription = (userData, subscriptionData, nutrientProfile = null) => {
+  try {
+    const newUser = {
+      ...userData,
+      subscription: subscriptionData,
+      nutrientProfile: nutrientProfile,
+      mealDeliveries: [],
+      createdAt: new Date().toISOString(),
+    };
+    
+    return addUser(newUser);
+  } catch (error) {
+    console.error('Error creating user with subscription:', error);
+    throw error;
+  }
+};
+
+// Get users with active subscriptions
+export const getUsersWithActiveSubscriptions = () => {
+  try {
+    const users = getUsers();
+    return users.filter(user => 
+      user.subscription && 
+      user.subscription.status === 'active'
+    );
+  } catch (error) {
+    console.error('Error getting users with active subscriptions:', error);
+    return [];
+  }
+};
+
+// Get users by subscription status
+export const getUsersBySubscriptionStatus = (status) => {
+  try {
+    const users = getUsers();
+    return users.filter(user => 
+      user.subscription && 
+      user.subscription.status === status
+    );
+  } catch (error) {
+    console.error('Error getting users by subscription status:', error);
+    return [];
   }
 };

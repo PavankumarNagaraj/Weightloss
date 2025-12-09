@@ -4,8 +4,16 @@ import HomePage from './components/HomePage';
 import TrainerLogin from './components/TrainerLogin';
 import TrainerDashboard from './components/TrainerDashboard';
 import UserDashboard from './components/UserDashboard';
+import UserLogin from './components/UserLogin';
 import NutrientCalculator from './components/NutrientCalculator';
+import CafeManagement from './components/CafeManagement';
 import ProtectedRoute from './components/ProtectedRoute';
+import SupabaseLogin from './components/SupabaseLogin';
+import SupabaseGoogleLogin from './components/SupabaseGoogleLogin';
+import GoogleFitDashboard from './components/GoogleFitDashboard';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsConditions from './components/TermsConditions';
+import { useAuth } from './contexts/AuthContext';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -26,20 +34,39 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/cafe/*" element={<CafeManagement />} />
+        <Route path="/calculator" element={<NutrientCalculator />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-conditions" element={<TermsConditions />} />
+        
+        {/* Weight Loss Routes */}
+        <Route path="/weightloss" element={<Navigate to="/weightloss/auth" replace />} />
+        
+        {/* New Supabase Auth Routes with Google OAuth */}
+        <Route path="/weightloss/auth" element={<SupabaseGoogleLogin />} />
+        <Route path="/weightloss/google-fit/:userId" element={<GoogleFitDashboard />} />
+        
+        {/* Legacy Routes (still supported) */}
         <Route 
-          path="/login" 
-          element={isAuthenticated ? <Navigate to="/dashboard" /> : <TrainerLogin onLogin={handleLogin} />} 
+          path="/weightloss/login" 
+          element={isAuthenticated ? <Navigate to="/weightloss/dashboard" /> : <TrainerLogin onLogin={handleLogin} />} 
         />
+        <Route path="/weightloss/user-login" element={<UserLogin />} />
         <Route 
-          path="/dashboard/*" 
+          path="/weightloss/dashboard/*" 
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <TrainerDashboard onLogout={handleLogout} />
             </ProtectedRoute>
           } 
         />
-        <Route path="/user/:userId" element={<UserDashboard />} />
-        <Route path="/calculator" element={<NutrientCalculator />} />
+        <Route path="/weightloss/user/:userId" element={<UserDashboard />} />
+        
+        {/* Legacy redirects for backward compatibility */}
+        <Route path="/login" element={<Navigate to="/weightloss/login" replace />} />
+        <Route path="/user-login" element={<Navigate to="/weightloss/user-login" replace />} />
+        <Route path="/dashboard/*" element={<Navigate to="/weightloss/dashboard" replace />} />
+        <Route path="/user/:userId" element={<Navigate to="/weightloss/user/:userId" replace />} />
       </Routes>
     </Router>
   );
