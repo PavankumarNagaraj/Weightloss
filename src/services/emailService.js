@@ -312,50 +312,57 @@ export const formatReportEmail = (reportData) => {
   `;
 };
 
-// Send email via Brevo API (client-side approach)
+// Send email via backend API
 export const sendDailyReport = async (recipientEmail, recipientName = 'Cafe Manager') => {
   try {
     const reportData = generateDailyReport();
     const { generateCleanDailyEmail } = await import('../utils/emailTemplates');
     const htmlContent = generateCleanDailyEmail(reportData);
     
-    // Use Brevo API to send email
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'api-key': BREVO_CONFIG.apiKey,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        sender: {
-          name: BREVO_CONFIG.senderName,
-          email: BREVO_CONFIG.senderEmail,
+    // Try to send via local API endpoint first
+    try {
+      const response = await fetch('http://localhost:3001/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        to: [
-          {
-            email: recipientEmail,
-            name: recipientName,
-          },
-        ],
-        subject: `☕ Daily Report - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
-        htmlContent: htmlContent,
-      }),
-    });
+        body: JSON.stringify({
+          recipientEmail,
+          recipientName,
+          subject: `☕ Daily Report - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+          htmlContent,
+        }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to send email');
+      if (response.ok) {
+        const result = await response.json();
+        return {
+          success: true,
+          messageId: result.messageId,
+          message: 'Daily report sent successfully',
+        };
+      }
+    } catch (apiError) {
+      console.log('API endpoint not available, downloading report instead');
     }
-
-    const result = await response.json();
+    
+    // Fallback: Download the report HTML
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `daily-report-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
     return {
       success: true,
-      messageId: result.messageId,
-      message: 'Daily report sent successfully',
+      message: 'Report downloaded. To send via email, run: node send-clean-report.js in terminal',
     };
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error generating report:', error);
     return {
       success: false,
       error: error.message,
