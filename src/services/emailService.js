@@ -349,35 +349,37 @@ export const sendDailyReport = async (recipientEmail, recipientName = 'Cafe Mana
           };
         }
       } catch (supabaseError) {
-        console.log('Supabase function not available, trying local API...');
+        console.log('Supabase function not available');
       }
     }
     
-    // Fallback to local API
-    try {
-      const response = await fetch('http://localhost:3001/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          recipientEmail,
-          recipientName,
-          subject: `☕ Daily Report - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
-          htmlContent,
-        }),
-      });
+    // Fallback to local API only in development
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      try {
+        const response = await fetch('http://localhost:3001/api/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipientEmail,
+            recipientName,
+            subject: `☕ Daily Report - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+            htmlContent,
+          }),
+        });
 
-      if (response.ok) {
-        const result = await response.json();
-        return {
-          success: true,
-          messageId: result.messageId,
-          message: 'Daily report sent successfully via local API',
-        };
+        if (response.ok) {
+          const result = await response.json();
+          return {
+            success: true,
+            messageId: result.messageId,
+            message: 'Daily report sent successfully via local API',
+          };
+        }
+      } catch (apiError) {
+        console.log('Local API not available');
       }
-    } catch (apiError) {
-      console.log('Local API not available, downloading report...');
     }
     
     // Final fallback: Download the report HTML
