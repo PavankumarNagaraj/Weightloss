@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Upload, DollarSign, AlertCircle, Package, FileText } from 'lucide-react';
+import { Download, Upload, DollarSign, AlertCircle, Package, FileText, Mail, Send } from 'lucide-react';
 import { getCreditOrders, getInventoryValuation, getCashReconciliation, exportAllData, importAllData } from '../../services/cafeService';
+import { sendDailyReport, testEmailConnection, saveEmailSettings, getEmailSettings, scheduleDailyReport } from '../../services/emailService';
 
 const CafeReports = ({ showToast }) => {
   const [creditOrders, setCreditOrders] = useState(null);
@@ -8,10 +9,23 @@ const CafeReports = ({ showToast }) => {
   const [cashRecon, setCashRecon] = useState(null);
   const [actualCash, setActualCash] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [emailSettings, setEmailSettings] = useState({ email: '', name: '', autoSend: false });
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     loadData();
+    loadEmailSettings();
   }, [selectedDate]);
+
+  const loadEmailSettings = () => {
+    const settings = getEmailSettings();
+    if (settings) {
+      setEmailSettings(settings);
+      if (settings.autoSend && settings.email) {
+        scheduleDailyReport(settings.email);
+      }
+    }
+  };
 
   const loadData = () => {
     setCreditOrders(getCreditOrders());
@@ -59,6 +73,50 @@ const CafeReports = ({ showToast }) => {
     if (!actualCash || !cashRecon) return null;
     const variance = parseFloat(actualCash) - cashRecon.expectedCash;
     return variance;
+  };
+
+  const handleSaveEmailSettings = () => {
+    if (!emailSettings.email) {
+      showToast('⚠️ Please enter an email address');
+      return;
+    }
+    saveEmailSettings(emailSettings);
+    if (emailSettings.autoSend) {
+      const result = scheduleDailyReport(emailSettings.email);
+      showToast(`✅ Email settings saved! ${result.message}`);
+    } else {
+      showToast('✅ Email settings saved!');
+    }
+  };
+
+  const handleSendNow = async () => {
+    if (!emailSettings.email) {
+      showToast('⚠️ Please enter an email address first');
+      return;
+    }
+    setSendingEmail(true);
+    const result = await sendDailyReport(emailSettings.email, emailSettings.name || 'Cafe Manager');
+    setSendingEmail(false);
+    if (result.success) {
+      showToast('✅ Daily report sent successfully!');
+    } else {
+      showToast(`❌ Failed to send: ${result.error}`);
+    }
+  };
+
+  const handleTestEmail = async () => {
+    if (!emailSettings.email) {
+      showToast('⚠️ Please enter an email address first');
+      return;
+    }
+    setSendingEmail(true);
+    const result = await testEmailConnection(emailSettings.email);
+    setSendingEmail(false);
+    if (result.success) {
+      showToast('✅ Test email sent! Check your inbox.');
+    } else {
+      showToast(`❌ Test failed: ${result.error}`);
+    }
   };
 
   return (
@@ -308,6 +366,103 @@ const CafeReports = ({ showToast }) => {
           </div>
         </div>
       )}
+
+      {/* Email Reports */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
+            <Mail className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">📧 Daily Email Reports</h3>
+            <p className="text-sm text-gray-600">Automated daily reports via email</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
+              <input
+                type="email"
+                value={emailSettings.email}
+                onChange={(e) => setEmailSettings({ ...emailSettings, email: e.target.value })}
+                placeholder="your@email.com"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Your Name (Optional)</label>
+              <input
+                type="text"
+                value={emailSettings.name}
+                onChange={(e) => setEmailSettings({ ...emailSettings, name: e.target.value })}
+                placeholder="Cafe Manager"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg">
+            <input
+              type="checkbox"
+              id="autoSend"
+              checked={emailSettings.autoSend}
+              onChange={(e) => setEmailSettings({ ...emailSettings, autoSend: e.target.checked })}
+              className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+            />
+            <label htmlFor="autoSend" className="text-sm font-semibold text-gray-700 cursor-pointer">
+              📅 Send daily report automatically at 11:55 PM
+            </label>
+          </div>
+
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+            <h4 className="font-bold text-gray-900 mb-2">📊 Report Includes:</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
+              <div>• 📈 Today's orders & revenue</div>
+              <div>• 💰 Payment method breakdown</div>
+              <div>• 📦 Inventory status & value</div>
+              <div>• ⚠️ Low stock alerts</div>
+              <div>• 🛒 Items to purchase urgently</div>
+              <div>• 💳 Pending credit orders</div>
+              <div>• 💸 Today's expenses</div>
+              <div>• 📊 Net cash flow summary</div>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleSaveEmailSettings}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-pink-700 transition shadow-lg hover:shadow-xl"
+            >
+              <Mail className="w-5 h-5" />
+              Save Settings
+            </button>
+            <button
+              onClick={handleTestEmail}
+              disabled={sendingEmail}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-bold hover:from-blue-700 hover:to-cyan-700 transition shadow-lg hover:shadow-xl disabled:opacity-50"
+            >
+              <Send className="w-5 h-5" />
+              {sendingEmail ? 'Sending...' : 'Test Email'}
+            </button>
+            <button
+              onClick={handleSendNow}
+              disabled={sendingEmail}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition shadow-lg hover:shadow-xl disabled:opacity-50"
+            >
+              <Send className="w-5 h-5" />
+              {sendingEmail ? 'Sending...' : 'Send Now'}
+            </button>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              <strong>ℹ️ Note:</strong> Emails are sent via Brevo SMTP. The report includes comprehensive daily statistics, inventory alerts, and action items.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Backup Info */}
       <div className="bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-xl p-6">
