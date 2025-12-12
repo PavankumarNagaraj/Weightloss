@@ -3,14 +3,14 @@
 -- Production-ready Supabase tables
 -- =====================================================
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable pgcrypto extension for gen_random_uuid()
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- =====================================================
 -- MENU ITEMS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS cafe_menu (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   category TEXT NOT NULL,
   customer_price NUMERIC(10, 2) NOT NULL,
@@ -31,7 +31,7 @@ CREATE INDEX IF NOT EXISTS idx_cafe_menu_active ON cafe_menu(is_active);
 -- INVENTORY TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS cafe_inventory (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL UNIQUE,
   current_stock NUMERIC(10, 2) NOT NULL DEFAULT 0,
   min_stock NUMERIC(10, 2) NOT NULL DEFAULT 0,
@@ -51,7 +51,7 @@ CREATE INDEX IF NOT EXISTS idx_cafe_inventory_stock ON cafe_inventory(current_st
 -- PURCHASES TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS cafe_purchases (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_number TEXT NOT NULL UNIQUE,
   supplier_name TEXT NOT NULL,
   items JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -71,7 +71,7 @@ CREATE INDEX IF NOT EXISTS idx_cafe_purchases_order_number ON cafe_purchases(ord
 -- EXPENSES TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS cafe_expenses (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   category TEXT NOT NULL,
   description TEXT,
   amount NUMERIC(10, 2) NOT NULL,
@@ -92,7 +92,7 @@ CREATE INDEX IF NOT EXISTS idx_cafe_expenses_purchase_id ON cafe_expenses(purcha
 -- ORDERS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS cafe_orders (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_number TEXT NOT NULL UNIQUE,
   customer_name TEXT NOT NULL,
   customer_type TEXT NOT NULL,
@@ -121,7 +121,7 @@ CREATE INDEX IF NOT EXISTS idx_cafe_orders_order_number ON cafe_orders(order_num
 -- INVESTMENTS TABLE (for tracking capital)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS cafe_investments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   amount NUMERIC(10, 2) NOT NULL,
   description TEXT,
   date DATE NOT NULL,
