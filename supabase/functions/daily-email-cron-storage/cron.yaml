@@ -1,0 +1,3 @@
+# Cron schedule for daily email at 11:55pm IST (18:25 UTC)
+# IST is UTC+5:30, so 11:55pm IST = 6:25pm UTC (18:25)
+schedule: '25 18 * * *'

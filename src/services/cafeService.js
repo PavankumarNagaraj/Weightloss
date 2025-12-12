@@ -1,5 +1,6 @@
 // Cafe Management Service
 import { generateShortId } from '../utils/idGenerator';
+import { scheduleSyncToStorage } from './storageSync';
 
 const ORDERS_KEY = 'cafe_orders';
 const INVENTORY_KEY = 'cafe_inventory';
@@ -55,6 +56,7 @@ export const addMenuItem = (itemData) => {
     };
     items.push(newItem);
     localStorage.setItem(MENU_KEY, JSON.stringify(items));
+    scheduleSyncToStorage();
     return newItem;
   } catch (error) {
     console.error('Error adding menu item:', error);
@@ -69,6 +71,7 @@ export const updateMenuItem = (itemId, updates) => {
     if (index !== -1) {
       items[index] = { ...items[index], ...updates, updatedAt: new Date().toISOString() };
       localStorage.setItem(MENU_KEY, JSON.stringify(items));
+      scheduleSyncToStorage();
       return items[index];
     }
     throw new Error('Menu item not found');
@@ -112,6 +115,7 @@ export const addInventoryItem = (itemData) => {
     };
     inventory.push(newItem);
     localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+    scheduleSyncToStorage();
     return newItem;
   } catch (error) {
     console.error('Error adding inventory item:', error);
@@ -135,6 +139,7 @@ export const updateInventoryStock = (itemId, quantity, type = 'add') => {
       
       inventory[index].lastUpdated = new Date().toISOString();
       localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+      scheduleSyncToStorage();
       return inventory[index];
     }
     throw new Error('Inventory item not found');
@@ -197,6 +202,7 @@ export const addPurchase = (purchaseData) => {
     
     purchases.push(newPurchase);
     localStorage.setItem(PURCHASES_KEY, JSON.stringify(purchases));
+    scheduleSyncToStorage();
     
     // Create expense entry for this purchase
     const expenseEntry = {
@@ -213,6 +219,7 @@ export const addPurchase = (purchaseData) => {
     
     expenses.push(expenseEntry);
     localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
+    scheduleSyncToStorage();
     
     // Update inventory stock based on purchased items
     if (purchaseData.items) {
@@ -243,6 +250,7 @@ export const addPurchase = (purchaseData) => {
       
       // Save updated inventory
       localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+      scheduleSyncToStorage();
     }
     
     return newPurchase;
@@ -299,6 +307,7 @@ export const createOrder = (orderData) => {
     
     orders.push(newOrder);
     localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    scheduleSyncToStorage();
     
     // Deduct inventory based on menu item raw materials
     if (orderData.items) {
@@ -339,6 +348,7 @@ export const createOrder = (orderData) => {
       
       // Save updated inventory
       localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+      scheduleSyncToStorage();
       console.log('💾 Inventory saved to localStorage');
     }
     
@@ -368,6 +378,7 @@ export const updateOrderStatus = (orderId, status) => {
       }
       
       localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+      scheduleSyncToStorage();
       return orders[index];
     }
     throw new Error('Order not found');
