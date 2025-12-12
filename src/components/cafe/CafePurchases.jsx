@@ -346,32 +346,32 @@ const CafePurchases = ({ showToast }) => {
 
                   {/* Items List */}
                   {formData.items.length > 0 && (
-                    <div className="space-y-2 mb-4">
+                    <div className="space-y-1.5 mb-4">
                       {formData.items.map((item, index) => (
-                        <div key={index} className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-lg p-3 hover:shadow-md transition">
+                        <div key={index} className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-2 hover:shadow-sm transition">
                           <div className="flex-1">
-                            <span className="font-bold text-gray-900">{item.materialName}</span>
-                            <div className="text-sm text-gray-600 mt-1">
-                              <span className="font-semibold">{item.quantity}{item.unit}</span>
-                              <span className="mx-2">•</span>
+                            <span className="font-semibold text-gray-900 text-sm">{item.materialName}</span>
+                            <span className="text-xs text-gray-600 ml-2">
+                              {item.quantity}{item.unit}
+                              <span className="mx-1.5">•</span>
                               <span className="text-purple-600 font-semibold">₹{item.total}</span>
-                              <span className="text-xs text-gray-500 ml-2">(₹{item.pricePerUnit}/{item.unit})</span>
-                            </div>
+                              <span className="text-gray-400 ml-1">(₹{item.pricePerUnit}/{item.unit})</span>
+                            </span>
                           </div>
                           <button
                             type="button"
                             onClick={() => removeItemFromPurchase(index)}
-                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
+                            className="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ))}
                       
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4 shadow-md">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-3 shadow-md mt-2">
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900 text-lg">Total Amount:</span>
-                          <span className="text-3xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹{calculateTotal()}</span>
+                          <span className="font-bold text-gray-900">Total Amount:</span>
+                          <span className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹{calculateTotal()}</span>
                         </div>
                       </div>
                     </div>
