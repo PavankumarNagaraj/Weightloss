@@ -76,7 +76,14 @@ export const generateDailyReport = () => {
   
   // Today's expenses
   const todayExpenses = expenses.filter(exp => exp.date === today);
-  const totalExpenses = todayExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+  const expensesTotal = todayExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+  
+  // Today's purchases
+  const todayPurchases = purchases.filter(purchase => purchase.date === today);
+  const purchasesTotal = todayPurchases.reduce((sum, purchase) => sum + (purchase.totalCost || 0), 0);
+  
+  // Combined total expenses (purchases + other expenses)
+  const totalExpenses = purchasesTotal + expensesTotal;
   
   return {
     date: today,
@@ -109,6 +116,16 @@ export const generateDailyReport = () => {
     },
     expenses: {
       total: totalExpenses,
+      purchases: purchasesTotal,
+      other: expensesTotal,
+      todayPurchases: todayPurchases.map(purchase => ({
+        materialName: purchase.materialName,
+        quantity: purchase.quantity,
+        unit: purchase.unit,
+        pricePerUnit: purchase.pricePerUnit,
+        totalCost: purchase.totalCost,
+        supplier: purchase.supplier || 'N/A',
+      })),
       count: todayExpenses.length,
     },
   };

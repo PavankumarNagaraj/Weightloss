@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './components/HomePage';
 import TrainerLogin from './components/TrainerLogin';
@@ -14,12 +14,18 @@ import GoogleFitDashboard from './components/GoogleFitDashboard';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsConditions from './components/TermsConditions';
 import { useAuth } from './contexts/AuthContext';
+import { migrateOrderDates } from './services/cafeService';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     // Check authentication on initial load
     return localStorage.getItem('isAuthenticated') === 'true';
   });
+
+  // Run migrations on app load
+  useEffect(() => {
+    migrateOrderDates();
+  }, []);
 
   const handleLogin = () => {
     setIsAuthenticated(true);

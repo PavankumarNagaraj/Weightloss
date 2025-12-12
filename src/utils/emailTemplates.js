@@ -141,6 +141,18 @@ export const generateCleanDailyEmail = (data) => {
           <td class="stat-label" style="padding-top: 15px; border-top: 2px solid #e5e7eb;">Total Expenses</td>
           <td class="stat-value" style="color: #ef4444; padding-top: 15px; border-top: 2px solid #e5e7eb;">₹ ${expenses.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
         </tr>
+        ${expenses.purchases > 0 ? `
+        <tr>
+          <td class="stat-label" style="padding-left: 20px;">• Inventory Purchases</td>
+          <td class="stat-value" style="color: #6b7280;">₹ ${expenses.purchases.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        </tr>
+        ` : ''}
+        ${expenses.other > 0 ? `
+        <tr>
+          <td class="stat-label" style="padding-left: 20px;">• Other Expenses</td>
+          <td class="stat-value" style="color: #6b7280;">₹ ${expenses.other.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        </tr>
+        ` : ''}
         ${creditOrders.count > 0 ? `
         <tr>
           <td class="stat-label" style="border-bottom: none;">Pending Credit</td>
@@ -149,6 +161,33 @@ export const generateCleanDailyEmail = (data) => {
         ` : ''}
       </table>
     </div>
+
+    <!-- Today's Purchases -->
+    ${expenses.todayPurchases && expenses.todayPurchases.length > 0 ? `
+    <div class="section">
+      <div class="section-title">🛍️ Today's Purchases</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Material</th>
+            <th>Quantity</th>
+            <th>Price/Unit</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${expenses.todayPurchases.map(purchase => `
+            <tr>
+              <td><strong>${purchase.materialName}</strong></td>
+              <td>${purchase.quantity} ${purchase.unit}</td>
+              <td>₹${purchase.pricePerUnit.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+              <td style="color: #ef4444; font-weight: bold;">₹${purchase.totalCost.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    ` : ''}
 
     <!-- Items to Buy -->
     ${inventory.itemsToOrder.length > 0 ? `
