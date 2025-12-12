@@ -23,11 +23,14 @@ async function fetchCafeData(): Promise<CafeData> {
   };
 
   try {
-    // Fetch from Supabase table (you'll need to create these tables)
     const ordersRes = await fetch(`${SUPABASE_URL}/rest/v1/cafe_orders?select=*`, { headers });
     const inventoryRes = await fetch(`${SUPABASE_URL}/rest/v1/cafe_inventory?select=*`, { headers });
     const expensesRes = await fetch(`${SUPABASE_URL}/rest/v1/cafe_expenses?select=*`, { headers });
     const purchasesRes = await fetch(`${SUPABASE_URL}/rest/v1/cafe_purchases?select=*`, { headers });
+
+    if (!ordersRes.ok || !inventoryRes.ok || !expensesRes.ok || !purchasesRes.ok) {
+      throw new Error('Failed to fetch data from database');
+    }
 
     const orders = await ordersRes.json();
     const inventory = await inventoryRes.json();
@@ -46,22 +49,55 @@ function generateDailyReport(data: CafeData) {
   const today = new Date().toISOString().split('T')[0];
   const { orders, inventory, expenses, purchases } = data;
 
+  // Map database fields to expected format
+  const mappedOrders = orders.map((order: any) => ({
+    ...order,
+    orderNumber: order.order_number,
+    customerName: order.customer_name,
+    customerType: order.customer_type,
+    totalAmount: order.total_amount,
+    paymentMethod: order.payment_method,
+    paymentReceived: order.payment_received,
+  }));
+
+  const mappedInventory = inventory.map((item: any) => ({
+    ...item,
+    currentStock: item.current_stock,
+    minStock: item.min_stock,
+    pricePerUnit: item.price_per_unit,
+  }));
+
+  const mappedPurchases = purchases.map((purchase: any) => ({
+    ...purchase,
+    orderNumber: purchase.order_number,
+    supplierName: purchase.supplier_name,
+    totalAmount: purchase.total_amount,
+    createdAt: purchase.created_at,
+  }));
+
+  const mappedExpenses = expenses.map((expense: any) => ({
+    ...expense,
+    purchaseId: expense.purchase_id,
+    orderNumber: expense.order_number,
+    paymentMethod: expense.payment_method,
+  }));
+
   // Filter today's orders
-  const todayOrders = orders.filter((order: any) => order.date === today);
+  const todayOrders = mappedOrders.filter((order: any) => order.date === today);
 
   // Calculate order stats
   const totalOrders = todayOrders.length;
   const totalRevenue = todayOrders.reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0);
 
   // Get low stock items
-  const lowStockItems = inventory.filter((item: any) => {
+  const lowStockItems = mappedInventory.filter((item: any) => {
     const currentStock = parseFloat(item.currentStock) || 0;
     const minStock = parseFloat(item.minStock) || 0;
     return currentStock <= minStock;
   });
 
   // Get items to order
-  const itemsToOrder = inventory.filter((item: any) => {
+  const itemsToOrder = mappedInventory.filter((item: any) => {
     const currentStock = parseFloat(item.currentStock) || 0;
     const minStock = parseFloat(item.minStock) || 0;
     return currentStock <= (minStock * 0.5);
@@ -75,7 +111,7 @@ function generateDailyReport(data: CafeData) {
   }));
 
   // Get credit orders
-  const pendingCreditOrders = orders.filter((order: any) => {
+  const pendingCreditOrders = mappedOrders.filter((order: any) => {
     const totalAmount = order.totalAmount || 0;
     const paymentReceived = order.paymentReceived || 0;
     return order.paymentMethod === 'Credit' && paymentReceived < totalAmount;
@@ -89,18 +125,18 @@ function generateDailyReport(data: CafeData) {
   }));
 
   // Calculate inventory value
-  const inventoryValue = inventory.reduce((sum: number, item: any) => {
+  const inventoryValue = mappedInventory.reduce((sum: number, item: any) => {
     const stock = parseFloat(item.currentStock) || 0;
     const price = parseFloat(item.pricePerUnit) || 0;
     return sum + (stock * price);
   }, 0);
 
   // Today's expenses (excluding purchase-linked expenses)
-  const todayExpenses = expenses.filter((exp: any) => exp.date === today && !exp.purchaseId);
+  const todayExpenses = mappedExpenses.filter((exp: any) => exp.date === today && !exp.purchaseId);
   const expensesTotal = todayExpenses.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
 
   // Today's purchases
-  const todayPurchases = purchases.filter((purchase: any) => purchase.date === today);
+  const todayPurchases = mappedPurchases.filter((purchase: any) => purchase.date === today);
   const purchasesTotal = todayPurchases.reduce((sum: number, purchase: any) => sum + (purchase.totalAmount || 0), 0);
 
   const totalExpenses = purchasesTotal + expensesTotal;
