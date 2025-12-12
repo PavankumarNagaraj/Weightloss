@@ -242,6 +242,7 @@ export const createOrder = (orderData) => {
       id: generateShortId(),
       orderNumber: `ORD${Date.now().toString().slice(-6)}`,
       ...orderData,
+      date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format for email filtering
       status: 'completed',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

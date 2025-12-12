@@ -138,22 +138,6 @@ export const generateCleanDailyEmail = (data) => {
           <td class="stat-value">${orders.total}</td>
         </tr>
         <tr>
-          <td class="stat-label">Cash</td>
-          <td class="stat-value">${orders.byPaymentMethod.cash} orders</td>
-        </tr>
-        <tr>
-          <td class="stat-label">UPI</td>
-          <td class="stat-value">${orders.byPaymentMethod.upi} orders</td>
-        </tr>
-        <tr>
-          <td class="stat-label">Card</td>
-          <td class="stat-value">${orders.byPaymentMethod.card} orders</td>
-        </tr>
-        <tr>
-          <td class="stat-label">Credit</td>
-          <td class="stat-value">${orders.byPaymentMethod.credit} orders</td>
-        </tr>
-        <tr>
           <td class="stat-label" style="padding-top: 15px; border-top: 2px solid #e5e7eb;">Total Expenses</td>
           <td class="stat-value" style="color: #ef4444; padding-top: 15px; border-top: 2px solid #e5e7eb;">₹ ${expenses.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
         </tr>
