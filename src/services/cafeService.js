@@ -5,6 +5,7 @@ const ORDERS_KEY = 'cafe_orders';
 const INVENTORY_KEY = 'cafe_inventory';
 const PURCHASES_KEY = 'cafe_purchases';
 const MENU_KEY = 'cafe_menu';
+const EXPENSES_KEY = 'cafe_expenses';
 
 // Migration: Add date field to existing orders
 export const migrateOrderDates = () => {
@@ -180,16 +181,36 @@ export const addPurchase = (purchaseData) => {
   try {
     const purchases = getPurchases();
     const inventory = getInventory();
+    const expenses = JSON.parse(localStorage.getItem(EXPENSES_KEY) || '[]');
+    
+    const purchaseDate = new Date().toISOString();
+    const purchaseDateOnly = purchaseDate.split('T')[0]; // YYYY-MM-DD format
     
     const newPurchase = {
       id: generateShortId(),
       ...purchaseData,
-      date: new Date().toISOString(),
+      date: purchaseDateOnly,
+      createdAt: purchaseDate,
       status: 'completed',
     };
     
     purchases.push(newPurchase);
     localStorage.setItem(PURCHASES_KEY, JSON.stringify(purchases));
+    
+    // Create expense entry for this purchase
+    const expenseEntry = {
+      id: generateShortId(),
+      category: 'Inventory Purchase',
+      description: `Purchase from ${purchaseData.supplierName || 'Supplier'} - ${purchaseData.items?.length || 0} items`,
+      amount: purchaseData.totalAmount || 0,
+      date: purchaseDateOnly,
+      createdAt: purchaseDate,
+      purchaseId: newPurchase.id,
+      notes: purchaseData.notes || '',
+    };
+    
+    expenses.push(expenseEntry);
+    localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
     
     // Update inventory stock based on purchased items
     if (purchaseData.items) {
