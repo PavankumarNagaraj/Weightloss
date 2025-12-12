@@ -96,6 +96,14 @@ export const generateDailyReport = () => {
         card: cardOrders,
         credit: creditOrders,
       },
+      todayOrders: todayOrders.map(order => ({
+        orderNumber: order.orderNumber,
+        customerName: order.customerName || 'Walk-in',
+        customerType: order.customerType,
+        items: order.items || [],
+        totalAmount: order.totalAmount,
+        date: order.date,
+      })),
     },
     inventory: {
       totalValue: inventoryValue,
@@ -125,6 +133,13 @@ export const generateDailyReport = () => {
         supplier: purchase.supplierName || 'N/A',
         totalCost: purchase.totalAmount,
         items: purchase.items || [],
+      })),
+      todayExpenses: todayExpenses.map(expense => ({
+        category: expense.category,
+        description: expense.description,
+        amount: expense.amount,
+        orderNumber: expense.orderNumber,
+        date: expense.date,
       })),
       count: todayExpenses.length,
     },

@@ -154,85 +154,121 @@ export const generateCleanDailyEmail = (data) => {
       <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">${new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
     </div>
 
-    <!-- Total Revenue -->
+    <!-- 1. Revenue (Income - Expense) -->
     <div class="revenue-box">
-      <div class="revenue-label">Total Revenue</div>
-      <div class="revenue-value">₹ ${orders.revenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-      <div style="font-size: 13px; opacity: 0.9;">Net: ₹ ${(orders.revenue - expenses.total).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (after expenses)</div>
+      <div class="revenue-label">Net Revenue</div>
+      <div class="revenue-value">₹ ${(orders.revenue - expenses.total).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+      <div style="font-size: 13px; opacity: 0.9; margin-top: 10px;">
+        Income: ₹${orders.revenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} • 
+        Expenses: ₹${expenses.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+      </div>
     </div>
 
-    <!-- Orders and Cost -->
+    <!-- 2. Order Details and Total -->
     <div class="section">
-      <div class="section-title">📊 Orders & Cost</div>
+      <div class="section-title">📋 Today's Orders (${orders.total})</div>
       
-      <table class="stat-table">
-        <tr>
-          <td class="stat-label">Total Orders</td>
-          <td class="stat-value">${orders.total}</td>
-        </tr>
-        <tr>
-          <td class="stat-label" style="padding-top: 15px; border-top: 2px solid #e5e7eb;">Total Expenses</td>
-          <td class="stat-value" style="color: #ef4444; padding-top: 15px; border-top: 2px solid #e5e7eb;">₹ ${expenses.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-        </tr>
-        ${expenses.purchases > 0 ? `
-        <tr>
-          <td class="stat-label" style="padding-left: 20px;">• Inventory Purchases</td>
-          <td class="stat-value" style="color: #6b7280;">₹ ${expenses.purchases.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-        </tr>
-        ` : ''}
-        ${expenses.other > 0 ? `
-        <tr>
-          <td class="stat-label" style="padding-left: 20px;">• Other Expenses</td>
-          <td class="stat-value" style="color: #6b7280;">₹ ${expenses.other.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-        </tr>
-        ` : ''}
-        ${creditOrders.count > 0 ? `
-        <tr>
-          <td class="stat-label" style="border-bottom: none;">Pending Credit</td>
-          <td class="stat-value" style="color: #f59e0b; border-bottom: none;">₹ ${creditOrders.totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${creditOrders.count} orders)</td>
-        </tr>
-        ` : ''}
-      </table>
+      ${orders.todayOrders && orders.todayOrders.length > 0 ? `
+        ${orders.todayOrders.map(order => `
+          <div style="margin-bottom: 20px; padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #10b981;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div>
+                <strong style="color: #10b981; font-size: 14px;">Order #${order.orderNumber || 'N/A'}</strong>
+                <span style="color: #6b7280; font-size: 12px; margin-left: 10px;">
+                  ${order.customerName} ${order.customerType ? `(${order.customerType})` : ''}
+                </span>
+              </div>
+              <strong style="color: #10b981; font-size: 16px;">₹${order.totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+            </div>
+            <table style="width: 100%; margin-top: 10px;">
+              <thead>
+                <tr style="background: #e5e7eb;">
+                  <th style="padding: 8px; text-align: left; font-size: 11px;">Item</th>
+                  <th style="padding: 8px; text-align: center; font-size: 11px;">Qty</th>
+                  <th style="padding: 8px; text-align: right; font-size: 11px;">Price</th>
+                  <th style="padding: 8px; text-align: right; font-size: 11px;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${order.items?.map(item => `
+                  <tr>
+                    <td style="padding: 6px; font-size: 12px;">${item.name}</td>
+                    <td style="padding: 6px; text-align: center; font-size: 12px;">${item.quantity}</td>
+                    <td style="padding: 6px; text-align: right; font-size: 12px;">₹${item.price?.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td style="padding: 6px; text-align: right; font-size: 12px; font-weight: bold;">₹${(item.price * item.quantity).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                  </tr>
+                `).join('') || ''}
+              </tbody>
+            </table>
+          </div>
+        `).join('')}
+        
+        <div style="background: linear-gradient(to right, #d1fae5, #a7f3d0); padding: 15px; border-radius: 8px; border: 2px solid #10b981;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 16px; font-weight: bold; color: #065f46;">Total Orders Revenue</span>
+            <span style="font-size: 24px; font-weight: 900; color: #047857;">₹${orders.revenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+          </div>
+        </div>
+      ` : `
+        <p style="color: #6b7280; margin: 0; text-align: center; padding: 20px;">No orders today</p>
+      `}
     </div>
 
-    <!-- Today's Purchases -->
-    ${expenses.todayPurchases && expenses.todayPurchases.length > 0 ? `
+    <!-- 3. Expenses with Details -->
     <div class="section">
-      <div class="section-title">🛍️ Today's Purchase Orders</div>
-      ${expenses.todayPurchases.map(purchase => `
-        <div style="margin-bottom: 20px; padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #667eea;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div>
-              <strong style="color: #667eea; font-size: 14px;">Order #${purchase.orderNumber || 'N/A'}</strong>
-              <span style="color: #6b7280; font-size: 12px; margin-left: 10px;">
-                ${new Date(purchase.date || purchase.createdAt).toLocaleDateString()}
-              </span>
-            </div>
-            <strong style="color: #10b981; font-size: 16px;">₹${purchase.totalCost.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
-          </div>
-          ${purchase.supplier ? `<div style="color: #6b7280; font-size: 12px; margin-bottom: 8px;">Supplier: ${purchase.supplier}</div>` : ''}
-          <table style="width: 100%; margin-top: 10px;">
-            <thead>
-              <tr style="background: #e5e7eb;">
-                <th style="padding: 8px; text-align: left; font-size: 11px;">Material</th>
-                <th style="padding: 8px; text-align: left; font-size: 11px;">Quantity</th>
-                <th style="padding: 8px; text-align: right; font-size: 11px;">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${purchase.items?.map(item => `
-                <tr>
-                  <td style="padding: 6px; font-size: 12px;">${item.materialName}</td>
-                  <td style="padding: 6px; font-size: 12px;">${item.quantity} ${item.unit}</td>
-                  <td style="padding: 6px; text-align: right; font-size: 12px;">₹${item.totalPrice?.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                </tr>
-              `).join('') || ''}
-            </tbody>
-          </table>
+      <div class="section-title">💰 Today's Expenses</div>
+      
+      <div style="background: linear-gradient(to right, #fee2e2, #fecaca); padding: 15px; border-radius: 8px; border: 2px solid #ef4444; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 16px; font-weight: bold; color: #991b1b;">Total Expenses</span>
+          <span style="font-size: 24px; font-weight: 900; color: #dc2626;">₹${expenses.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
         </div>
-      `).join('')}
+      </div>
+
+      ${expenses.todayPurchases && expenses.todayPurchases.length > 0 ? `
+        <h4 style="color: #667eea; font-size: 14px; margin: 20px 0 10px 0; font-weight: bold;">🛍️ Purchase Orders (₹${expenses.purchases.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})})</h4>
+        ${expenses.todayPurchases.map(purchase => `
+          <div style="margin-bottom: 15px; padding: 12px; background: #f9fafb; border-radius: 6px; border-left: 3px solid #667eea;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div>
+                <strong style="color: #667eea; font-size: 13px;">PO #${purchase.orderNumber || 'N/A'}</strong>
+                <span style="color: #6b7280; font-size: 11px; margin-left: 8px;">${purchase.supplier}</span>
+              </div>
+              <strong style="color: #ef4444; font-size: 14px;">₹${purchase.totalCost.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+            </div>
+            <div style="font-size: 11px; color: #6b7280;">
+              ${purchase.items?.map(item => `${item.materialName} (${item.quantity}${item.unit})`).join(', ') || ''}
+            </div>
+          </div>
+        `).join('')}
+      ` : ''}
+
+      ${expenses.todayExpenses && expenses.todayExpenses.length > 0 ? `
+        <h4 style="color: #f59e0b; font-size: 14px; margin: 20px 0 10px 0; font-weight: bold;">📝 Other Expenses (₹${expenses.other.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})})</h4>
+        <table style="width: 100%;">
+          <thead>
+            <tr style="background: #f3f4f6;">
+              <th style="padding: 8px; text-align: left; font-size: 11px;">Category</th>
+              <th style="padding: 8px; text-align: left; font-size: 11px;">Description</th>
+              <th style="padding: 8px; text-align: right; font-size: 11px;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${expenses.todayExpenses.map(expense => `
+              <tr>
+                <td style="padding: 6px; font-size: 12px; font-weight: 600;">${expense.category}</td>
+                <td style="padding: 6px; font-size: 12px; color: #6b7280;">${expense.description || '-'}</td>
+                <td style="padding: 6px; text-align: right; font-size: 12px; font-weight: bold; color: #ef4444;">₹${expense.amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      ` : ''}
+
+      ${(!expenses.todayPurchases || expenses.todayPurchases.length === 0) && (!expenses.todayExpenses || expenses.todayExpenses.length === 0) ? `
+        <p style="color: #6b7280; margin: 0; text-align: center; padding: 20px;">No expenses today</p>
+      ` : ''}
     </div>
-    ` : ''}
 
     <!-- Items to Buy -->
     ${inventory.itemsToOrder.length > 0 ? `
