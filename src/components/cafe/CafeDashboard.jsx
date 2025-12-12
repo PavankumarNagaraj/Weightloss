@@ -15,6 +15,41 @@ const CafeDashboard = ({ showToast }) => {
 
   useEffect(() => {
     loadData();
+    
+    // Set up automated daily email at 11:55pm
+    const checkAndSendEmail = () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      
+      // Check if it's 11:55pm (23:55)
+      if (hours === 23 && minutes === 55) {
+        const lastSent = localStorage.getItem('last_email_sent_date');
+        const today = now.toISOString().split('T')[0];
+        
+        // Only send if we haven't sent today
+        if (lastSent !== today) {
+          console.log('Triggering automated daily email at 11:55pm');
+          const emailSettings = getEmailSettings();
+          const recipientEmail = emailSettings?.email || 'pavankumar.nagaraj@gmail.com';
+          
+          sendDailyReport(recipientEmail, emailSettings?.name || 'Cafe Manager').then(result => {
+            if (result.success) {
+              localStorage.setItem('last_email_sent_date', today);
+              console.log('Automated daily email sent successfully');
+            }
+          });
+        }
+      }
+    };
+    
+    // Check every minute
+    const interval = setInterval(checkAndSendEmail, 60000);
+    
+    // Check immediately on mount
+    checkAndSendEmail();
+    
+    return () => clearInterval(interval);
   }, []);
 
   const loadData = () => {

@@ -74,8 +74,8 @@ export const generateDailyReport = () => {
     return sum + (stock * price);
   }, 0);
   
-  // Today's expenses
-  const todayExpenses = expenses.filter(exp => exp.date === today);
+  // Today's expenses (excluding purchase-linked expenses to avoid duplication)
+  const todayExpenses = expenses.filter(exp => exp.date === today && !exp.purchaseId);
   const expensesTotal = todayExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
   
   // Today's purchases
