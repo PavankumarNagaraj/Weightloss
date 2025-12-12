@@ -6,6 +6,32 @@ const INVENTORY_KEY = 'cafe_inventory';
 const PURCHASES_KEY = 'cafe_purchases';
 const MENU_KEY = 'cafe_menu';
 
+// Migration: Add date field to existing orders
+export const migrateOrderDates = () => {
+  try {
+    const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+    let migrated = false;
+    
+    const updatedOrders = orders.map(order => {
+      if (!order.date && order.createdAt) {
+        migrated = true;
+        return {
+          ...order,
+          date: order.createdAt.split('T')[0] // Extract YYYY-MM-DD from ISO timestamp
+        };
+      }
+      return order;
+    });
+    
+    if (migrated) {
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(updatedOrders));
+      console.log('✅ Migrated orders with date field');
+    }
+  } catch (error) {
+    console.error('Error migrating order dates:', error);
+  }
+};
+
 // ==================== MENU MANAGEMENT ====================
 
 export const getMenuItems = () => {

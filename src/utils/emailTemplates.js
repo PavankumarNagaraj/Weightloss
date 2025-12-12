@@ -7,6 +7,7 @@ export const generateCleanDailyEmail = (data) => {
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { 
       font-family: Arial, sans-serif; 
@@ -15,12 +16,44 @@ export const generateCleanDailyEmail = (data) => {
       margin: 0; 
       padding: 0; 
       background-color: #f9fafb;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
     }
     .container { 
       max-width: 700px; 
       margin: 0 auto; 
       padding: 20px; 
       background-color: #f9fafb;
+    }
+    @media only screen and (max-width: 600px) {
+      .container {
+        padding: 10px !important;
+      }
+      .header {
+        padding: 20px !important;
+      }
+      .section {
+        padding: 15px !important;
+        margin: 15px 0 !important;
+      }
+      .revenue-box {
+        padding: 20px !important;
+      }
+      .revenue-value {
+        font-size: 32px !important;
+      }
+      table {
+        font-size: 13px !important;
+      }
+      th, td {
+        padding: 8px !important;
+      }
+      .stat-table td {
+        padding: 8px 0 !important;
+      }
+      .section-title {
+        font-size: 16px !important;
+      }
     }
     .header { 
       background: #667eea; 
