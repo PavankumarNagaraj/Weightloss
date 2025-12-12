@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash } from 'lucide-react';
+import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash, Download } from 'lucide-react';
 import { getInventory, addInventoryItem, updateInventoryStock, getLowStockItems } from '../../services/cafeService';
 import { importBulkInventory } from '../../utils/bulkInventoryImport';
 
@@ -209,6 +209,64 @@ const CafeInventory = ({ showToast }) => {
     }
   };
 
+  const handleDownloadShoppingList = () => {
+    if (selectedItems.length === 0) {
+      showToast('⚠️ No items selected');
+      return;
+    }
+
+    const items = getInventory();
+    const selectedItemsData = items.filter(item => selectedItems.includes(item.id));
+    
+    // Create shopping list content
+    let content = '🛒 SHOPPING LIST\n';
+    content += '=' .repeat(50) + '\n';
+    content += `Generated: ${new Date().toLocaleString()}\n`;
+    content += `Total Items: ${selectedItemsData.length}\n`;
+    content += '=' .repeat(50) + '\n\n';
+
+    // Group by category
+    const categories = ['Dry Store', 'Fresh Produce', 'Refrigerated', 'Frozen', 'Fruits'];
+    categories.forEach(category => {
+      const categoryItems = selectedItemsData.filter(item => item.category === category);
+      if (categoryItems.length > 0) {
+        const emoji = category === 'Dry Store' ? '🏪' :
+                     category === 'Fresh Produce' ? '🥬' :
+                     category === 'Refrigerated' ? '❄️' :
+                     category === 'Frozen' ? '🧊' :
+                     category === 'Fruits' ? '🍎' : '📦';
+        content += `\n${emoji} ${category.toUpperCase()}\n`;
+        content += '-'.repeat(50) + '\n';
+        
+        categoryItems.forEach((item, index) => {
+          const neededQty = Math.max(0, item.minStock - item.currentStock);
+          content += `${index + 1}. ${item.name}\n`;
+          content += `   Current Stock: ${item.currentStock} ${item.unit}\n`;
+          content += `   Min Stock: ${item.minStock} ${item.unit}\n`;
+          content += `   Need to Buy: ${neededQty} ${item.unit}\n`;
+          content += `   [ ] Purchased\n\n`;
+        });
+      }
+    });
+
+    content += '\n' + '='.repeat(50) + '\n';
+    content += 'NOTES:\n';
+    content += '_'.repeat(50) + '\n\n\n';
+
+    // Create and download file
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `shopping-list-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast(`📥 Shopping list downloaded (${selectedItemsData.length} items)`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -218,13 +276,22 @@ const CafeInventory = ({ showToast }) => {
         </div>
         <div className="flex items-center gap-3">
           {selectedItems.length > 0 && (
-            <button
-              onClick={handleDeleteSelected}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl font-bold hover:from-red-700 hover:to-rose-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-            >
-              <Trash className="w-5 h-5" />
-              Delete Selected ({selectedItems.length})
-            </button>
+            <>
+              <button
+                onClick={handleDownloadShoppingList}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-bold hover:from-blue-700 hover:to-cyan-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              >
+                <Download className="w-5 h-5" />
+                Download List ({selectedItems.length})
+              </button>
+              <button
+                onClick={handleDeleteSelected}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl font-bold hover:from-red-700 hover:to-rose-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              >
+                <Trash className="w-5 h-5" />
+                Delete Selected ({selectedItems.length})
+              </button>
+            </>
           )}
           <button
             onClick={handleBulkImport}

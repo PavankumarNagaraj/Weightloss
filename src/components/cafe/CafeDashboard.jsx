@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
   ShoppingCart, Package, DollarSign, TrendingUp, AlertTriangle,
-  Users, Calendar, ArrowUp, ArrowDown, Clock, Wallet
+  Users, Calendar, ArrowUp, ArrowDown, Clock, Wallet, Mail
 } from 'lucide-react';
 import { getDashboardStats, getOrders, getLowStockItems, getCurrentBalance } from '../../services/cafeService';
+import { sendDailyReport, getEmailSettings } from '../../services/emailService';
 
 const CafeDashboard = ({ showToast }) => {
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [lowStock, setLowStock] = useState([]);
   const [balance, setBalance] = useState(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -27,6 +29,21 @@ const CafeDashboard = ({ showToast }) => {
 
     const currentBalance = getCurrentBalance();
     setBalance(currentBalance);
+  };
+
+  const handleSendDailyReport = async () => {
+    const emailSettings = getEmailSettings();
+    const recipientEmail = emailSettings?.email || 'pavankumar.nagaraj@gmail.com';
+    
+    setSendingEmail(true);
+    const result = await sendDailyReport(recipientEmail, emailSettings?.name || 'Cafe Manager');
+    setSendingEmail(false);
+    
+    if (result.success) {
+      showToast(`✅ Daily report sent to ${recipientEmail}`);
+    } else {
+      showToast(`❌ Failed to send: ${result.error}`);
+    }
   };
 
   if (!stats) {
@@ -78,6 +95,24 @@ const CafeDashboard = ({ showToast }) => {
 
   return (
     <div className="space-y-6">
+      {/* Header with Email Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Dashboard
+          </h2>
+          <p className="text-gray-600 font-semibold mt-1">Overview of your cafe operations</p>
+        </div>
+        <button
+          onClick={handleSendDailyReport}
+          disabled={sendingEmail}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-pink-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50"
+        >
+          <Mail className="w-5 h-5" />
+          {sendingEmail ? 'Sending...' : 'Email Report'}
+        </button>
+      </div>
+
       {/* Current Balance - Prominent Display */}
       {balance && (
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 border-4 border-white shadow-2xl">
