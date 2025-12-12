@@ -198,27 +198,39 @@ export const generateCleanDailyEmail = (data) => {
     <!-- Today's Purchases -->
     ${expenses.todayPurchases && expenses.todayPurchases.length > 0 ? `
     <div class="section">
-      <div class="section-title">🛍️ Today's Purchases</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Material</th>
-            <th>Quantity</th>
-            <th>Price/Unit</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${expenses.todayPurchases.map(purchase => `
-            <tr>
-              <td><strong>${purchase.materialName}</strong></td>
-              <td>${purchase.quantity} ${purchase.unit}</td>
-              <td>₹${purchase.pricePerUnit.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-              <td style="color: #ef4444; font-weight: bold;">₹${purchase.totalCost.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
+      <div class="section-title">🛍️ Today's Purchase Orders</div>
+      ${expenses.todayPurchases.map(purchase => `
+        <div style="margin-bottom: 20px; padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #667eea;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div>
+              <strong style="color: #667eea; font-size: 14px;">Order #${purchase.orderNumber || 'N/A'}</strong>
+              <span style="color: #6b7280; font-size: 12px; margin-left: 10px;">
+                ${new Date(purchase.date || purchase.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+            <strong style="color: #10b981; font-size: 16px;">₹${purchase.totalCost.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+          </div>
+          ${purchase.supplier ? `<div style="color: #6b7280; font-size: 12px; margin-bottom: 8px;">Supplier: ${purchase.supplier}</div>` : ''}
+          <table style="width: 100%; margin-top: 10px;">
+            <thead>
+              <tr style="background: #e5e7eb;">
+                <th style="padding: 8px; text-align: left; font-size: 11px;">Material</th>
+                <th style="padding: 8px; text-align: left; font-size: 11px;">Quantity</th>
+                <th style="padding: 8px; text-align: right; font-size: 11px;">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${purchase.items?.map(item => `
+                <tr>
+                  <td style="padding: 6px; font-size: 12px;">${item.materialName}</td>
+                  <td style="padding: 6px; font-size: 12px;">${item.quantity} ${item.unit}</td>
+                  <td style="padding: 6px; text-align: right; font-size: 12px;">₹${item.totalPrice?.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                </tr>
+              `).join('') || ''}
+            </tbody>
+          </table>
+        </div>
+      `).join('')}
     </div>
     ` : ''}
 

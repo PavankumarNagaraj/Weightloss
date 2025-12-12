@@ -6,6 +6,8 @@ const CafePurchases = ({ showToast }) => {
   const [purchases, setPurchases] = useState([]);
   const [stats, setStats] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedPurchase, setSelectedPurchase] = useState(null);
   const [inventory, setInventory] = useState([]);
   const [formData, setFormData] = useState({
     supplierName: '',
@@ -174,6 +176,7 @@ const CafePurchases = ({ showToast }) => {
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Order #</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Items & Supplier</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Amount</th>
@@ -183,7 +186,7 @@ const CafePurchases = ({ showToast }) => {
           <tbody className="divide-y divide-gray-200">
             {purchases.length === 0 ? (
               <tr>
-                <td colSpan="4" className="px-6 py-12 text-center text-gray-500">
+                <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
                   No purchases recorded yet. Start tracking your raw material purchases.
                 </td>
               </tr>
@@ -191,8 +194,19 @@ const CafePurchases = ({ showToast }) => {
               purchases.map((purchase) => (
                 <tr key={purchase.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
+                    <button
+                      onClick={() => {
+                        setSelectedPurchase(purchase);
+                        setShowDetailModal(true);
+                      }}
+                      className="text-sm font-bold text-purple-600 hover:text-purple-800 hover:underline cursor-pointer"
+                    >
+                      {purchase.orderNumber || 'N/A'}
+                    </button>
+                  </td>
+                  <td className="px-6 py-4">
                     <span className="text-sm text-gray-900">
-                      {new Date(purchase.date).toLocaleDateString()}
+                      {new Date(purchase.date || purchase.createdAt).toLocaleDateString()}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -393,6 +407,82 @@ const CafePurchases = ({ showToast }) => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Purchase Detail Modal */}
+      {showDetailModal && selectedPurchase && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-2xl font-bold">Purchase Order Details</h3>
+                  <p className="text-sm text-gray-500 mt-1">Order #{selectedPurchase.orderNumber}</p>
+                </div>
+                <button onClick={() => setShowDetailModal(false)}>
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Order Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-xs text-gray-500 mb-1">Date</p>
+                    <p className="text-sm font-semibold">{new Date(selectedPurchase.date || selectedPurchase.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-xs text-gray-500 mb-1">Supplier</p>
+                    <p className="text-sm font-semibold">{selectedPurchase.supplierName || 'N/A'}</p>
+                  </div>
+                </div>
+
+                {/* Items Table */}
+                <div>
+                  <h4 className="text-lg font-bold mb-3">Items Purchased</h4>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Material</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Quantity</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {selectedPurchase.items?.map((item, index) => (
+                          <tr key={index}>
+                            <td className="px-4 py-3 text-sm font-medium">{item.materialName}</td>
+                            <td className="px-4 py-3 text-sm">{item.quantity} {item.unit}</td>
+                            <td className="px-4 py-3 text-sm text-right font-semibold">₹{item.totalPrice?.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border-2 border-purple-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-bold text-gray-700">Total Amount</span>
+                    <span className="text-2xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                      ₹{selectedPurchase.totalAmount?.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {selectedPurchase.notes && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Notes</h4>
+                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedPurchase.notes}</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -188,6 +188,7 @@ export const addPurchase = (purchaseData) => {
     
     const newPurchase = {
       id: generateShortId(),
+      orderNumber: `PO${Date.now().toString().slice(-6)}`, // Purchase Order number
       ...purchaseData,
       date: purchaseDateOnly,
       createdAt: purchaseDate,
@@ -206,6 +207,7 @@ export const addPurchase = (purchaseData) => {
       date: purchaseDateOnly,
       createdAt: purchaseDate,
       purchaseId: newPurchase.id,
+      orderNumber: newPurchase.orderNumber,
       notes: purchaseData.notes || '',
     };
     
