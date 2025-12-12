@@ -312,14 +312,48 @@ export const formatReportEmail = (reportData) => {
   `;
 };
 
-// Send email via backend API
+// Send email via Supabase Edge Function
 export const sendDailyReport = async (recipientEmail, recipientName = 'Cafe Manager') => {
   try {
     const reportData = generateDailyReport();
     const { generateCleanDailyEmail } = await import('../utils/emailTemplates');
     const htmlContent = generateCleanDailyEmail(reportData);
     
-    // Try to send via local API endpoint first
+    // Supabase configuration
+    const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY || 'YOUR_ANON_KEY';
+    
+    // Try Supabase Edge Function first
+    if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipientEmail,
+            recipientName,
+            subject: `☕ Daily Report - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+            htmlContent,
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          return {
+            success: true,
+            messageId: result.messageId,
+            message: 'Daily report sent successfully via Supabase',
+          };
+        }
+      } catch (supabaseError) {
+        console.log('Supabase function not available, trying local API...');
+      }
+    }
+    
+    // Fallback to local API
     try {
       const response = await fetch('http://localhost:3001/api/send-email', {
         method: 'POST',
@@ -339,14 +373,14 @@ export const sendDailyReport = async (recipientEmail, recipientName = 'Cafe Mana
         return {
           success: true,
           messageId: result.messageId,
-          message: 'Daily report sent successfully',
+          message: 'Daily report sent successfully via local API',
         };
       }
     } catch (apiError) {
-      console.log('API endpoint not available, downloading report instead');
+      console.log('Local API not available, downloading report...');
     }
     
-    // Fallback: Download the report HTML
+    // Final fallback: Download the report HTML
     const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -359,7 +393,7 @@ export const sendDailyReport = async (recipientEmail, recipientName = 'Cafe Mana
     
     return {
       success: true,
-      message: 'Report downloaded. To send via email, run: node send-clean-report.js in terminal',
+      message: 'Report downloaded. Setup Supabase or run: node send-clean-report.js',
     };
   } catch (error) {
     console.error('Error generating report:', error);
