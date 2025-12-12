@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {
   ShoppingCart, Package, DollarSign, TrendingUp, AlertTriangle,
-  Users, Calendar, ArrowUp, ArrowDown, Clock
+  Users, Calendar, ArrowUp, ArrowDown, Clock, Wallet
 } from 'lucide-react';
-import { getDashboardStats, getOrders, getLowStockItems } from '../../services/cafeService';
+import { getDashboardStats, getOrders, getLowStockItems, getCurrentBalance } from '../../services/cafeService';
 
 const CafeDashboard = ({ showToast }) => {
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [lowStock, setLowStock] = useState([]);
+  const [balance, setBalance] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -23,6 +24,9 @@ const CafeDashboard = ({ showToast }) => {
 
     const lowStockItems = getLowStockItems();
     setLowStock(lowStockItems);
+
+    const currentBalance = getCurrentBalance();
+    setBalance(currentBalance);
   };
 
   if (!stats) {
@@ -74,6 +78,55 @@ const CafeDashboard = ({ showToast }) => {
 
   return (
     <div className="space-y-6">
+      {/* Current Balance - Prominent Display */}
+      {balance && (
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 border-4 border-white shadow-2xl">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative p-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl">
+                  <Wallet className="w-10 h-10 text-white" />
+                </div>
+                <div>
+                  <p className="text-white/80 text-sm font-semibold mb-1">Current Balance</p>
+                  <p className="text-5xl font-black text-white">
+                    ₹{balance.currentBalance.toLocaleString()}
+                  </p>
+                  <p className="text-white/60 text-xs mt-2">
+                    Total Income: ₹{balance.totalIncome.toLocaleString()} | Total Costs: ₹{balance.totalCosts.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
+                  <p className="text-white/80 text-xs mb-2">Breakdown</p>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-white/70">Revenue:</span>
+                      <span className="text-white font-bold">₹{balance.breakdown.revenue.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-white/70">Investments:</span>
+                      <span className="text-white font-bold">₹{balance.breakdown.investments.toLocaleString()}</span>
+                    </div>
+                    <div className="h-px bg-white/30 my-2"></div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-white/70">Purchases:</span>
+                      <span className="text-white font-bold">₹{balance.breakdown.purchases.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-white/70">Expenses:</span>
+                      <span className="text-white font-bold">₹{balance.breakdown.expenses.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Stats Grid - Modern Design */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => {

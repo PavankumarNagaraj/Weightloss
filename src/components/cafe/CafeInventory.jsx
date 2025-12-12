@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, AlertTriangle, Edit, Trash2, X } from 'lucide-react';
+import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash } from 'lucide-react';
 import { getInventory, addInventoryItem, updateInventoryStock, getLowStockItems } from '../../services/cafeService';
+import { importBulkInventory } from '../../utils/bulkInventoryImport';
 
 const CafeInventory = ({ showToast }) => {
   const [inventory, setInventory] = useState([]);
@@ -13,10 +14,16 @@ const CafeInventory = ({ showToast }) => {
     currentStock: 0,
     minStock: '',
     unit: 'g',
+    category: 'Dry Store',
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [existingMaterials, setExistingMaterials] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+
+  const categories = ['Dry Store', 'Fresh Produce', 'Refrigerated', 'Frozen', 'Fruits'];
 
   // Helper function to convert any unit to grams for comparison
   const convertToGrams = (quantity, unit) => {
@@ -74,6 +81,7 @@ const CafeInventory = ({ showToast }) => {
         currentStock: purchaseQty,
         minStock: parseFloat(formData.minStock),
         unit: formData.unit,
+        category: formData.category || 'Dry Store',
       };
       addInventoryItem(newItem);
       
@@ -90,7 +98,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', purchaseQuantity: '', currentStock: 0, minStock: '', unit: 'g' });
+    setFormData({ name: '', purchaseQuantity: '', currentStock: 0, minStock: '', unit: 'g', category: 'Dry Store' });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -106,6 +114,7 @@ const CafeInventory = ({ showToast }) => {
         currentStock: existingItem.currentStock,
         minStock: existingItem.minStock,
         unit: existingItem.unit,
+        category: existingItem.category || 'Dry Store',
       });
     } else {
       setFormData({
@@ -131,6 +140,7 @@ const CafeInventory = ({ showToast }) => {
         currentStock: existingItem.currentStock,
         minStock: existingItem.minStock,
         unit: existingItem.unit,
+        category: existingItem.category || 'Dry Store',
       });
     }
   };
@@ -149,6 +159,56 @@ const CafeInventory = ({ showToast }) => {
     }
   };
 
+  const handleBulkImport = () => {
+    if (confirm('Import 69 pre-categorized ingredients? Existing items will be skipped.')) {
+      const result = importBulkInventory();
+      if (result.success) {
+        loadInventory();
+        showToast(`✅ Bulk import complete! Added: ${result.addedCount}, Skipped: ${result.skippedCount}`);
+      } else {
+        showToast(`❌ Import failed: ${result.error}`);
+      }
+    }
+  };
+
+  const handleSelectAll = () => {
+    const filteredInventory = selectedCategory === 'All' 
+      ? inventory 
+      : inventory.filter(item => item.category === selectedCategory);
+    
+    if (!selectAll) {
+      setSelectedItems(filteredInventory.map(item => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+    setSelectAll(!selectAll);
+  };
+
+  const handleSelectItem = (id) => {
+    if (selectedItems.includes(id)) {
+      setSelectedItems(selectedItems.filter(itemId => itemId !== id));
+    } else {
+      setSelectedItems([...selectedItems, id]);
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedItems.length === 0) {
+      showToast('⚠️ No items selected');
+      return;
+    }
+    
+    if (confirm(`Delete ${selectedItems.length} selected item(s)? This cannot be undone!`)) {
+      const items = getInventory();
+      const updatedItems = items.filter(item => !selectedItems.includes(item.id));
+      localStorage.setItem('cafe_inventory', JSON.stringify(updatedItems));
+      setSelectedItems([]);
+      setSelectAll(false);
+      loadInventory();
+      showToast(`🗑️ Deleted ${selectedItems.length} item(s)`);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -156,13 +216,31 @@ const CafeInventory = ({ showToast }) => {
           <h2 className="text-3xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Inventory Management</h2>
           <p className="text-gray-600 font-semibold mt-1">Track your raw materials and stock levels</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-        >
-          <Plus className="w-5 h-5" />
-          Add Inventory
-        </button>
+        <div className="flex items-center gap-3">
+          {selectedItems.length > 0 && (
+            <button
+              onClick={handleDeleteSelected}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl font-bold hover:from-red-700 hover:to-rose-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            >
+              <Trash className="w-5 h-5" />
+              Delete Selected ({selectedItems.length})
+            </button>
+          )}
+          <button
+            onClick={handleBulkImport}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+          >
+            <Upload className="w-5 h-5" />
+            Bulk Import (69 items)
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+          >
+            <Plus className="w-5 h-5" />
+            Add Inventory
+          </button>
+        </div>
       </div>
 
       {lowStock.length > 0 && (
@@ -175,12 +253,46 @@ const CafeInventory = ({ showToast }) => {
         </div>
       )}
 
+      {/* Category Filter */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-semibold text-gray-700">Filter by Category:</span>
+          {['All', ...categories].map(cat => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
+                selectedCategory === cat
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {cat === 'All' ? '📋 All' :
+               cat === 'Dry Store' ? '🏪 Dry Store' :
+               cat === 'Fresh Produce' ? '🥬 Fresh Produce' :
+               cat === 'Refrigerated' ? '❄️ Refrigerated' :
+               cat === 'Frozen' ? '🧊 Frozen' :
+               cat === 'Fruits' ? '🍎 Fruits' : cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Inventory Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              <th className="px-6 py-3 text-left w-12">
+                <input
+                  type="checkbox"
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                />
+              </th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Material Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-40">Category</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Current Stock</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Min Stock</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Unit</th>
@@ -191,20 +303,46 @@ const CafeInventory = ({ showToast }) => {
           <tbody className="divide-y divide-gray-200">
             {inventory.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
                   No inventory items yet. Add items to track stock levels.
                 </td>
               </tr>
             ) : (
-              inventory.map((item) => {
+              inventory
+                .filter(item => selectedCategory === 'All' || item.category === selectedCategory)
+                .map((item) => {
                 // Convert current stock to grams for comparison
                 const currentStockInGrams = convertToGrams(item.currentStock, item.unit);
                 const isLowStock = currentStockInGrams <= item.minStock;
                 
                 return (
-                  <tr key={item.id} className={`hover:bg-gray-50 ${isLowStock ? 'bg-red-50' : ''}`}>
+                  <tr key={item.id} className={`hover:bg-gray-50 ${isLowStock ? 'bg-red-50' : ''} ${selectedItems.includes(item.id) ? 'bg-purple-50' : ''}`}>
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.includes(item.id)}
+                        onChange={() => handleSelectItem(item.id)}
+                        className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <span className="font-semibold text-gray-900">{item.name}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-3 py-1 rounded-full text-xs font-bold ${
+                        item.category === 'Dry Store' ? 'bg-amber-100 text-amber-700' :
+                        item.category === 'Fresh Produce' ? 'bg-green-100 text-green-700' :
+                        item.category === 'Refrigerated' ? 'bg-blue-100 text-blue-700' :
+                        item.category === 'Frozen' ? 'bg-cyan-100 text-cyan-700' :
+                        item.category === 'Fruits' ? 'bg-pink-100 text-pink-700' :
+                        'bg-gray-100 text-gray-700'
+                      }">
+                        {item.category === 'Dry Store' ? '🏪' :
+                         item.category === 'Fresh Produce' ? '🥬' :
+                         item.category === 'Refrigerated' ? '❄️' :
+                         item.category === 'Frozen' ? '🧊' :
+                         item.category === 'Fruits' ? '🍎' : '📦'} {item.category || 'Uncategorized'}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-gray-900'}`}>
@@ -233,7 +371,15 @@ const CafeInventory = ({ showToast }) => {
                         <button
                           onClick={() => {
                             setEditingItem(item);
-                            setFormData(item);
+                            setFormData({
+                              name: item.name,
+                              purchaseQuantity: '',
+                              currentStock: item.currentStock,
+                              minStock: item.minStock,
+                              unit: item.unit,
+                              category: item.category || 'Dry Store',
+                            });
+                            setSearchTerm(item.name);
                             setShowModal(true);
                           }}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
@@ -328,6 +474,25 @@ const CafeInventory = ({ showToast }) => {
                     </p>
                   </div>
                 )}
+
+                {/* Storage Category */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Storage Category <span className="text-orange-600">*</span>
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-semibold"
+                    required
+                  >
+                    <option value="Dry Store">🏪 Dry Store (Grains, Pulses, Spices, Oils)</option>
+                    <option value="Fresh Produce">🥬 Fresh Produce (Vegetables, Herbs)</option>
+                    <option value="Refrigerated">❄️ Refrigerated (Dairy, Meat, Eggs)</option>
+                    <option value="Frozen">🧊 Frozen (Frozen Items)</option>
+                    <option value="Fruits">🍎 Fruits (Fresh Fruits)</option>
+                  </select>
+                </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="col-span-2">
