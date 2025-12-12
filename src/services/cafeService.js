@@ -1,91 +1,83 @@
-// Cafe Management Service
-import { generateShortId } from '../utils/idGenerator';
-import { scheduleSyncToStorage } from './storageSync';
-
-const ORDERS_KEY = 'cafe_orders';
-const INVENTORY_KEY = 'cafe_inventory';
-const PURCHASES_KEY = 'cafe_purchases';
-const MENU_KEY = 'cafe_menu';
-const EXPENSES_KEY = 'cafe_expenses';
-
-// Migration: Add date field to existing orders
-export const migrateOrderDates = () => {
-  try {
-    const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-    let migrated = false;
-    
-    const updatedOrders = orders.map(order => {
-      if (!order.date && order.createdAt) {
-        migrated = true;
-        return {
-          ...order,
-          date: order.createdAt.split('T')[0] // Extract YYYY-MM-DD from ISO timestamp
-        };
-      }
-      return order;
-    });
-    
-    if (migrated) {
-      localStorage.setItem(ORDERS_KEY, JSON.stringify(updatedOrders));
-      console.log('✅ Migrated orders with date field');
-    }
-  } catch (error) {
-    console.error('Error migrating order dates:', error);
-  }
-};
+// Production-Ready Cafe Service using Supabase Database
+import { supabase, handleSupabaseError } from '../config/supabase';
 
 // ==================== MENU MANAGEMENT ====================
 
-export const getMenuItems = () => {
+export const getMenuItems = async () => {
   try {
-    return JSON.parse(localStorage.getItem(MENU_KEY) || '[]');
+    const { data, error } = await supabase
+      .from('cafe_menu')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
     console.error('Error getting menu items:', error);
     return [];
   }
 };
 
-export const addMenuItem = (itemData) => {
+export const addMenuItem = async (itemData) => {
   try {
-    const items = getMenuItems();
-    const newItem = {
-      id: generateShortId(),
-      ...itemData,
-      createdAt: new Date().toISOString(),
-      isActive: true,
-    };
-    items.push(newItem);
-    localStorage.setItem(MENU_KEY, JSON.stringify(items));
-    scheduleSyncToStorage();
-    return newItem;
+    const { data, error } = await supabase
+      .from('cafe_menu')
+      .insert([{
+        name: itemData.name,
+        category: itemData.category,
+        customer_price: itemData.customerPrice,
+        trainer_price: itemData.trainerPrice,
+        description: itemData.description,
+        is_veg: itemData.isVeg,
+        raw_materials: itemData.rawMaterials || [],
+        is_active: true,
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Error adding menu item:', error);
     throw error;
   }
 };
 
-export const updateMenuItem = (itemId, updates) => {
+export const updateMenuItem = async (itemId, updates) => {
   try {
-    const items = getMenuItems();
-    const index = items.findIndex(item => item.id === itemId);
-    if (index !== -1) {
-      items[index] = { ...items[index], ...updates, updatedAt: new Date().toISOString() };
-      localStorage.setItem(MENU_KEY, JSON.stringify(items));
-      scheduleSyncToStorage();
-      return items[index];
-    }
-    throw new Error('Menu item not found');
+    const updateData = {
+      name: updates.name,
+      category: updates.category,
+      customer_price: updates.customerPrice,
+      trainer_price: updates.trainerPrice,
+      description: updates.description,
+      is_veg: updates.isVeg,
+      raw_materials: updates.rawMaterials,
+    };
+
+    const { data, error } = await supabase
+      .from('cafe_menu')
+      .update(updateData)
+      .eq('id', itemId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Error updating menu item:', error);
     throw error;
   }
 };
 
-export const deleteMenuItem = (itemId) => {
+export const deleteMenuItem = async (itemId) => {
   try {
-    const items = getMenuItems();
-    const filtered = items.filter(item => item.id !== itemId);
-    localStorage.setItem(MENU_KEY, JSON.stringify(filtered));
+    const { error } = await supabase
+      .from('cafe_menu')
+      .delete()
+      .eq('id', itemId);
+
+    if (error) throw error;
     return true;
   } catch (error) {
     console.error('Error deleting menu item:', error);
@@ -95,164 +87,226 @@ export const deleteMenuItem = (itemId) => {
 
 // ==================== INVENTORY MANAGEMENT ====================
 
-export const getInventory = () => {
+export const getInventory = async () => {
   try {
-    return JSON.parse(localStorage.getItem(INVENTORY_KEY) || '[]');
+    const { data, error } = await supabase
+      .from('cafe_inventory')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
     console.error('Error getting inventory:', error);
     return [];
   }
 };
 
-export const addInventoryItem = (itemData) => {
+export const addInventoryItem = async (itemData) => {
   try {
-    const inventory = getInventory();
-    const newItem = {
-      id: generateShortId(),
-      ...itemData,
-      createdAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
-    };
-    inventory.push(newItem);
-    localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
-    scheduleSyncToStorage();
-    return newItem;
+    const { data, error } = await supabase
+      .from('cafe_inventory')
+      .insert([{
+        name: itemData.name,
+        current_stock: itemData.currentStock || 0,
+        min_stock: itemData.minStock || 0,
+        unit: itemData.unit,
+        category: itemData.category,
+        price_per_unit: itemData.pricePerUnit || 0,
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Error adding inventory item:', error);
     throw error;
   }
 };
 
-export const updateInventoryStock = (itemId, quantity, type = 'add') => {
+export const updateInventoryStock = async (itemId, quantity, type = 'add') => {
   try {
-    const inventory = getInventory();
-    const index = inventory.findIndex(item => item.id === itemId);
-    
-    if (index !== -1) {
-      if (type === 'add') {
-        inventory[index].currentStock += quantity;
-      } else if (type === 'subtract') {
-        inventory[index].currentStock -= quantity;
-      } else {
-        inventory[index].currentStock = quantity;
-      }
-      
-      inventory[index].lastUpdated = new Date().toISOString();
-      localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
-      scheduleSyncToStorage();
-      return inventory[index];
+    // First get current stock
+    const { data: currentItem, error: fetchError } = await supabase
+      .from('cafe_inventory')
+      .select('current_stock')
+      .eq('id', itemId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    let newStock;
+    if (type === 'add') {
+      newStock = parseFloat(currentItem.current_stock) + parseFloat(quantity);
+    } else if (type === 'subtract') {
+      newStock = parseFloat(currentItem.current_stock) - parseFloat(quantity);
+    } else {
+      newStock = parseFloat(quantity);
     }
-    throw new Error('Inventory item not found');
+
+    const { data, error } = await supabase
+      .from('cafe_inventory')
+      .update({ current_stock: newStock })
+      .eq('id', itemId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Error updating inventory stock:', error);
     throw error;
   }
 };
 
-export const getLowStockItems = () => {
-  const inventory = getInventory();
-  
-  // Helper to convert to grams
-  const convertToGrams = (quantity, unit) => {
-    const qty = parseFloat(quantity);
-    switch(unit) {
-      case 'kg': return qty * 1000;
-      case 'l': return qty * 1000;
-      case 'ml': return qty;
-      case 'g': return qty;
-      case 'pcs': return qty;
-      default: return qty;
-    }
-  };
-  
-  return inventory.filter(item => {
-    const currentStockInGrams = convertToGrams(item.currentStock, item.unit);
-    return currentStockInGrams <= item.minStock;
-  });
+export const updateInventoryItem = async (itemId, updates) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_inventory')
+      .update({
+        name: updates.name,
+        current_stock: updates.currentStock,
+        min_stock: updates.minStock,
+        unit: updates.unit,
+        category: updates.category,
+        price_per_unit: updates.pricePerUnit,
+      })
+      .eq('id', itemId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error updating inventory item:', error);
+    throw error;
+  }
 };
 
-// ==================== PURCHASE MANAGEMENT ====================
-
-export const getPurchases = () => {
+export const deleteInventoryItem = async (itemId) => {
   try {
-    return JSON.parse(localStorage.getItem(PURCHASES_KEY) || '[]');
+    const { error } = await supabase
+      .from('cafe_inventory')
+      .delete()
+      .eq('id', itemId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting inventory item:', error);
+    throw error;
+  }
+};
+
+export const getLowStockItems = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_low_stock_items')
+      .select('*');
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting low stock items:', error);
+    return [];
+  }
+};
+
+// ==================== PURCHASES MANAGEMENT ====================
+
+export const getPurchases = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_purchases')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
     console.error('Error getting purchases:', error);
     return [];
   }
 };
 
-export const addPurchase = (purchaseData) => {
+export const addPurchase = async (purchaseData) => {
   try {
-    const purchases = getPurchases();
-    const inventory = getInventory();
-    const expenses = JSON.parse(localStorage.getItem(EXPENSES_KEY) || '[]');
-    
     const purchaseDate = new Date().toISOString();
-    const purchaseDateOnly = purchaseDate.split('T')[0]; // YYYY-MM-DD format
-    
-    const newPurchase = {
-      id: generateShortId(),
-      orderNumber: `PO${Date.now().toString().slice(-6)}`, // Purchase Order number
-      ...purchaseData,
-      date: purchaseDateOnly,
-      createdAt: purchaseDate,
-      status: 'completed',
-    };
-    
-    purchases.push(newPurchase);
-    localStorage.setItem(PURCHASES_KEY, JSON.stringify(purchases));
-    scheduleSyncToStorage();
-    
-    // Create expense entry for this purchase
-    const expenseEntry = {
-      id: generateShortId(),
-      category: 'Inventory Purchase',
-      description: `Purchase from ${purchaseData.supplierName || 'Supplier'} - ${purchaseData.items?.length || 0} items`,
-      amount: purchaseData.totalAmount || 0,
-      date: purchaseDateOnly,
-      createdAt: purchaseDate,
-      purchaseId: newPurchase.id,
-      orderNumber: newPurchase.orderNumber,
-      notes: purchaseData.notes || '',
-    };
-    
-    expenses.push(expenseEntry);
-    localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
-    scheduleSyncToStorage();
-    
-    // Update inventory stock based on purchased items
-    if (purchaseData.items) {
-      purchaseData.items.forEach(purchaseItem => {
-        const inventoryItem = inventory.find(inv => 
-          inv.name.toLowerCase() === purchaseItem.materialName.toLowerCase()
-        );
-        
-        if (inventoryItem) {
-          // Update existing inventory item
-          const invIndex = inventory.findIndex(inv => inv.id === inventoryItem.id);
-          if (invIndex !== -1) {
-            // Update stock
-            inventory[invIndex].currentStock = parseFloat(inventory[invIndex].currentStock) + parseFloat(purchaseItem.quantity);
-            
-            // Update price per unit (weighted average)
-            const oldValue = parseFloat(inventory[invIndex].currentStock - purchaseItem.quantity) * (inventory[invIndex].pricePerUnit || 0);
-            const newValue = parseFloat(purchaseItem.totalPrice);
-            const totalValue = oldValue + newValue;
-            const totalQuantity = parseFloat(inventory[invIndex].currentStock);
-            inventory[invIndex].pricePerUnit = totalQuantity > 0 ? totalValue / totalQuantity : purchaseItem.pricePerUnit;
-            
-            inventory[invIndex].lastUpdated = new Date().toISOString();
-            inventory[invIndex].lastPurchasePrice = purchaseItem.pricePerUnit;
-          }
+    const purchaseDateOnly = purchaseDate.split('T')[0];
+
+    // Insert purchase
+    const { data: newPurchase, error: purchaseError } = await supabase
+      .from('cafe_purchases')
+      .insert([{
+        order_number: `PO${Date.now().toString().slice(-6)}`,
+        supplier_name: purchaseData.supplierName,
+        items: purchaseData.items || [],
+        total_amount: purchaseData.totalAmount,
+        notes: purchaseData.notes,
+        date: purchaseDateOnly,
+        status: 'completed',
+      }])
+      .select()
+      .single();
+
+    if (purchaseError) throw purchaseError;
+
+    // Create expense entry
+    const { error: expenseError } = await supabase
+      .from('cafe_expenses')
+      .insert([{
+        category: 'Inventory Purchase',
+        description: `Purchase from ${purchaseData.supplierName} - ${purchaseData.items?.length || 0} items`,
+        amount: purchaseData.totalAmount,
+        date: purchaseDateOnly,
+        purchase_id: newPurchase.id,
+        order_number: newPurchase.order_number,
+        notes: purchaseData.notes || '',
+      }]);
+
+    if (expenseError) throw expenseError;
+
+    // Update inventory stock
+    if (purchaseData.items && purchaseData.items.length > 0) {
+      for (const item of purchaseData.items) {
+        // Find inventory item by name
+        const { data: inventoryItems, error: findError } = await supabase
+          .from('cafe_inventory')
+          .select('*')
+          .ilike('name', item.materialName)
+          .limit(1);
+
+        if (findError) {
+          console.error('Error finding inventory item:', findError);
+          continue;
         }
-      });
-      
-      // Save updated inventory
-      localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
-      scheduleSyncToStorage();
+
+        if (inventoryItems && inventoryItems.length > 0) {
+          const inventoryItem = inventoryItems[0];
+          const currentStock = parseFloat(inventoryItem.current_stock) || 0;
+          const purchaseQty = parseFloat(item.quantity) || 0;
+          const newStock = currentStock + purchaseQty;
+
+          // Calculate weighted average price
+          const currentValue = currentStock * (parseFloat(inventoryItem.price_per_unit) || 0);
+          const purchaseValue = purchaseQty * (parseFloat(item.pricePerUnit) || 0);
+          const totalValue = currentValue + purchaseValue;
+          const totalQuantity = newStock;
+          const newPricePerUnit = totalQuantity > 0 ? totalValue / totalQuantity : item.pricePerUnit;
+
+          await supabase
+            .from('cafe_inventory')
+            .update({
+              current_stock: newStock,
+              price_per_unit: newPricePerUnit,
+              last_purchase_price: item.pricePerUnit,
+            })
+            .eq('id', inventoryItem.id);
+        }
+      }
     }
-    
+
     return newPurchase;
   } catch (error) {
     console.error('Error adding purchase:', error);
@@ -260,103 +314,116 @@ export const addPurchase = (purchaseData) => {
   }
 };
 
-export const getPurchaseStats = (startDate, endDate) => {
-  const purchases = getPurchases();
-  const filtered = purchases.filter(p => {
-    const date = new Date(p.date);
-    return date >= new Date(startDate) && date <= new Date(endDate);
-  });
-  
-  const totalAmount = filtered.reduce((sum, p) => sum + p.totalAmount, 0);
-  const totalItems = filtered.reduce((sum, p) => sum + (p.items?.length || 0), 0);
-  
-  return {
-    totalPurchases: filtered.length,
-    totalAmount,
-    totalItems,
-    purchases: filtered,
-  };
+export const getPurchaseStats = async (startDate, endDate) => {
+  try {
+    let query = supabase
+      .from('cafe_purchases')
+      .select('total_amount, date');
+
+    if (startDate) {
+      query = query.gte('date', startDate);
+    }
+    if (endDate) {
+      query = query.lte('date', endDate);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    const total = data.reduce((sum, p) => sum + parseFloat(p.total_amount || 0), 0);
+    return {
+      total,
+      count: data.length,
+      purchases: data,
+    };
+  } catch (error) {
+    console.error('Error getting purchase stats:', error);
+    return { total: 0, count: 0, purchases: [] };
+  }
 };
 
-// ==================== ORDER MANAGEMENT ====================
+// ==================== ORDERS MANAGEMENT ====================
 
-export const getOrders = () => {
+export const getOrders = async () => {
   try {
-    return JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+    const { data, error } = await supabase
+      .from('cafe_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
     console.error('Error getting orders:', error);
     return [];
   }
 };
 
-export const createOrder = (orderData) => {
+export const createOrder = async (orderData) => {
   try {
-    const orders = getOrders();
-    const menuItems = getMenuItems();
-    const inventory = getInventory();
-    
-    const newOrder = {
-      id: generateShortId(),
-      orderNumber: `ORD${Date.now().toString().slice(-6)}`,
-      ...orderData,
-      date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format for email filtering
-      status: 'completed',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    orders.push(newOrder);
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-    scheduleSyncToStorage();
-    
+    const today = new Date().toISOString().split('T')[0];
+
+    // Insert order
+    const { data: newOrder, error: orderError } = await supabase
+      .from('cafe_orders')
+      .insert([{
+        order_number: `ORD${Date.now().toString().slice(-6)}`,
+        customer_name: orderData.customerName || 'Walk-in Customer',
+        customer_type: orderData.customerType,
+        user_id: orderData.userId || null,
+        items: orderData.items || [],
+        subtotal: orderData.subtotal,
+        discount: orderData.discount || 0,
+        total_amount: orderData.totalAmount,
+        payment_method: orderData.paymentMethod,
+        payment_received: orderData.paymentReceived || orderData.totalAmount,
+        status: 'completed',
+        date: today,
+      }])
+      .select()
+      .single();
+
+    if (orderError) throw orderError;
+
     // Deduct inventory based on menu item raw materials
-    if (orderData.items) {
-      console.log('🔍 Processing order items:', orderData.items);
-      
-      orderData.items.forEach(orderItem => {
-        // Find the menu item to get raw materials
-        const menuItem = menuItems.find(m => m.id === orderItem.id || m.name === orderItem.name);
-        console.log('📋 Menu item found:', menuItem?.name, 'Raw materials:', menuItem?.rawMaterials);
-        
-        if (menuItem && menuItem.rawMaterials && menuItem.rawMaterials.length > 0) {
-          // Deduct each raw material based on order quantity
-          menuItem.rawMaterials.forEach(material => {
-            const inventoryItem = inventory.find(inv => 
-              inv.name.toLowerCase() === material.name.toLowerCase()
-            );
-            
-            if (inventoryItem) {
-              const totalQuantityNeeded = parseFloat(material.quantity) * orderItem.quantity;
-              console.log(`📦 Deducting ${material.name}: ${totalQuantityNeeded}${material.unit} (${material.quantity} × ${orderItem.quantity})`);
-              
-              // Update inventory - subtract the required quantity
-              const invIndex = inventory.findIndex(inv => inv.id === inventoryItem.id);
-              if (invIndex !== -1) {
-                const oldStock = inventory[invIndex].currentStock;
-                inventory[invIndex].currentStock = parseFloat(inventory[invIndex].currentStock) - totalQuantityNeeded;
-                console.log(`✅ ${material.name}: ${oldStock}${inventory[invIndex].unit} → ${inventory[invIndex].currentStock}${inventory[invIndex].unit}`);
-                inventory[invIndex].lastUpdated = new Date().toISOString();
+    if (orderData.items && orderData.items.length > 0) {
+      // Get all menu items to find raw materials
+      const { data: menuItems, error: menuError } = await supabase
+        .from('cafe_menu')
+        .select('*');
+
+      if (menuError) {
+        console.error('Error fetching menu items:', menuError);
+      } else {
+        for (const orderItem of orderData.items) {
+          const menuItem = menuItems.find(m => m.id === orderItem.id || m.name === orderItem.name);
+
+          if (menuItem && menuItem.raw_materials && menuItem.raw_materials.length > 0) {
+            for (const material of menuItem.raw_materials) {
+              // Find inventory item
+              const { data: inventoryItems, error: invError } = await supabase
+                .from('cafe_inventory')
+                .select('*')
+                .ilike('name', material.name)
+                .limit(1);
+
+              if (!invError && inventoryItems && inventoryItems.length > 0) {
+                const inventoryItem = inventoryItems[0];
+                const quantityToDeduct = parseFloat(material.quantity) * orderItem.quantity;
+                const newStock = parseFloat(inventoryItem.current_stock) - quantityToDeduct;
+
+                await supabase
+                  .from('cafe_inventory')
+                  .update({ current_stock: Math.max(0, newStock) })
+                  .eq('id', inventoryItem.id);
               }
-            } else {
-              console.warn(`⚠️ Inventory item not found: ${material.name}`);
             }
-          });
-        } else {
-          console.warn(`⚠️ Menu item has no raw materials: ${orderItem.name}`);
+          }
         }
-      });
-      
-      // Save updated inventory
-      localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
-      scheduleSyncToStorage();
-      console.log('💾 Inventory saved to localStorage');
+      }
     }
-    
-    // Record in user's meal log if userId provided
-    if (orderData.userId) {
-      recordOrderInUserLog(orderData.userId, newOrder);
-    }
-    
+
     return newOrder;
   } catch (error) {
     console.error('Error creating order:', error);
@@ -364,628 +431,279 @@ export const createOrder = (orderData) => {
   }
 };
 
-export const updateOrderStatus = (orderId, status) => {
+export const updateOrderStatus = async (orderId, status) => {
   try {
-    const orders = getOrders();
-    const index = orders.findIndex(order => order.id === orderId);
-    
-    if (index !== -1) {
-      orders[index].status = status;
-      orders[index].updatedAt = new Date().toISOString();
-      
-      if (status === 'delivered') {
-        orders[index].deliveredAt = new Date().toISOString();
-      }
-      
-      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-      scheduleSyncToStorage();
-      return orders[index];
-    }
-    throw new Error('Order not found');
+    const updateData = {
+      status,
+      ...(status === 'delivered' && { delivered_at: new Date().toISOString() }),
+    };
+
+    const { data, error } = await supabase
+      .from('cafe_orders')
+      .update(updateData)
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Error updating order status:', error);
     throw error;
   }
 };
 
-export const getOrdersByUser = (userId) => {
-  const orders = getOrders();
-  return orders.filter(order => order.userId === userId);
-};
-
-export const getOrderStats = (startDate, endDate) => {
-  const orders = getOrders();
-  const filtered = orders.filter(o => {
-    const date = new Date(o.createdAt);
-    return date >= new Date(startDate) && date <= new Date(endDate);
-  });
-  
-  const totalRevenue = filtered.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-  const byStatus = filtered.reduce((acc, o) => {
-    acc[o.status] = (acc[o.status] || 0) + 1;
-    return acc;
-  }, {});
-  
-  return {
-    totalOrders: filtered.length,
-    totalRevenue,
-    byStatus,
-    orders: filtered,
-  };
-};
-
-// ==================== USER INTEGRATION ====================
-
-const recordOrderInUserLog = (userId, order) => {
+export const getOrdersByUser = async (userId) => {
   try {
-    const users = JSON.parse(localStorage.getItem('weightloss_users') || '[]');
-    const userIndex = users.findIndex(u => u.id === userId);
-    
-    if (userIndex !== -1) {
-      if (!users[userIndex].cafeOrders) {
-        users[userIndex].cafeOrders = [];
-      }
-      
-      users[userIndex].cafeOrders.push({
-        orderId: order.id,
-        orderNumber: order.orderNumber,
-        date: order.createdAt,
-        items: order.items,
-        totalAmount: order.totalAmount,
-        status: order.status,
-      });
-      
-      localStorage.setItem('weightloss_users', JSON.stringify(users));
-    }
-  } catch (error) {
-    console.error('Error recording order in user log:', error);
-  }
-};
+    const { data, error } = await supabase
+      .from('cafe_orders')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
 
-export const getUserCafeOrders = (userId) => {
-  try {
-    const users = JSON.parse(localStorage.getItem('weightloss_users') || '[]');
-    const user = users.find(u => u.id === userId);
-    return user?.cafeOrders || [];
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    console.error('Error getting user cafe orders:', error);
+    console.error('Error getting user orders:', error);
     return [];
   }
 };
 
-// ==================== DASHBOARD STATS ====================
+// ==================== EXPENSES MANAGEMENT ====================
 
-// ==================== INVENTORY VALUATION ====================
+export const getExpenses = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_expenses')
+      .select('*')
+      .order('date', { ascending: false });
 
-export const getInventoryValuation = () => {
-  const inventory = getInventory();
-  
-  let totalValue = 0;
-  const itemsWithValue = [];
-  const itemsWithoutPrice = [];
-  
-  inventory.forEach(item => {
-    const pricePerUnit = item.pricePerUnit || item.lastPurchasePrice || 0;
-    const value = parseFloat(item.currentStock) * pricePerUnit;
-    
-    if (pricePerUnit > 0) {
-      totalValue += value;
-      itemsWithValue.push({
-        name: item.name,
-        stock: item.currentStock,
-        unit: item.unit,
-        pricePerUnit,
-        value,
-      });
-    } else {
-      itemsWithoutPrice.push(item.name);
-    }
-  });
-  
-  return {
-    totalValue,
-    itemsWithValue: itemsWithValue.sort((a, b) => b.value - a.value),
-    itemsWithoutPrice,
-  };
-};
-
-// ==================== CREDIT ORDERS ====================
-
-export const getCreditOrders = () => {
-  const orders = getOrders();
-  
-  const creditOrders = orders.filter(o => 
-    o.paymentMethod === 'Credit' && 
-    (!o.paymentReceived || o.paymentReceived < o.totalAmount)
-  );
-  
-  const totalPending = creditOrders.reduce((sum, o) => {
-    const pending = o.totalAmount - (o.paymentReceived || 0);
-    return sum + pending;
-  }, 0);
-  
-  // Add days pending
-  const now = new Date();
-  const ordersWithDays = creditOrders.map(o => {
-    const orderDate = new Date(o.createdAt);
-    const daysPending = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24));
-    const pendingAmount = o.totalAmount - (o.paymentReceived || 0);
-    
-    return {
-      ...o,
-      daysPending,
-      pendingAmount,
-    };
-  });
-  
-  return {
-    orders: ordersWithDays.sort((a, b) => b.daysPending - a.daysPending),
-    totalPending,
-    count: creditOrders.length,
-  };
-};
-
-// ==================== CASH RECONCILIATION ====================
-
-export const getCashReconciliation = (date = new Date()) => {
-  const orders = getOrders();
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
-  
-  const todayOrders = orders.filter(o => {
-    const orderDate = new Date(o.createdAt);
-    return orderDate >= startOfDay && orderDate <= endOfDay;
-  });
-  
-  const cashOrders = todayOrders.filter(o => o.paymentMethod === 'Cash');
-  const expectedCash = cashOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-  
-  return {
-    expectedCash,
-    cashOrders: cashOrders.length,
-    orders: cashOrders,
-  };
-};
-
-// ==================== INVENTORY DEPLETION TRACKING ====================
-
-export const getInventoryDepletionRate = (days = 7) => {
-  const orders = getOrders();
-  const inventory = getInventory();
-  const menuItems = getMenuItems();
-  
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
-  
-  const recentOrders = orders.filter(o => new Date(o.createdAt) >= startDate);
-  
-  // Calculate usage per material
-  const materialUsage = {};
-  
-  recentOrders.forEach(order => {
-    order.items?.forEach(orderItem => {
-      const menuItem = menuItems.find(m => m.id === orderItem.id || m.name === orderItem.name);
-      
-      if (menuItem && menuItem.rawMaterials) {
-        menuItem.rawMaterials.forEach(material => {
-          const totalUsed = parseFloat(material.quantity) * orderItem.quantity;
-          
-          if (!materialUsage[material.name]) {
-            materialUsage[material.name] = {
-              name: material.name,
-              unit: material.unit,
-              totalUsed: 0,
-              timesUsed: 0,
-            };
-          }
-          
-          materialUsage[material.name].totalUsed += totalUsed;
-          materialUsage[material.name].timesUsed += 1;
-        });
-      }
-    });
-  });
-  
-  // Calculate depletion rate and days until empty
-  const depletionData = Object.values(materialUsage).map(usage => {
-    const inventoryItem = inventory.find(inv => 
-      inv.name.toLowerCase() === usage.name.toLowerCase()
-    );
-    
-    const dailyUsage = usage.totalUsed / days;
-    const currentStock = inventoryItem ? parseFloat(inventoryItem.currentStock) : 0;
-    const daysUntilEmpty = dailyUsage > 0 ? currentStock / dailyUsage : Infinity;
-    
-    return {
-      ...usage,
-      currentStock,
-      dailyUsage: dailyUsage.toFixed(2),
-      daysUntilEmpty: Math.floor(daysUntilEmpty),
-      status: daysUntilEmpty < 3 ? 'critical' : daysUntilEmpty < 7 ? 'warning' : 'ok',
-    };
-  });
-  
-  return depletionData.sort((a, b) => a.daysUntilEmpty - b.daysUntilEmpty);
-};
-
-// ==================== DISH TREND (30 DAYS) ====================
-
-export const getDishTrend = (dishName, days = 30) => {
-  const orders = getOrders();
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
-  
-  // Create array of dates
-  const dateArray = [];
-  for (let i = 0; i < days; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-    dateArray.push({
-      date: date.toISOString().split('T')[0],
-      displayDate: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      quantity: 0,
-      revenue: 0,
-      orders: 0,
-    });
-  }
-  
-  // Fill in actual data
-  orders.forEach(order => {
-    const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
-    const dayData = dateArray.find(d => d.date === orderDate);
-    
-    if (dayData && order.items) {
-      order.items.forEach(item => {
-        if (item.name === dishName) {
-          dayData.quantity += item.quantity;
-          dayData.revenue += item.price * item.quantity;
-          dayData.orders += 1;
-        }
-      });
-    }
-  });
-  
-  return dateArray;
-};
-
-// ==================== INVENTORY TREND (30 DAYS) ====================
-
-export const getInventoryTrend = (materialName, days = 30) => {
-  const orders = getOrders();
-  const purchases = getPurchases();
-  const inventory = getInventory();
-  const menuItems = getMenuItems();
-  
-  const inventoryItem = inventory.find(inv => 
-    inv.name.toLowerCase() === materialName.toLowerCase()
-  );
-  
-  if (!inventoryItem) {
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting expenses:', error);
     return [];
   }
-  
-  const currentStock = parseFloat(inventoryItem.currentStock);
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
-  
-  // Create array of dates
-  const dateArray = [];
-  for (let i = 0; i < days; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-    dateArray.push({
-      date: date.toISOString().split('T')[0],
-      displayDate: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      stock: 0,
-      used: 0,
-      purchased: 0,
-    });
-  }
-  
-  // Calculate usage from orders (going backwards from today)
-  let runningStock = currentStock;
-  
-  // First, go forward to calculate usage and purchases
-  for (let i = dateArray.length - 1; i >= 0; i--) {
-    const dayData = dateArray[i];
-    
-    // Calculate usage for this day
-    let dayUsage = 0;
-    orders.forEach(order => {
-      const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
-      if (orderDate === dayData.date && order.items) {
-        order.items.forEach(orderItem => {
-          const menuItem = menuItems.find(m => m.id === orderItem.id || m.name === orderItem.name);
-          if (menuItem && menuItem.rawMaterials) {
-            menuItem.rawMaterials.forEach(material => {
-              if (material.name.toLowerCase() === materialName.toLowerCase()) {
-                dayUsage += parseFloat(material.quantity) * orderItem.quantity;
-              }
-            });
-          }
-        });
-      }
-    });
-    
-    // Calculate purchases for this day
-    let dayPurchase = 0;
-    purchases.forEach(purchase => {
-      const purchaseDate = new Date(purchase.date).toISOString().split('T')[0];
-      if (purchaseDate === dayData.date && purchase.items) {
-        purchase.items.forEach(item => {
-          if (item.materialName.toLowerCase() === materialName.toLowerCase()) {
-            dayPurchase += parseFloat(item.quantity);
-          }
-        });
-      }
-    });
-    
-    dayData.used = dayUsage;
-    dayData.purchased = dayPurchase;
-    
-    // Calculate stock level (working backwards)
-    if (i === dateArray.length - 1) {
-      dayData.stock = currentStock;
-    } else {
-      // Previous day's stock = current day's stock + current day's usage - current day's purchases
-      runningStock = runningStock + dayUsage - dayPurchase;
-      dayData.stock = Math.max(0, runningStock);
-    }
-  }
-  
-  // Reverse to show correct stock progression
-  dateArray.reverse();
-  for (let i = 0; i < dateArray.length; i++) {
-    if (i === 0) {
-      dateArray[i].stock = Math.max(0, dateArray[i].stock);
-    } else {
-      dateArray[i].stock = Math.max(0, dateArray[i - 1].stock - dateArray[i - 1].used + dateArray[i - 1].purchased);
-    }
-  }
-  dateArray.reverse();
-  
-  return dateArray;
 };
 
-// ==================== DISH PERFORMANCE ====================
+export const addExpense = async (expenseData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_expenses')
+      .insert([{
+        category: expenseData.category,
+        description: expenseData.description,
+        amount: expenseData.amount,
+        payment_method: expenseData.paymentMethod,
+        date: expenseData.date || new Date().toISOString().split('T')[0],
+        notes: expenseData.notes,
+      }])
+      .select()
+      .single();
 
-export const getDishPerformance = (startDate, endDate) => {
-  const orders = getOrders();
-  const menuItems = getMenuItems();
-  
-  const filteredOrders = orders.filter(o => {
-    const date = new Date(o.createdAt);
-    return date >= new Date(startDate) && date <= new Date(endDate);
-  });
-  
-  const dishStats = {};
-  let totalRevenue = 0;
-  let totalOrders = filteredOrders.length;
-  
-  filteredOrders.forEach(order => {
-    totalRevenue += order.totalAmount || 0;
-    
-    order.items?.forEach(item => {
-      if (!dishStats[item.name]) {
-        const menuItem = menuItems.find(m => m.name === item.name);
-        dishStats[item.name] = {
-          name: item.name,
-          quantitySold: 0,
-          revenue: 0,
-          orders: 0,
-          price: item.price,
-          isVeg: menuItem?.isVeg,
-          rawMaterials: menuItem?.rawMaterials || [],
-        };
-      }
-      
-      dishStats[item.name].quantitySold += item.quantity;
-      dishStats[item.name].revenue += item.price * item.quantity;
-      dishStats[item.name].orders += 1;
-    });
-  });
-  
-  // Calculate performance metrics
-  const dishArray = Object.values(dishStats).map(dish => {
-    const revenueShare = totalRevenue > 0 ? (dish.revenue / totalRevenue) * 100 : 0;
-    const avgQuantityPerOrder = dish.orders > 0 ? dish.quantitySold / dish.orders : 0;
-    const ordersPercentage = totalOrders > 0 ? (dish.orders / totalOrders) * 100 : 0;
-    
-    // Calculate cost if raw materials have prices
-    let estimatedCost = 0;
-    dish.rawMaterials.forEach(material => {
-      // This would need inventory price data
-      estimatedCost += 0; // Placeholder
-    });
-    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error adding expense:', error);
+    throw error;
+  }
+};
+
+export const updateExpense = async (expenseId, updates) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_expenses')
+      .update({
+        category: updates.category,
+        description: updates.description,
+        amount: updates.amount,
+        payment_method: updates.paymentMethod,
+        date: updates.date,
+        notes: updates.notes,
+      })
+      .eq('id', expenseId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error updating expense:', error);
+    throw error;
+  }
+};
+
+export const deleteExpense = async (expenseId) => {
+  try {
+    const { error } = await supabase
+      .from('cafe_expenses')
+      .delete()
+      .eq('id', expenseId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting expense:', error);
+    throw error;
+  }
+};
+
+// ==================== DASHBOARD & STATS ====================
+
+export const getDashboardStats = async () => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+
+    // Get today's orders
+    const { data: todayOrders, error: ordersError } = await supabase
+      .from('cafe_orders')
+      .select('total_amount')
+      .eq('date', today);
+
+    if (ordersError) throw ordersError;
+
+    // Get all orders count
+    const { count: totalOrdersCount, error: countError } = await supabase
+      .from('cafe_orders')
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) throw countError;
+
+    // Get low stock count
+    const { data: lowStock, error: lowStockError } = await supabase
+      .from('cafe_low_stock_items')
+      .select('*');
+
+    if (lowStockError) throw lowStockError;
+
+    const todayRevenue = todayOrders.reduce((sum, order) => sum + parseFloat(order.total_amount || 0), 0);
+
     return {
-      ...dish,
-      revenueShare: revenueShare.toFixed(1),
-      avgQuantityPerOrder: avgQuantityPerOrder.toFixed(1),
-      ordersPercentage: ordersPercentage.toFixed(1),
-      estimatedCost,
-      estimatedProfit: dish.price - estimatedCost,
-      profitMargin: dish.price > 0 ? ((dish.price - estimatedCost) / dish.price * 100).toFixed(1) : 0,
+      todayOrders: todayOrders.length,
+      todayRevenue,
+      totalOrders: totalOrdersCount || 0,
+      lowStockCount: lowStock.length,
     };
-  });
-  
-  return {
-    dishes: dishArray.sort((a, b) => b.revenue - a.revenue),
-    totalRevenue,
-    totalOrders,
-    totalDishes: dishArray.length,
-  };
+  } catch (error) {
+    console.error('Error getting dashboard stats:', error);
+    return {
+      todayOrders: 0,
+      todayRevenue: 0,
+      totalOrders: 0,
+      lowStockCount: 0,
+    };
+  }
 };
 
-// ==================== CASH FLOW & BALANCE ====================
+export const getCurrentBalance = async () => {
+  try {
+    // Get total revenue
+    const { data: orders, error: ordersError } = await supabase
+      .from('cafe_orders')
+      .select('total_amount, payment_received');
 
-export const getCashFlow = (startDate, endDate) => {
-  const orders = getOrders();
-  const purchases = getPurchases();
-  const expenses = JSON.parse(localStorage.getItem('cafe_expenses') || '[]');
-  const investments = JSON.parse(localStorage.getItem('cafe_investments') || '[]');
-  
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  
-  // Filter by date range
-  const filteredOrders = orders.filter(o => {
-    const date = new Date(o.createdAt);
-    return date >= start && date <= end;
-  });
-  
-  const filteredPurchases = purchases.filter(p => {
-    const date = new Date(p.date);
-    return date >= start && date <= end;
-  });
-  
-  const filteredExpenses = expenses.filter(e => {
-    const date = new Date(e.date);
-    return date >= start && date <= end;
-  });
-  
-  const filteredInvestments = investments.filter(i => {
-    const date = new Date(i.date);
-    return date >= start && date <= end;
-  });
-  
-  // Calculate totals
-  const revenue = filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-  const purchaseCosts = filteredPurchases.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
-  const operatingExpenses = filteredExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-  const totalInvestments = filteredInvestments.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
-  
-  // Cash breakdown by payment method
-  const cashRevenue = filteredOrders
-    .filter(o => o.paymentMethod === 'Cash')
-    .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-  
-  const cashExpenses = filteredExpenses
-    .filter(e => e.paymentMethod === 'Cash')
-    .reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-  
-  const cashPurchases = filteredPurchases
-    .filter(p => p.paymentMethod === 'Cash')
-    .reduce((sum, p) => sum + (p.totalAmount || 0), 0);
-  
-  // Calculate balance
-  const totalIncome = revenue + totalInvestments;
-  const totalExpenses = purchaseCosts + operatingExpenses;
-  const netBalance = totalIncome - totalExpenses;
-  const cashBalance = cashRevenue + totalInvestments - cashExpenses - cashPurchases;
-  
-  return {
-    income: {
-      revenue,
-      investments: totalInvestments,
-      total: totalIncome,
-    },
-    expenses: {
-      purchases: purchaseCosts,
-      operating: operatingExpenses,
-      total: totalExpenses,
-    },
-    balance: {
-      net: netBalance,
-      cash: cashBalance,
-    },
-    breakdown: {
-      cashRevenue,
-      cashExpenses,
-      cashPurchases,
-    },
-  };
+    if (ordersError) throw ordersError;
+
+    const totalRevenue = orders.reduce((sum, o) => sum + parseFloat(o.payment_received || o.total_amount || 0), 0);
+
+    // Get total expenses
+    const { data: expenses, error: expensesError } = await supabase
+      .from('cafe_expenses')
+      .select('amount');
+
+    if (expensesError) throw expensesError;
+
+    const totalExpenses = expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+
+    // Get total investments
+    const { data: investments, error: investmentsError } = await supabase
+      .from('cafe_investments')
+      .select('amount');
+
+    if (investmentsError) {
+      console.error('Error getting investments:', investmentsError);
+    }
+
+    const totalInvestments = investments ? investments.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0) : 0;
+
+    return {
+      totalRevenue,
+      totalExpenses,
+      totalInvestments,
+      currentBalance: totalRevenue - totalExpenses + totalInvestments,
+    };
+  } catch (error) {
+    console.error('Error getting current balance:', error);
+    return {
+      totalRevenue: 0,
+      totalExpenses: 0,
+      totalInvestments: 0,
+      currentBalance: 0,
+    };
+  }
 };
 
-export const getCurrentBalance = () => {
-  // Get all-time cash flow
-  const allOrders = getOrders();
-  const allPurchases = getPurchases();
-  const allExpenses = JSON.parse(localStorage.getItem('cafe_expenses') || '[]');
-  const allInvestments = JSON.parse(localStorage.getItem('cafe_investments') || '[]');
-  
-  const totalRevenue = allOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-  const totalPurchases = allPurchases.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
-  const totalExpenses = allExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-  const totalInvestments = allInvestments.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
-  
-  const totalIncome = totalRevenue + totalInvestments;
-  const totalCosts = totalPurchases + totalExpenses;
-  const currentBalance = totalIncome - totalCosts;
-  
-  return {
-    totalIncome,
-    totalCosts,
-    currentBalance,
-    breakdown: {
-      revenue: totalRevenue,
-      investments: totalInvestments,
-      purchases: totalPurchases,
-      expenses: totalExpenses,
-    },
-  };
+// ==================== INVESTMENTS ====================
+
+export const getInvestments = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_investments')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting investments:', error);
+    return [];
+  }
+};
+
+export const addInvestment = async (investmentData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_investments')
+      .insert([{
+        amount: investmentData.amount,
+        description: investmentData.description,
+        date: investmentData.date || new Date().toISOString().split('T')[0],
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error adding investment:', error);
+    throw error;
+  }
 };
 
 // ==================== DATA EXPORT ====================
 
-export const exportAllData = () => {
-  return {
-    orders: getOrders(),
-    menu: getMenuItems(),
-    inventory: getInventory(),
-    purchases: getPurchases(),
-    expenses: JSON.parse(localStorage.getItem('cafe_expenses') || '[]'),
-    investments: JSON.parse(localStorage.getItem('cafe_investments') || '[]'),
-    exportDate: new Date().toISOString(),
-    version: '1.0',
-  };
-};
-
-export const importAllData = (data) => {
+export const exportAllData = async () => {
   try {
-    if (data.orders) localStorage.setItem(ORDERS_KEY, JSON.stringify(data.orders));
-    if (data.menu) localStorage.setItem(MENU_KEY, JSON.stringify(data.menu));
-    if (data.inventory) localStorage.setItem(INVENTORY_KEY, JSON.stringify(data.inventory));
-    if (data.purchases) localStorage.setItem(PURCHASES_KEY, JSON.stringify(data.purchases));
-    if (data.expenses) localStorage.setItem('cafe_expenses', JSON.stringify(data.expenses));
-    if (data.investments) localStorage.setItem('cafe_investments', JSON.stringify(data.investments));
-    return true;
-  } catch (error) {
-    console.error('Error importing data:', error);
-    return false;
-  }
-};
+    const [orders, menu, inventory, purchases, expenses, investments] = await Promise.all([
+      getOrders(),
+      getMenuItems(),
+      getInventory(),
+      getPurchases(),
+      getExpenses(),
+      getInvestments(),
+    ]);
 
-export const getDashboardStats = () => {
-  const orders = getOrders();
-  const inventory = getInventory();
-  const purchases = getPurchases();
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const todayOrders = orders.filter(o => new Date(o.createdAt) >= today);
-  const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-  
-  const lowStock = getLowStockItems();
-  const pendingOrders = orders.filter(o => o.status === 'pending').length;
-  const creditInfo = getCreditOrders();
-  const inventoryVal = getInventoryValuation();
-  
-  return {
-    todayOrders: todayOrders.length,
-    todayRevenue,
-    totalOrders: orders.length,
-    lowStockCount: lowStock.length,
-    pendingOrders,
-    totalInventoryItems: inventory.length,
-    totalPurchases: purchases.length,
-    creditOrdersCount: creditInfo.count,
-    creditOrdersPending: creditInfo.totalPending,
-    inventoryValue: inventoryVal.totalValue,
-  };
+    return {
+      orders,
+      menu,
+      inventory,
+      purchases,
+      expenses,
+      investments,
+      exportedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    throw error;
+  }
 };
