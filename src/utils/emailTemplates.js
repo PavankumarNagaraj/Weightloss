@@ -8,21 +8,110 @@ export const generateCleanDailyEmail = (data) => {
 <html>
 <head>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-    .container { max-width: 700px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 10px; text-align: center; margin-bottom: 25px; }
-    .section { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border: 1px solid #e5e7eb; }
-    .section-title { font-size: 18px; font-weight: bold; color: #1f2937; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
-    .revenue-box { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 25px; }
-    .revenue-label { font-size: 14px; opacity: 0.9; }
-    .revenue-value { font-size: 36px; font-weight: bold; margin: 10px 0; }
-    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-    th { background: #f3f4f6; padding: 10px; text-align: left; font-size: 13px; color: #6b7280; font-weight: 600; }
-    td { padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
-    .stat-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
-    .stat-label { color: #6b7280; font-size: 14px; }
-    .stat-value { font-weight: bold; color: #1f2937; font-size: 14px; }
-    .footer { text-align: center; color: #9ca3af; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; }
+    body { 
+      font-family: Arial, sans-serif; 
+      line-height: 1.6; 
+      color: #333; 
+      margin: 0; 
+      padding: 0; 
+      background-color: #f9fafb;
+    }
+    .container { 
+      max-width: 700px; 
+      margin: 0 auto; 
+      padding: 20px; 
+      background-color: #f9fafb;
+    }
+    .header { 
+      background: #667eea; 
+      color: white; 
+      padding: 30px; 
+      border-radius: 10px; 
+      text-align: center; 
+      margin-bottom: 30px; 
+    }
+    .section { 
+      background: white; 
+      padding: 25px; 
+      margin: 20px 0; 
+      border-radius: 8px; 
+      border: 1px solid #e5e7eb; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .section-title { 
+      font-size: 18px; 
+      font-weight: bold; 
+      color: #1f2937; 
+      margin: 0 0 20px 0; 
+      padding-bottom: 12px; 
+      border-bottom: 2px solid #667eea; 
+    }
+    .revenue-box { 
+      background: #10b981; 
+      color: white; 
+      padding: 30px; 
+      border-radius: 10px; 
+      text-align: center; 
+      margin-bottom: 30px; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .revenue-label { 
+      font-size: 14px; 
+      margin-bottom: 10px;
+    }
+    .revenue-value { 
+      font-size: 42px; 
+      font-weight: bold; 
+      margin: 15px 0; 
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin: 15px 0; 
+    }
+    th { 
+      background: #f3f4f6; 
+      padding: 12px; 
+      text-align: left; 
+      font-size: 13px; 
+      color: #6b7280; 
+      font-weight: 600; 
+      border-bottom: 2px solid #e5e7eb;
+    }
+    td { 
+      padding: 12px; 
+      border-bottom: 1px solid #e5e7eb; 
+      font-size: 14px; 
+    }
+    .stat-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+    .stat-table td {
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .stat-label { 
+      color: #6b7280; 
+      font-size: 14px; 
+      width: 60%;
+    }
+    .stat-value { 
+      font-weight: bold; 
+      color: #1f2937; 
+      font-size: 14px; 
+      text-align: right;
+      width: 40%;
+    }
+    .footer { 
+      text-align: center; 
+      color: #9ca3af; 
+      margin-top: 40px; 
+      padding-top: 20px; 
+      border-top: 1px solid #e5e7eb; 
+      font-size: 12px; 
+    }
   </style>
 </head>
 <body>
@@ -43,42 +132,38 @@ export const generateCleanDailyEmail = (data) => {
     <div class="section">
       <div class="section-title">📊 Orders & Cost</div>
       
-      <div class="stat-row">
-        <div class="stat-label">Total Orders</div>
-        <div class="stat-value">${orders.total}</div>
-      </div>
-      
-      <div class="stat-row">
-        <div class="stat-label">Cash</div>
-        <div class="stat-value">${orders.byPaymentMethod.cash} orders</div>
-      </div>
-      
-      <div class="stat-row">
-        <div class="stat-label">UPI</div>
-        <div class="stat-value">${orders.byPaymentMethod.upi} orders</div>
-      </div>
-      
-      <div class="stat-row">
-        <div class="stat-label">Card</div>
-        <div class="stat-value">${orders.byPaymentMethod.card} orders</div>
-      </div>
-      
-      <div class="stat-row">
-        <div class="stat-label">Credit</div>
-        <div class="stat-value">${orders.byPaymentMethod.credit} orders</div>
-      </div>
-      
-      <div class="stat-row" style="border-bottom: none; margin-top: 10px; padding-top: 10px; border-top: 2px solid #e5e7eb;">
-        <div class="stat-label">Total Expenses</div>
-        <div class="stat-value" style="color: #ef4444;">₹ ${expenses.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-      </div>
-      
-      ${creditOrders.count > 0 ? `
-      <div class="stat-row" style="border-bottom: none;">
-        <div class="stat-label">Pending Credit</div>
-        <div class="stat-value" style="color: #f59e0b;">₹ ${creditOrders.totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${creditOrders.count} orders)</div>
-      </div>
-      ` : ''}
+      <table class="stat-table">
+        <tr>
+          <td class="stat-label">Total Orders</td>
+          <td class="stat-value">${orders.total}</td>
+        </tr>
+        <tr>
+          <td class="stat-label">Cash</td>
+          <td class="stat-value">${orders.byPaymentMethod.cash} orders</td>
+        </tr>
+        <tr>
+          <td class="stat-label">UPI</td>
+          <td class="stat-value">${orders.byPaymentMethod.upi} orders</td>
+        </tr>
+        <tr>
+          <td class="stat-label">Card</td>
+          <td class="stat-value">${orders.byPaymentMethod.card} orders</td>
+        </tr>
+        <tr>
+          <td class="stat-label">Credit</td>
+          <td class="stat-value">${orders.byPaymentMethod.credit} orders</td>
+        </tr>
+        <tr>
+          <td class="stat-label" style="padding-top: 15px; border-top: 2px solid #e5e7eb;">Total Expenses</td>
+          <td class="stat-value" style="color: #ef4444; padding-top: 15px; border-top: 2px solid #e5e7eb;">₹ ${expenses.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        </tr>
+        ${creditOrders.count > 0 ? `
+        <tr>
+          <td class="stat-label" style="border-bottom: none;">Pending Credit</td>
+          <td class="stat-value" style="color: #f59e0b; border-bottom: none;">₹ ${creditOrders.totalPending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${creditOrders.count} orders)</td>
+        </tr>
+        ` : ''}
+      </table>
     </div>
 
     <!-- Items to Buy -->
@@ -115,15 +200,16 @@ export const generateCleanDailyEmail = (data) => {
     <div class="section">
       <div class="section-title">📦 Current Stock</div>
       
-      <div class="stat-row">
-        <div class="stat-label">Total Inventory Value</div>
-        <div class="stat-value">₹ ${inventory.totalValue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-      </div>
-      
-      <div class="stat-row" style="border-bottom: none;">
-        <div class="stat-label">Low Stock Items</div>
-        <div class="stat-value" style="color: ${inventory.lowStockCount > 0 ? '#ef4444' : '#10b981'};">${inventory.lowStockCount}</div>
-      </div>
+      <table class="stat-table">
+        <tr>
+          <td class="stat-label">Total Inventory Value</td>
+          <td class="stat-value">₹ ${inventory.totalValue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        </tr>
+        <tr>
+          <td class="stat-label" style="border-bottom: none;">Low Stock Items</td>
+          <td class="stat-value" style="color: ${inventory.lowStockCount > 0 ? '#ef4444' : '#10b981'}; border-bottom: none;">${inventory.lowStockCount}</td>
+        </tr>
+      </table>
       
       ${inventory.lowStockItems.length > 0 ? `
       <table style="margin-top: 15px;">
