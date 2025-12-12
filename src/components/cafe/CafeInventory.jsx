@@ -402,7 +402,7 @@ const CafeInventory = ({ showToast }) => {
                 
                 return (
                   <tr key={item.id} className={`hover:bg-gray-50 ${isLowStock ? 'bg-red-50' : ''} ${selectedItems.includes(item.id) ? 'bg-purple-50' : ''}`}>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2">
                       <input
                         type="checkbox"
                         checked={selectedItems.includes(item.id)}
@@ -410,10 +410,10 @@ const CafeInventory = ({ showToast }) => {
                         className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
                       />
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2">
                       <span className="font-semibold text-gray-900">{item.name}</span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2">
                       <span className="px-3 py-1 rounded-full text-xs font-bold ${
                         item.category === 'Dry Store' ? 'bg-amber-100 text-amber-700' :
                         item.category === 'Fresh Produce' ? 'bg-green-100 text-green-700' :
@@ -429,21 +429,21 @@ const CafeInventory = ({ showToast }) => {
                          item.category === 'Fruits' ? '🍎' : '📦'} {item.category || 'Uncategorized'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2">
                       <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-gray-900'}`}>
                         {item.currentStock}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2">
                       <span className="text-gray-600">{item.minStock} g</span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2">
                       <span className="text-gray-600">{item.unit}</span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2">
                       {isLowStock ? (
                         <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
-                          Low Stock
+                          Low
                         </span>
                       ) : (
                         <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
@@ -451,7 +451,7 @@ const CafeInventory = ({ showToast }) => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-2">
                       <div className="flex gap-2">
                         <button
                           onClick={() => {

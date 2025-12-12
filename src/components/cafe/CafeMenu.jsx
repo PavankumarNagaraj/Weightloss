@@ -12,6 +12,7 @@ const CafeMenu = ({ showToast }) => {
     name: '',
     category: 'main-course',
     price: '',
+    trainerPrice: '',
     description: '',
     isVeg: true,
     rawMaterials: [],
@@ -58,7 +59,7 @@ const CafeMenu = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', category: 'main-course', price: '', description: '', isVeg: true, rawMaterials: [] });
+    setFormData({ name: '', category: 'main-course', price: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [] });
     setCurrentMaterial({ name: '', quantity: '', unit: 'g' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
@@ -255,16 +256,28 @@ const CafeMenu = ({ showToast }) => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price (₹)</label>
-                  <input
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="e.g., 250"
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Customer Price (₹)</label>
+                    <input
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="e.g., 250"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Trainer Price (₹)</label>
+                    <input
+                      type="number"
+                      value={formData.trainerPrice}
+                      onChange={(e) => setFormData({...formData, trainerPrice: parseFloat(e.target.value) || 0})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="e.g., 0 (free)"
+                    />
+                  </div>
                 </div>
 
                 <div>
