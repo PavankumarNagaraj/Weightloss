@@ -22,6 +22,7 @@ const CafeOrders = ({ showToast }) => {
   const [selectedUser, setSelectedUser] = useState('');
   const [customerType, setCustomerType] = useState('customer'); // 'customer' or 'trainer'
   const [discount, setDiscount] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [cart, setCart] = useState([]);
 
   useEffect(() => {
@@ -158,6 +159,7 @@ const CafeOrders = ({ showToast }) => {
       customerPhone: customerPhone || '',
       userId: selectedUser || null,
       customerType: customerType,
+      paymentMethod: paymentMethod,
       items: cart.map(item => ({
         id: item.id,
         name: item.name,
@@ -178,6 +180,7 @@ const CafeOrders = ({ showToast }) => {
     setSelectedUser('');
     setCustomerType('customer');
     setDiscount(0);
+    setPaymentMethod('Cash');
     setCart([]);
     setShowModal(false);
     loadOrders();
@@ -356,6 +359,7 @@ const CafeOrders = ({ showToast }) => {
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Customer</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Items</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Amount</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Payment</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Received</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-40">Date</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Actions</th>
@@ -364,7 +368,7 @@ const CafeOrders = ({ showToast }) => {
           <tbody className="divide-y divide-gray-200">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
+                <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
                   <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-lg">No orders yet</p>
                   <p className="text-sm text-gray-400">Create your first order to get started</p>
@@ -459,6 +463,17 @@ const CafeOrders = ({ showToast }) => {
                         )}
                       </div>
                     )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      order.paymentMethod === 'Cash' ? 'bg-green-100 text-green-700' :
+                      order.paymentMethod === 'UPI' ? 'bg-blue-100 text-blue-700' :
+                      order.paymentMethod === 'Card' ? 'bg-purple-100 text-purple-700' :
+                      order.paymentMethod === 'Credit' ? 'bg-red-100 text-red-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {order.paymentMethod || 'Cash'}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     {editingPayment === order.id ? (
@@ -640,6 +655,23 @@ const CafeOrders = ({ showToast }) => {
                         </button>
                       </div>
                     </div>
+                    
+                    {/* Payment Method */}
+                    {customerType !== 'trainer' && (
+                      <div className="bg-white border-2 border-gray-200 rounded-lg p-3">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Method</label>
+                        <select
+                          value={paymentMethod}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-semibold"
+                        >
+                          <option value="Cash">Cash</option>
+                          <option value="UPI">UPI</option>
+                          <option value="Card">Card</option>
+                          <option value="Credit">Credit (Pay Later)</option>
+                        </select>
+                      </div>
+                    )}
                   </div>
 
                   {/* Cart Items */}
