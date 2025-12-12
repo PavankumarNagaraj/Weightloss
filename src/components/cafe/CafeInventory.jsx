@@ -10,12 +10,15 @@ const CafeInventory = ({ showToast }) => {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    purchaseQuantity: '',
     currentStock: 0,
     minStock: '',
     unit: 'g',
     category: 'Dry Store',
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [existingMaterials, setExistingMaterials] = useState([]);
@@ -66,19 +69,23 @@ const CafeInventory = ({ showToast }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    const purchaseQty = parseFloat(formData.purchaseQuantity);
     const existingItem = inventory.find(item => item.name.toLowerCase() === formData.name.toLowerCase());
     
     if (existingItem) {
-      // Update existing item - add purchase quantity to current stock
-      const newStock = parseFloat(existingItem.currentStock) + purchaseQty;
-      updateInventoryStock(existingItem.id, newStock, 'set');
-      showToast(`Added ${purchaseQty}${formData.unit} to ${formData.name}. New stock: ${newStock}${formData.unit}`);
+      // Update existing item - only update minStock
+      const items = getInventory();
+      const updatedItems = items.map(item => 
+        item.id === existingItem.id 
+          ? { ...item, minStock: parseFloat(formData.minStock), category: formData.category }
+          : item
+      );
+      localStorage.setItem('cafe_inventory', JSON.stringify(updatedItems));
+      showToast(`Updated ${formData.name} settings`);
     } else {
-      // Add new item
+      // Add new item with 0 stock
       const newItem = {
         name: formData.name,
-        currentStock: purchaseQty,
+        currentStock: 0,
         minStock: parseFloat(formData.minStock),
         unit: formData.unit,
         category: formData.category || 'Dry Store',
@@ -90,7 +97,7 @@ const CafeInventory = ({ showToast }) => {
         setExistingMaterials([...existingMaterials, formData.name]);
       }
       
-      showToast(`New item added: ${formData.name} - ${purchaseQty}${formData.unit}`);
+      showToast(`New item added: ${formData.name}. Add stock via Purchases tab.`);
     }
     
     resetForm();
@@ -98,7 +105,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', purchaseQuantity: '', currentStock: 0, minStock: '', unit: 'g', category: 'Dry Store' });
+    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'g', category: 'Dry Store' });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -110,7 +117,6 @@ const CafeInventory = ({ showToast }) => {
     if (existingItem) {
       setFormData({
         name: materialName,
-        purchaseQuantity: '',
         currentStock: existingItem.currentStock,
         minStock: existingItem.minStock,
         unit: existingItem.unit,
@@ -136,7 +142,6 @@ const CafeInventory = ({ showToast }) => {
     if (existingItem) {
       setFormData({
         name: value,
-        purchaseQuantity: '',
         currentStock: existingItem.currentStock,
         minStock: existingItem.minStock,
         unit: existingItem.unit,
@@ -150,25 +155,35 @@ const CafeInventory = ({ showToast }) => {
   );
 
   const handleDelete = (id) => {
-    if (confirm('Delete this inventory item?')) {
+    setItemToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (itemToDelete) {
       const items = getInventory();
-      const updatedItems = items.filter(item => item.id !== id);
+      const updatedItems = items.filter(item => item.id !== itemToDelete);
       localStorage.setItem('cafe_inventory', JSON.stringify(updatedItems));
       loadInventory();
       showToast('Inventory item deleted');
+      setShowDeleteModal(false);
+      setItemToDelete(null);
     }
   };
 
   const handleBulkImport = () => {
-    if (confirm('Import 69 pre-categorized ingredients? Existing items will be skipped.')) {
-      const result = importBulkInventory();
-      if (result.success) {
-        loadInventory();
-        showToast(`✅ Bulk import complete! Added: ${result.addedCount}, Skipped: ${result.skippedCount}`);
-      } else {
-        showToast(`❌ Import failed: ${result.error}`);
-      }
+    setShowImportModal(true);
+  };
+
+  const confirmBulkImport = () => {
+    const result = importBulkInventory();
+    if (result.success) {
+      loadInventory();
+      showToast(`✅ Bulk import complete! Added: ${result.addedCount}, Skipped: ${result.skippedCount}`);
+    } else {
+      showToast(`❌ Import failed: ${result.error}`);
     }
+    setShowImportModal(false);
   };
 
   const handleSelectAll = () => {
@@ -197,16 +212,19 @@ const CafeInventory = ({ showToast }) => {
       showToast('⚠️ No items selected');
       return;
     }
-    
-    if (confirm(`Delete ${selectedItems.length} selected item(s)? This cannot be undone!`)) {
-      const items = getInventory();
-      const updatedItems = items.filter(item => !selectedItems.includes(item.id));
-      localStorage.setItem('cafe_inventory', JSON.stringify(updatedItems));
-      setSelectedItems([]);
-      setSelectAll(false);
-      loadInventory();
-      showToast(`🗑️ Deleted ${selectedItems.length} item(s)`);
-    }
+    setShowBulkDeleteModal(true);
+  };
+
+  const confirmBulkDelete = () => {
+    const items = getInventory();
+    const updatedItems = items.filter(item => !selectedItems.includes(item.id));
+    localStorage.setItem('cafe_inventory', JSON.stringify(updatedItems));
+    const deletedCount = selectedItems.length;
+    setSelectedItems([]);
+    setSelectAll(false);
+    loadInventory();
+    showToast(`🗑️ Deleted ${deletedCount} item(s)`);
+    setShowBulkDeleteModal(false);
   };
 
   const handleDownloadShoppingList = () => {
@@ -561,60 +579,47 @@ const CafeInventory = ({ showToast }) => {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Purchase Quantity <span className="text-orange-600">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.purchaseQuantity}
-                      onChange={(e) => setFormData({...formData, purchaseQuantity: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="How much are you buying?"
-                      required
-                    />
-                  </div>
-
+                {/* Unit - Only for new items */}
+                {formData.currentStock === 0 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
                     <select
                       value={formData.unit}
                       onChange={(e) => setFormData({...formData, unit: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      disabled={formData.currentStock > 0}
                     >
-                      <option value="g">g</option>
-                      <option value="kg">kg</option>
-                      <option value="ml">ml</option>
-                      <option value="l">l</option>
-                      <option value="pcs">pcs</option>
+                      <option value="g">g (grams)</option>
+                      <option value="kg">kg (kilograms)</option>
+                      <option value="ml">ml (milliliters)</option>
+                      <option value="l">l (liters)</option>
+                      <option value="pcs">pcs (pieces)</option>
                     </select>
-                  </div>
-                </div>
-
-                {/* Min Stock - Only for new items */}
-                {formData.currentStock === 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Minimum Stock Level (in g) <span className="text-orange-600">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.minStock}
-                      onChange={(e) => setFormData({...formData, minStock: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="Alert when stock falls below this (in grams)"
-                      required
-                    />
                   </div>
                 )}
 
-                {/* New Stock Preview */}
-                {formData.purchaseQuantity && formData.currentStock > 0 && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-sm font-semibold text-green-900">
-                      New Stock After Purchase: {parseFloat(formData.currentStock) + parseFloat(formData.purchaseQuantity)} {formData.unit}
+                {/* Min Stock */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Minimum Stock Level <span className="text-orange-600">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.minStock}
+                    onChange={(e) => setFormData({...formData, minStock: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Alert when stock falls below this level"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.currentStock === 0 ? 'Set the minimum stock threshold for alerts' : 'Update the minimum stock threshold'}
+                  </p>
+                </div>
+
+                {/* Info message for new items */}
+                {formData.currentStock === 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-900">
+                      💡 <strong>Note:</strong> This will create the inventory item with 0 stock. Add stock via the <strong>Purchases</strong> tab.
                     </p>
                   </div>
                 )}
@@ -635,6 +640,113 @@ const CafeInventory = ({ showToast }) => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-center mb-2">Delete Inventory Item?</h3>
+              <p className="text-gray-600 text-center mb-6">
+                This action cannot be undone. The item will be permanently removed from your inventory.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setItemToDelete(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {showBulkDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Trash className="w-6 h-6 text-red-600" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-center mb-2">Delete {selectedItems.length} Items?</h3>
+              <p className="text-gray-600 text-center mb-6">
+                This action cannot be undone. All selected items will be permanently removed from your inventory.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowBulkDeleteModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmBulkDelete}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
+                >
+                  Delete All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Import Confirmation Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-center mb-2">Import 69 Ingredients?</h3>
+              <p className="text-gray-600 text-center mb-4">
+                This will import 69 pre-categorized ingredients into your inventory.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+                <p className="text-sm text-blue-900">
+                  ℹ️ Existing items will be skipped. Only new items will be added.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowImportModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmBulkImport}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                >
+                  Import
+                </button>
+              </div>
             </div>
           </div>
         </div>
