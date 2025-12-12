@@ -6,7 +6,9 @@ const BREVO_CONFIG = {
   port: 587,
   login: '9de95e001@smtp-brevo.com',
   password: 'yTcSL0hbzBF1Prqk',
-  apiKey: 'xkeysib-yTcSL0hbzBF1Prqk',
+  apiKey: 'yTcSL0hbzBF1Prqk',
+  senderEmail: 'pavan@afterburn.fit',
+  senderName: 'Afterburn Cafe',
 };
 
 // Generate daily report data
@@ -314,7 +316,8 @@ export const formatReportEmail = (reportData) => {
 export const sendDailyReport = async (recipientEmail, recipientName = 'Cafe Manager') => {
   try {
     const reportData = generateDailyReport();
-    const htmlContent = formatReportEmail(reportData);
+    const { generateCleanDailyEmail } = await import('../utils/emailTemplates');
+    const htmlContent = generateCleanDailyEmail(reportData);
     
     // Use Brevo API to send email
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -326,8 +329,8 @@ export const sendDailyReport = async (recipientEmail, recipientName = 'Cafe Mana
       },
       body: JSON.stringify({
         sender: {
-          name: 'Cafe Management System',
-          email: '9de95e001@smtp-brevo.com',
+          name: BREVO_CONFIG.senderName,
+          email: BREVO_CONFIG.senderEmail,
         },
         to: [
           {
@@ -335,7 +338,7 @@ export const sendDailyReport = async (recipientEmail, recipientName = 'Cafe Mana
             name: recipientName,
           },
         ],
-        subject: `☕ Daily Cafe Report - ${new Date().toLocaleDateString()}`,
+        subject: `☕ Daily Report - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
         htmlContent: htmlContent,
       }),
     });
