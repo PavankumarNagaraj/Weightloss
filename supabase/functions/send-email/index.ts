@@ -51,7 +51,8 @@ Deno.serve(async (req) => {
 
     if (!brevoResponse.ok) {
       const error = await brevoResponse.json()
-      throw new Error(error.message || 'Failed to send email via Brevo')
+      console.error('Brevo API error:', error)
+      throw new Error(JSON.stringify(error) || 'Failed to send email via Brevo')
     }
 
     const result = await brevoResponse.json()
