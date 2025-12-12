@@ -500,54 +500,6 @@ const CafeInventory = ({ showToast }) => {
               </div>
               
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Searchable Material Dropdown */}
-                <div className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Material Name</label>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    onFocus={() => setShowDropdown(true)}
-                    onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Type to search or add new material..."
-                    required
-                  />
-                  
-                  {/* Dropdown */}
-                  {showDropdown && searchTerm && (
-                    <div className="absolute z-50 w-full mt-1 bg-white border-2 border-orange-300 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                      {filteredMaterials.length > 0 ? (
-                        filteredMaterials.map((material, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => handleMaterialSelect(material)}
-                            className="w-full px-4 py-2 text-left hover:bg-orange-50 transition border-b border-gray-100 last:border-0"
-                          >
-                            <span className="font-semibold text-gray-900">{material}</span>
-                            {inventory.find(item => item.name === material) && (
-                              <span className="text-xs text-gray-500 ml-2">
-                                (Current: {inventory.find(item => item.name === material).currentStock}
-                                {inventory.find(item => item.name === material).unit})
-                              </span>
-                            )}
-                          </button>
-                        ))
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setShowDropdown(false)}
-                          className="w-full px-4 py-3 text-left bg-orange-50 hover:bg-orange-100 transition"
-                        >
-                          <p className="font-semibold text-orange-600">✓ Add new: "{searchTerm}"</p>
-                          <p className="text-xs text-gray-600 mt-1">Click to continue with this name</p>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-
                 {/* Current Stock Display (Read-only) */}
                 {formData.currentStock > 0 && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -555,15 +507,106 @@ const CafeInventory = ({ showToast }) => {
                       Current Stock: {formData.currentStock} {formData.unit}
                     </p>
                     <p className="text-xs text-blue-600 mt-1">
-                      Minimum Stock: {formData.minStock} g
+                      Minimum Stock: {formData.minStock} {formData.unit}
                     </p>
                   </div>
                 )}
 
-                {/* Storage Category */}
+                {/* Name | Min Level | Unit - Horizontal Layout */}
+                <div className="grid grid-cols-12 gap-3">
+                  {/* Name - Takes more space */}
+                  <div className="col-span-5 relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name <span className="text-orange-600">*</span></label>
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                      onFocus={() => setShowDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Material name..."
+                      required
+                    />
+                    
+                    {/* Dropdown */}
+                    {showDropdown && searchTerm && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border-2 border-orange-300 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                        {filteredMaterials.length > 0 ? (
+                          filteredMaterials.map((material, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => handleMaterialSelect(material)}
+                              className="w-full px-4 py-2 text-left hover:bg-orange-50 transition border-b border-gray-100 last:border-0"
+                            >
+                              <span className="font-semibold text-gray-900">{material}</span>
+                              {inventory.find(item => item.name === material) && (
+                                <span className="text-xs text-gray-500 ml-2">
+                                  (Stock: {inventory.find(item => item.name === material).currentStock}
+                                  {inventory.find(item => item.name === material).unit})
+                                </span>
+                              )}
+                            </button>
+                          ))
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setShowDropdown(false)}
+                            className="w-full px-4 py-3 text-left bg-orange-50 hover:bg-orange-100 transition"
+                          >
+                            <p className="font-semibold text-orange-600">✓ Add new: "{searchTerm}"</p>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Min Level */}
+                  <div className="col-span-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Min Level <span className="text-orange-600">*</span></label>
+                    <input
+                      type="number"
+                      value={formData.minStock}
+                      onChange={(e) => setFormData({...formData, minStock: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Min stock"
+                      required
+                    />
+                  </div>
+
+                  {/* Unit - Only for new items */}
+                  {formData.currentStock === 0 && (
+                    <div className="col-span-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
+                      <select
+                        value={formData.unit}
+                        onChange={(e) => setFormData({...formData, unit: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      >
+                        <option value="g">g</option>
+                        <option value="kg">kg</option>
+                        <option value="ml">ml</option>
+                        <option value="l">l</option>
+                        <option value="pcs">pcs</option>
+                      </select>
+                    </div>
+                  )}
+                  
+                  {/* Unit display for existing items */}
+                  {formData.currentStock > 0 && (
+                    <div className="col-span-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
+                      <div className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 font-semibold">
+                        {formData.unit}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Type (Storage Category) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Storage Category <span className="text-orange-600">*</span>
+                    Type <span className="text-orange-600">*</span>
                   </label>
                   <select
                     value={formData.category}
@@ -571,48 +614,12 @@ const CafeInventory = ({ showToast }) => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-semibold"
                     required
                   >
-                    <option value="Dry Store">🏪 Dry Store (Grains, Pulses, Spices, Oils)</option>
-                    <option value="Fresh Produce">🥬 Fresh Produce (Vegetables, Herbs)</option>
-                    <option value="Refrigerated">❄️ Refrigerated (Dairy, Meat, Eggs)</option>
-                    <option value="Frozen">🧊 Frozen (Frozen Items)</option>
-                    <option value="Fruits">🍎 Fruits (Fresh Fruits)</option>
+                    <option value="Dry Store">🏪 Dry Store</option>
+                    <option value="Fresh Produce">🥬 Fresh Produce</option>
+                    <option value="Refrigerated">❄️ Refrigerated</option>
+                    <option value="Frozen">🧊 Frozen</option>
+                    <option value="Fruits">🍎 Fruits</option>
                   </select>
-                </div>
-
-                {/* Unit - Only for new items */}
-                {formData.currentStock === 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
-                    <select
-                      value={formData.unit}
-                      onChange={(e) => setFormData({...formData, unit: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    >
-                      <option value="g">g (grams)</option>
-                      <option value="kg">kg (kilograms)</option>
-                      <option value="ml">ml (milliliters)</option>
-                      <option value="l">l (liters)</option>
-                      <option value="pcs">pcs (pieces)</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* Min Stock */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Minimum Stock Level <span className="text-orange-600">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.minStock}
-                    onChange={(e) => setFormData({...formData, minStock: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Alert when stock falls below this level"
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {formData.currentStock === 0 ? 'Set the minimum stock threshold for alerts' : 'Update the minimum stock threshold'}
-                  </p>
                 </div>
 
                 {/* Info message for new items */}
