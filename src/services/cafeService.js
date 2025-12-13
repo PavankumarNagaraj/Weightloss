@@ -1,5 +1,8 @@
 // Production-Ready Cafe Service using Supabase Database
-import { supabase, handleSupabaseError } from '../config/supabase';
+import { supabase } from '../config/supabase';
+
+// Export analytics functions
+export * from './cafeService.analytics';
 
 // ==================== MENU MANAGEMENT ====================
 
