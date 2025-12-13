@@ -680,7 +680,7 @@ export const addInvestment = async (investmentData) => {
   }
 };
 
-// ==================== DATA EXPORT ====================
+// ==================== DATA EXPORT/IMPORT ====================
 
 export const exportAllData = async () => {
   try {
@@ -705,6 +705,98 @@ export const exportAllData = async () => {
   } catch (error) {
     console.error('Error exporting data:', error);
     throw error;
+  }
+};
+
+export const importAllData = async (data) => {
+  try {
+    const results = {
+      orders: 0,
+      menu: 0,
+      inventory: 0,
+      purchases: 0,
+      expenses: 0,
+      investments: 0,
+      errors: [],
+    };
+
+    // Import menu items
+    if (data.menu && Array.isArray(data.menu)) {
+      for (const item of data.menu) {
+        try {
+          await addMenuItem(item);
+          results.menu++;
+        } catch (error) {
+          results.errors.push(`Menu item ${item.name}: ${error.message}`);
+        }
+      }
+    }
+
+    // Import inventory items
+    if (data.inventory && Array.isArray(data.inventory)) {
+      for (const item of data.inventory) {
+        try {
+          await addInventoryItem(item);
+          results.inventory++;
+        } catch (error) {
+          results.errors.push(`Inventory item ${item.name}: ${error.message}`);
+        }
+      }
+    }
+
+    // Import purchases
+    if (data.purchases && Array.isArray(data.purchases)) {
+      for (const purchase of data.purchases) {
+        try {
+          await addPurchase(purchase);
+          results.purchases++;
+        } catch (error) {
+          results.errors.push(`Purchase ${purchase.orderNumber}: ${error.message}`);
+        }
+      }
+    }
+
+    // Import expenses
+    if (data.expenses && Array.isArray(data.expenses)) {
+      for (const expense of data.expenses) {
+        try {
+          await addExpense(expense);
+          results.expenses++;
+        } catch (error) {
+          results.errors.push(`Expense: ${error.message}`);
+        }
+      }
+    }
+
+    // Import investments
+    if (data.investments && Array.isArray(data.investments)) {
+      for (const investment of data.investments) {
+        try {
+          await addInvestment(investment);
+          results.investments++;
+        } catch (error) {
+          results.errors.push(`Investment: ${error.message}`);
+        }
+      }
+    }
+
+    // Import orders (last, as they depend on menu and inventory)
+    if (data.orders && Array.isArray(data.orders)) {
+      for (const order of data.orders) {
+        try {
+          await createOrder(order);
+          results.orders++;
+        } catch (error) {
+          results.errors.push(`Order ${order.orderNumber}: ${error.message}`);
+        }
+      }
+    }
+
+    console.log('Import results:', results);
+    return results.errors.length === 0;
+  } catch (error) {
+    console.error('Error importing data:', error);
+    return false;
   }
 };
 
