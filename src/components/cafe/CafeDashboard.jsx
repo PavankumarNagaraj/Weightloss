@@ -26,27 +26,43 @@ const CafeDashboard = ({ showToast }) => {
   useEffect(() => {
     loadData();
     
-    // Set up automated daily email at 11:55pm
+    // Set up automated daily email based on settings
     const checkAndSendEmail = () => {
+      // Get settings from localStorage
+      const cronSettings = JSON.parse(localStorage.getItem('cafe_cron_settings') || '{}');
+      
+      // Check if auto-send is enabled
+      if (cronSettings.autoSendEnabled === false) {
+        return;
+      }
+      
       const now = new Date();
       const hours = now.getHours();
       const minutes = now.getMinutes();
       
-      // Check if it's 11:55pm (23:55)
-      if (hours === 23 && minutes === 55) {
+      // Get configured time (default to 23:55 if not set)
+      const cronTime = cronSettings.cronTime || '23:55';
+      const [targetHours, targetMinutes] = cronTime.split(':').map(Number);
+      
+      // Check if it's the configured time
+      if (hours === targetHours && minutes === targetMinutes) {
         const lastSent = localStorage.getItem('last_email_sent_date');
         const today = now.toISOString().split('T')[0];
         
         // Only send if we haven't sent today
         if (lastSent !== today) {
-          console.log('Triggering automated daily email at 11:55pm');
-          const emailSettings = getEmailSettings();
-          const recipientEmail = emailSettings?.email || 'pavankumar.nagaraj@gmail.com';
+          console.log(`Triggering automated daily email at ${cronTime}`);
           
-          sendDailyReport(recipientEmail, emailSettings?.name || 'Cafe Manager').then(result => {
+          // Get recipient from settings
+          const recipientEmail = cronSettings.recipientEmail || 'pavankumar.nagaraj@gmail.com';
+          const recipientName = cronSettings.recipientName || 'Cafe Manager';
+          
+          sendDailyReport(recipientEmail, recipientName).then(result => {
             if (result.success) {
               localStorage.setItem('last_email_sent_date', today);
-              console.log('Automated daily email sent successfully');
+              console.log(`Automated daily email sent successfully to ${recipientEmail}`);
+            } else {
+              console.error('Failed to send automated email:', result.error);
             }
           });
         }
