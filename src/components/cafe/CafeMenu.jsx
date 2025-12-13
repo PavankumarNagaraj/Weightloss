@@ -34,7 +34,16 @@ const CafeMenu = ({ showToast }) => {
 
   const loadMenu = async () => {
     const items = await getMenuItems();
-    setMenuItems(items);
+    // Map snake_case to camelCase
+    const mappedItems = items.map(item => ({
+      ...item,
+      customerPrice: item.customer_price ?? item.customerPrice,
+      trainerPrice: item.trainer_price ?? item.trainerPrice,
+      isVeg: item.is_veg ?? item.isVeg,
+      rawMaterials: item.raw_materials ?? item.rawMaterials,
+      isActive: item.is_active ?? item.isActive,
+    }));
+    setMenuItems(mappedItems);
   };
 
   const handleSubmit = async (e) => {
@@ -211,7 +220,12 @@ const CafeMenu = ({ showToast }) => {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-lg font-bold text-orange-600">₹{item.price}</span>
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-gray-900">₹{item.customerPrice || 0}</div>
+                      {item.trainerPrice !== undefined && item.trainerPrice !== null && (
+                        <div className="text-xs text-gray-500">Trainer: ₹{item.trainerPrice}</div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
