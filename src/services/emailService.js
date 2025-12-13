@@ -150,8 +150,16 @@ export const generateDailyReport = async () => {
     return sum + (stock * price);
   }, 0);
   
-  // Today's expenses (excluding purchase-linked expenses to avoid duplication)
-  const todayExpenses = expenses.filter(exp => exp.date === today && !exp.purchaseId);
+  // Today's expenses (excluding purchase-linked expenses and inventory expenses)
+  const todayExpenses = expenses.filter(exp => {
+    const expDate = exp.date || exp.created_at?.split('T')[0];
+    const isPurchaseLinked = exp.purchaseId || exp.purchase_id;
+    const isInventoryExpense = exp.category?.toLowerCase().includes('inventory') || 
+                               exp.category?.toLowerCase().includes('purchase') ||
+                               exp.description?.toLowerCase().includes('inventory') ||
+                               exp.description?.toLowerCase().includes('purchase');
+    return expDate === today && !isPurchaseLinked && !isInventoryExpense;
+  });
   const expensesTotal = todayExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
   
   // Today's purchases - map snake_case to camelCase
