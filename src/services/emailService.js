@@ -1,5 +1,6 @@
 // Email Service using Brevo SMTP
 // Handles daily reports and notifications
+import { getOrders, getInventory, getExpenses, getPurchases } from './cafeService';
 
 const BREVO_CONFIG = {
   host: 'smtp-relay.brevo.com',
@@ -12,14 +13,22 @@ const BREVO_CONFIG = {
 };
 
 // Generate daily report data
-export const generateDailyReport = () => {
+export const generateDailyReport = async () => {
   const today = new Date().toISOString().split('T')[0];
   
-  // Get all data
-  const orders = JSON.parse(localStorage.getItem('cafe_orders') || '[]');
-  const inventory = JSON.parse(localStorage.getItem('cafe_inventory') || '[]');
-  const expenses = JSON.parse(localStorage.getItem('cafe_expenses') || '[]');
-  const purchases = JSON.parse(localStorage.getItem('cafe_purchases') || '[]');
+  // Get all data from Supabase database
+  const orders = await getOrders();
+  const inventoryData = await getInventory();
+  const expenses = await getExpenses();
+  const purchases = await getPurchases();
+  
+  // Map snake_case to camelCase
+  const inventory = inventoryData.map(item => ({
+    ...item,
+    currentStock: item.current_stock ?? item.currentStock,
+    minStock: item.min_stock ?? item.minStock,
+    pricePerUnit: item.price_per_unit ?? item.pricePerUnit,
+  }));
   
   // Filter today's orders
   const todayOrders = orders.filter(order => order.date === today);
@@ -408,7 +417,7 @@ export const formatReportEmail = (reportData) => {
 // Send email via Supabase Edge Function
 export const sendDailyReport = async (recipientEmail, recipientName = 'Cafe Manager') => {
   try {
-    const reportData = generateDailyReport();
+    const reportData = await generateDailyReport();
     const { generateCleanDailyEmail } = await import('../utils/emailTemplates');
     const htmlContent = generateCleanDailyEmail(reportData);
     
