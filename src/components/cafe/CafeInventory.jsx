@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash, Download, Minus } from 'lucide-react';
+import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash, Download } from 'lucide-react';
 import { getInventory, addInventoryItem, updateInventoryStock, getLowStockItems } from '../../services/cafeService';
 import { importBulkInventory } from '../../utils/bulkInventoryImport';
 
@@ -25,9 +25,6 @@ const CafeInventory = ({ showToast }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-  const [showRemoveModal, setShowRemoveModal] = useState(false);
-  const [itemToRemove, setItemToRemove] = useState(null);
-  const [removeQuantity, setRemoveQuantity] = useState('');
 
   const categories = ['Dry Store', 'Fresh Produce', 'Refrigerated', 'Frozen', 'Fruits'];
 
@@ -158,36 +155,6 @@ const CafeInventory = ({ showToast }) => {
   const handleDelete = (id) => {
     setItemToDelete(id);
     setShowDeleteModal(true);
-  };
-
-  const handleRemoveStock = (item) => {
-    setItemToRemove(item);
-    setRemoveQuantity('');
-    setShowRemoveModal(true);
-  };
-
-  const confirmRemoveStock = async () => {
-    if (!removeQuantity || parseFloat(removeQuantity) <= 0) {
-      showToast('⚠️ Please enter a valid quantity to remove');
-      return;
-    }
-
-    const quantity = parseFloat(removeQuantity);
-    if (quantity > itemToRemove.currentStock) {
-      showToast('⚠️ Cannot remove more than current stock');
-      return;
-    }
-
-    try {
-      await updateInventoryStock(itemToRemove.id, quantity, 'subtract');
-      showToast(`✅ Removed ${quantity} ${itemToRemove.unit} from ${itemToRemove.name}`);
-      setShowRemoveModal(false);
-      setItemToRemove(null);
-      setRemoveQuantity('');
-      loadInventory();
-    } catch (error) {
-      showToast('❌ Error removing stock: ' + error.message);
-    }
   };
 
   const confirmDelete = () => {
@@ -485,13 +452,6 @@ const CafeInventory = ({ showToast }) => {
                     <td className="px-4 py-2">
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleRemoveStock(item)}
-                          className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
-                          title="Remove Stock"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <button
                           onClick={() => {
                             setEditingItem(item);
                             setFormData({
@@ -719,59 +679,6 @@ const CafeInventory = ({ showToast }) => {
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
                 >
                   Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Remove Stock Modal */}
-      {showRemoveModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="p-6">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-3 bg-orange-100 rounded-full">
-                  <Minus className="w-8 h-8 text-orange-600" />
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-center mb-2">Remove Stock</h3>
-              <p className="text-gray-600 text-center mb-6">
-                Remove quantity from <span className="font-bold">{itemToRemove?.name}</span>
-              </p>
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Quantity to Remove ({itemToRemove?.unit})
-                </label>
-                <input
-                  type="number"
-                  value={removeQuantity}
-                  onChange={(e) => setRemoveQuantity(e.target.value)}
-                  placeholder="Enter quantity"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition outline-none"
-                  autoFocus
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Current stock: {itemToRemove?.currentStock} {itemToRemove?.unit}
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowRemoveModal(false);
-                    setItemToRemove(null);
-                    setRemoveQuantity('');
-                  }}
-                  className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmRemoveStock}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-bold hover:from-orange-600 hover:to-red-600 transition shadow-lg"
-                >
-                  Remove Stock
                 </button>
               </div>
             </div>

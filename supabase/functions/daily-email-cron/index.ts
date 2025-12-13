@@ -89,26 +89,85 @@ function generateDailyReport(data: CafeData) {
   const totalOrders = todayOrders.length;
   const totalRevenue = todayOrders.reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0);
 
-  // Get low stock items
+  // Calculate purchase recommendations based on history
+  const calculatePurchaseRecommendation = (itemName: string) => {
+    // Get all purchases for this item
+    const itemPurchases = mappedPurchases
+      .filter((purchase: any) => {
+        return purchase.items?.some((item: any) => 
+          item.materialName?.toLowerCase() === itemName.toLowerCase()
+        );
+      })
+      .flatMap((purchase: any) => 
+        purchase.items
+          .filter((item: any) => item.materialName?.toLowerCase() === itemName.toLowerCase())
+          .map((item: any) => ({
+            quantity: parseFloat(item.quantity) || 0,
+            unit: item.unit,
+            pricePerUnit: parseFloat(item.pricePerUnit) || 0,
+            totalPrice: parseFloat(item.total) || parseFloat(item.totalPrice) || 0,
+            date: purchase.date || purchase.createdAt,
+          }))
+      );
+
+    if (itemPurchases.length === 0) {
+      return null;
+    }
+
+    // Calculate average purchase quantity
+    const avgQuantity = itemPurchases.reduce((sum: number, p: any) => sum + p.quantity, 0) / itemPurchases.length;
+    
+    // Get most recent purchase for price reference
+    const recentPurchase = itemPurchases.sort((a: any, b: any) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    )[0];
+
+    // Calculate average price per unit
+    const avgPricePerUnit = itemPurchases.reduce((sum: number, p: any) => sum + p.pricePerUnit, 0) / itemPurchases.length;
+
+    return {
+      recommendedQty: Math.ceil(avgQuantity),
+      unit: recentPurchase.unit,
+      estimatedCost: Math.ceil(avgQuantity * avgPricePerUnit),
+      avgPricePerUnit: avgPricePerUnit.toFixed(2),
+      lastPurchaseQty: recentPurchase.quantity,
+      lastPurchaseDate: recentPurchase.date,
+      purchaseCount: itemPurchases.length,
+    };
+  };
+
+  // Get low stock items with purchase recommendations
   const lowStockItems = mappedInventory.filter((item: any) => {
     const currentStock = parseFloat(item.currentStock) || 0;
     const minStock = parseFloat(item.minStock) || 0;
     return currentStock <= minStock;
+  }).map((item: any) => {
+    const recommendation = calculatePurchaseRecommendation(item.name);
+    const neededQty = Math.ceil(item.minStock - item.currentStock);
+    
+    return {
+      name: item.name,
+      currentStock: item.currentStock,
+      minStock: item.minStock,
+      unit: item.unit,
+      category: item.category,
+      neededQty,
+      recommendation: recommendation || {
+        recommendedQty: neededQty,
+        unit: item.unit,
+        estimatedCost: 0,
+        avgPricePerUnit: '0',
+        purchaseCount: 0,
+      },
+    };
   });
 
-  // Get items to order
-  const itemsToOrder = mappedInventory.filter((item: any) => {
+  // Get items to order (critically low - below 50% of min stock)
+  const itemsToOrder = lowStockItems.filter((item: any) => {
     const currentStock = parseFloat(item.currentStock) || 0;
     const minStock = parseFloat(item.minStock) || 0;
     return currentStock <= (minStock * 0.5);
-  }).map((item: any) => ({
-    name: item.name,
-    currentStock: item.currentStock,
-    minStock: item.minStock,
-    unit: item.unit,
-    category: item.category,
-    neededQty: Math.ceil(item.minStock - item.currentStock),
-  }));
+  });
 
   // Get credit orders
   const pendingCreditOrders = mappedOrders.filter((order: any) => {
