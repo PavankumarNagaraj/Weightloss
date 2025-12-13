@@ -173,6 +173,19 @@ export const generateCleanDailyEmail = (data) => {
       <div class="section-title">📋 Today's Orders (${orders.total})</div>
       
       ${orders.todayOrders && orders.todayOrders.length > 0 ? `
+        <div style="background: linear-gradient(to right, #d1fae5, #a7f3d0); padding: 15px; border-radius: 8px; border: 2px solid #10b981; margin-bottom: 20px;">
+          <table style="width: 100%;">
+            <tr>
+              <td style="padding: 0;">
+                <span style="font-size: 16px; font-weight: bold; color: #065f46;">Total Orders Revenue</span>
+              </td>
+              <td style="text-align: right; padding: 0;">
+                <span style="font-size: 24px; font-weight: 900; color: #047857;">₹${orders.revenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+        
         ${orders.todayOrders.map(order => `
           <div style="margin-bottom: 20px; padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #10b981;">
             <table style="width: 100%; margin-bottom: 10px;">
@@ -210,19 +223,6 @@ export const generateCleanDailyEmail = (data) => {
             </table>
           </div>
         `).join('')}
-        
-        <div style="background: linear-gradient(to right, #fee2e2, #fecaca); padding: 15px; border-radius: 8px; border: 2px solid #ef4444; margin-bottom: 20px;">
-          <table style="width: 100%;">
-            <tr>
-              <td style="padding: 0;">
-                <span style="font-size: 16px; font-weight: bold; color: #991b1b;">Total Orders Revenue</span>
-              </td>
-              <td style="text-align: right; padding: 0;">
-                <span style="font-size: 24px; font-weight: 900; color: #dc2626;">₹${orders.revenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-              </td>
-            </tr>
-          </table>
-        </div>
       ` : `
         <p style="color: #6b7280; margin: 0; text-align: center; padding: 20px;">No orders today</p>
       `}
