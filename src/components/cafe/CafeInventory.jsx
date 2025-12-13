@@ -325,11 +325,14 @@ const CafeInventory = ({ showToast }) => {
     setShowBulkDeleteModal(true);
   };
 
-  const confirmBulkDelete = () => {
-    const items = getInventory();
-    const updatedItems = items.filter(item => !selectedItems.includes(item.id));
-    localStorage.setItem('cafe_inventory', JSON.stringify(updatedItems));
+  const confirmBulkDelete = async () => {
     const deletedCount = selectedItems.length;
+    
+    // Delete each selected item
+    for (const itemId of selectedItems) {
+      await deleteInventoryItem(itemId);
+    }
+    
     setSelectedItems([]);
     setSelectAll(false);
     loadInventory();
