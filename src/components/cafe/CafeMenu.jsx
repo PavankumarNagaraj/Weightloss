@@ -40,11 +40,18 @@ const CafeMenu = ({ showToast }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Prepare data with proper numeric handling
+    const submitData = {
+      ...formData,
+      customerPrice: formData.customerPrice === '' ? 0 : parseFloat(formData.customerPrice) || 0,
+      trainerPrice: formData.trainerPrice === '' ? 0 : parseFloat(formData.trainerPrice) || 0,
+    };
+    
     if (editingItem) {
-      await updateMenuItem(editingItem.id, formData);
+      await updateMenuItem(editingItem.id, submitData);
       showToast('Menu item updated successfully');
     } else {
-      await addMenuItem(formData);
+      await addMenuItem(submitData);
       showToast('Menu item added successfully');
     }
     
