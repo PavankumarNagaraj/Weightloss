@@ -211,14 +211,14 @@ export const generateCleanDailyEmail = (data) => {
           </div>
         `).join('')}
         
-        <div style="background: linear-gradient(to right, #d1fae5, #a7f3d0); padding: 15px; border-radius: 8px; border: 2px solid #10b981;">
+        <div style="background: linear-gradient(to right, #fee2e2, #fecaca); padding: 15px; border-radius: 8px; border: 2px solid #ef4444; margin-bottom: 20px;">
           <table style="width: 100%;">
             <tr>
               <td style="padding: 0;">
-                <span style="font-size: 16px; font-weight: bold; color: #065f46;">Total Orders Revenue</span>
+                <span style="font-size: 16px; font-weight: bold; color: #991b1b;">Total Orders Revenue</span>
               </td>
               <td style="text-align: right; padding: 0;">
-                <span style="font-size: 24px; font-weight: 900; color: #047857;">₹${orders.revenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                <span style="font-size: 24px; font-weight: 900; color: #dc2626;">₹${orders.revenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
               </td>
             </tr>
           </table>
