@@ -122,6 +122,9 @@ const CafeOrders = ({ showToast }) => {
 
   const addToCart = (item) => {
     const existingItem = cart.find(cartItem => cartItem.id === item.id);
+    // Determine price based on customer type
+    const price = customerType === 'trainer' ? (item.trainerPrice || 0) : (item.customerPrice || 0);
+    
     if (existingItem) {
       setCart(cart.map(cartItem =>
         cartItem.id === item.id
@@ -129,7 +132,7 @@ const CafeOrders = ({ showToast }) => {
           : cartItem
       ));
     } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
+      setCart([...cart, { ...item, price, quantity: 1 }]);
     }
   };
 
@@ -610,7 +613,9 @@ const CafeOrders = ({ showToast }) => {
                                 <span className="font-semibold text-gray-900 group-hover:text-orange-600 transition">{item.name}</span>
                               </td>
                               <td className="px-4 py-4">
-                                <span className="text-lg font-bold text-orange-600">₹{item.price}</span>
+                                <span className="text-lg font-bold text-orange-600">
+                                  ₹{customerType === 'trainer' ? (item.trainerPrice || 0) : (item.customerPrice || 0)}
+                                </span>
                               </td>
                             </tr>
                           ))}
