@@ -41,36 +41,36 @@ const CafeManagement = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 border-b-4 border-purple-700 sticky top-0 z-10 shadow-xl">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            <div className="flex items-center gap-2 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-white/20 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg">
-                <ShoppingBag className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+      <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 border-b-4 border-purple-700 z-20 shadow-xl">
+        <div className="px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg">
+                <ShoppingBag className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-2xl font-black text-white">Cafe Management</h1>
-                <p className="text-xs sm:text-sm text-purple-100 font-semibold hidden sm:block">AFTERBURN Cafe</p>
+                <h1 className="text-xl font-black text-white">Cafe Management</h1>
+                <p className="text-xs text-purple-100 font-semibold">AFTERBURN Cafe</p>
               </div>
             </div>
             
             <Link
               to="/"
-              className="px-3 py-2 sm:px-6 sm:py-3 bg-white/20 backdrop-blur-sm text-white rounded-lg sm:rounded-xl text-sm sm:text-base font-bold hover:bg-white/30 transition shadow-lg"
+              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg text-sm font-bold hover:bg-white/30 transition shadow-lg"
             >
-              <span className="hidden sm:inline">← Back to Main</span>
-              <span className="sm:hidden">← Back</span>
+              ← Back to Main
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white border-b-2 border-gray-200 shadow-md sticky top-16 sm:top-20 z-10">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <nav className="flex gap-1 overflow-x-auto pb-px" style={{ scrollbarWidth: 'thin' }}>
+      {/* Sidebar + Content Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar Navigation */}
+        <div className="w-64 bg-white border-r-2 border-gray-200 shadow-lg overflow-y-auto">
+          <nav className="p-3 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || 
@@ -81,38 +81,40 @@ const CafeManagement = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-2 px-4 py-3 border-b-4 transition whitespace-nowrap text-sm font-bold flex-shrink-0 ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition font-semibold ${
                     isActive
-                      ? 'border-purple-600 text-purple-600 bg-purple-50'
-                      : 'border-transparent text-gray-600 hover:text-purple-600 hover:bg-gray-50'
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-purple-50 hover:text-purple-600'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-5 h-5" />
                   <span>{item.label}</span>
                 </Link>
               );
             })}
           </nav>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <Routes>
-          <Route index element={<CafeDashboard showToast={handleToast} />} />
-          <Route path="/orders" element={<CafeOrders showToast={handleToast} />} />
-          <Route path="/menu" element={<CafeMenu showToast={handleToast} />} />
-          <Route path="/inventory" element={<CafeInventory showToast={handleToast} />} />
-          <Route path="/purchases" element={<CafePurchases showToast={handleToast} />} />
-          <Route path="/expenses" element={<CafeExpenses showToast={handleToast} />} />
-          <Route path="/investments" element={<CafeInvestments showToast={handleToast} />} />
-          <Route path="/profit-loss" element={<CafeProfitLoss showToast={handleToast} />} />
-          <Route path="/analytics" element={<CafeSalesAnalytics showToast={handleToast} />} />
-          <Route path="/reports" element={<CafeReports showToast={handleToast} />} />
-          <Route path="/subscription-orders" element={<CafeSubscriptionOrders showToast={handleToast} />} />
-          <Route path="/dashboard" element={<CafeDashboard showToast={handleToast} />} />
-          <Route path="/settings" element={<CafeSettings showToast={handleToast} />} />
-        </Routes>
+        {/* Main Content - Full Width */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 sm:p-6">
+            <Routes>
+              <Route index element={<CafeDashboard showToast={handleToast} />} />
+              <Route path="/orders" element={<CafeOrders showToast={handleToast} />} />
+              <Route path="/menu" element={<CafeMenu showToast={handleToast} />} />
+              <Route path="/inventory" element={<CafeInventory showToast={handleToast} />} />
+              <Route path="/purchases" element={<CafePurchases showToast={handleToast} />} />
+              <Route path="/expenses" element={<CafeExpenses showToast={handleToast} />} />
+              <Route path="/investments" element={<CafeInvestments showToast={handleToast} />} />
+              <Route path="/profit-loss" element={<CafeProfitLoss showToast={handleToast} />} />
+              <Route path="/analytics" element={<CafeSalesAnalytics showToast={handleToast} />} />
+              <Route path="/reports" element={<CafeReports showToast={handleToast} />} />
+              <Route path="/subscription-orders" element={<CafeSubscriptionOrders showToast={handleToast} />} />
+              <Route path="/dashboard" element={<CafeDashboard showToast={handleToast} />} />
+              <Route path="/settings" element={<CafeSettings showToast={handleToast} />} />
+            </Routes>
+          </div>
+        </div>
       </div>
 
       {/* Toast Notification */}
