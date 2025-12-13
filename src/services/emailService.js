@@ -30,8 +30,20 @@ export const generateDailyReport = async () => {
     pricePerUnit: item.price_per_unit ?? item.pricePerUnit,
   }));
   
+  // Map snake_case to camelCase for orders
+  const mappedOrders = orders.map(order => ({
+    ...order,
+    orderNumber: order.order_number ?? order.orderNumber,
+    customerName: order.customer_name ?? order.customerName,
+    customerType: order.customer_type ?? order.customerType,
+    paymentMethod: order.payment_method ?? order.paymentMethod,
+    totalAmount: order.total_amount ?? order.totalAmount,
+    paymentReceived: order.payment_received ?? order.paymentReceived,
+    createdAt: order.created_at ?? order.createdAt,
+  }));
+  
   // Filter today's orders
-  const todayOrders = orders.filter(order => order.date === today);
+  const todayOrders = mappedOrders.filter(order => order.date === today);
   
   // Calculate order stats
   const totalOrders = todayOrders.length;
@@ -130,7 +142,7 @@ export const generateDailyReport = async () => {
   }));
   
   // Get credit orders with pending payments
-  const pendingCreditOrders = orders.filter(order => {
+  const pendingCreditOrders = mappedOrders.filter(order => {
     const totalAmount = order.totalAmount || 0;
     const paymentReceived = order.paymentReceived || 0;
     return order.paymentMethod === 'Credit' && paymentReceived < totalAmount;
