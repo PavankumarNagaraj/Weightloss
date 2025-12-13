@@ -86,7 +86,14 @@ const CafeDashboard = ({ showToast }) => {
     setRecentOrders(orders.slice(-5).reverse());
 
     const lowStockItems = await getLowStockItems();
-    setLowStock(lowStockItems);
+    // Map snake_case to camelCase for low stock items
+    const mappedLowStock = lowStockItems.map(item => ({
+      ...item,
+      currentStock: item.current_stock ?? item.currentStock,
+      minStock: item.min_stock ?? item.minStock,
+      pricePerUnit: item.price_per_unit ?? item.pricePerUnit,
+    }));
+    setLowStock(mappedLowStock);
 
     const currentBalance = await getCurrentBalance();
     setBalance(currentBalance);

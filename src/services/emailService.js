@@ -32,11 +32,78 @@ export const generateDailyReport = () => {
   const cardOrders = todayOrders.filter(o => o.paymentMethod === 'Card').length;
   const creditOrders = todayOrders.filter(o => o.paymentMethod === 'Credit').length;
   
-  // Get low stock items
+  // Calculate purchase recommendations based on history
+  const calculatePurchaseRecommendation = (itemName) => {
+    // Get all purchases for this item
+    const itemPurchases = purchases
+      .filter(purchase => {
+        return purchase.items?.some(item => 
+          item.materialName?.toLowerCase() === itemName.toLowerCase()
+        );
+      })
+      .flatMap(purchase => 
+        purchase.items
+          .filter(item => item.materialName?.toLowerCase() === itemName.toLowerCase())
+          .map(item => ({
+            quantity: parseFloat(item.quantity) || 0,
+            unit: item.unit,
+            pricePerUnit: parseFloat(item.pricePerUnit) || 0,
+            totalPrice: parseFloat(item.total) || parseFloat(item.totalPrice) || 0,
+            date: purchase.date || purchase.createdAt,
+          }))
+      );
+
+    if (itemPurchases.length === 0) {
+      return null;
+    }
+
+    // Calculate average purchase quantity
+    const avgQuantity = itemPurchases.reduce((sum, p) => sum + p.quantity, 0) / itemPurchases.length;
+    
+    // Get most recent purchase for price reference
+    const recentPurchase = itemPurchases.sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    )[0];
+
+    // Calculate average price per unit
+    const avgPricePerUnit = itemPurchases.reduce((sum, p) => sum + p.pricePerUnit, 0) / itemPurchases.length;
+
+    return {
+      recommendedQty: Math.ceil(avgQuantity),
+      unit: recentPurchase.unit,
+      estimatedCost: Math.ceil(avgQuantity * avgPricePerUnit),
+      avgPricePerUnit: avgPricePerUnit.toFixed(2),
+      lastPurchaseQty: recentPurchase.quantity,
+      lastPurchaseDate: recentPurchase.date,
+      purchaseCount: itemPurchases.length,
+    };
+  };
+
+  // Get low stock items with purchase recommendations
   const lowStockItems = inventory.filter(item => {
     const currentStock = parseFloat(item.currentStock) || 0;
     const minStock = parseFloat(item.minStock) || 0;
     return currentStock <= minStock;
+  }).map(item => {
+    const recommendation = calculatePurchaseRecommendation(item.name);
+    const neededQty = Math.ceil(item.minStock - item.currentStock);
+    
+    return {
+      name: item.name,
+      currentStock: item.currentStock,
+      minStock: item.minStock,
+      unit: item.unit,
+      category: item.category,
+      neededQty,
+      pricePerUnit: item.pricePerUnit || 0,
+      recommendation: recommendation || {
+        recommendedQty: neededQty,
+        unit: item.unit,
+        estimatedCost: neededQty * (item.pricePerUnit || 0),
+        avgPricePerUnit: (item.pricePerUnit || 0).toFixed(2),
+        purchaseCount: 0,
+      },
+    };
   });
   
   // Get items that need to be ordered (stock below 50% of min)
@@ -108,13 +175,7 @@ export const generateDailyReport = () => {
     inventory: {
       totalValue: inventoryValue,
       lowStockCount: lowStockItems.length,
-      lowStockItems: lowStockItems.map(item => ({
-        name: item.name,
-        currentStock: item.currentStock,
-        minStock: item.minStock,
-        unit: item.unit,
-        category: item.category,
-      })),
+      lowStockItems: lowStockItems,
       itemsToOrder,
     },
     creditOrders: {
