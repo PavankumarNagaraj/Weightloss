@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings } from 'lucide-react';
 import CafeOrders from './cafe/CafeOrders';
 import CafeMenu from './cafe/CafeMenu';
 import CafeInventory from './cafe/CafeInventory';
@@ -12,6 +12,7 @@ import CafeExpenses from './cafe/CafeExpenses';
 import CafeProfitLoss from './cafe/CafeProfitLoss';
 import CafeSalesAnalytics from './cafe/CafeSalesAnalytics';
 import CafeReports from './cafe/CafeReports';
+import CafeSettings from './cafe/CafeSettings';
 
 const CafeManagement = () => {
   const location = useLocation();
@@ -36,6 +37,7 @@ const CafeManagement = () => {
     { path: '/cafe/reports', label: 'Reports', icon: FileText },
     { path: '/cafe/subscription-orders', label: 'Subscriptions', icon: Calendar },
     { path: '/cafe/dashboard', label: 'Dashboard', icon: BarChart3 },
+    { path: '/cafe/settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -109,6 +111,7 @@ const CafeManagement = () => {
           <Route path="/reports" element={<CafeReports showToast={handleToast} />} />
           <Route path="/subscription-orders" element={<CafeSubscriptionOrders showToast={handleToast} />} />
           <Route path="/dashboard" element={<CafeDashboard showToast={handleToast} />} />
+          <Route path="/settings" element={<CafeSettings showToast={handleToast} />} />
         </Routes>
       </div>
 
