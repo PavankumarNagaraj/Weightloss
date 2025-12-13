@@ -840,8 +840,8 @@ const CafeInventory = ({ showToast }) => {
             <div className="p-4 border-b">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h3 className="text-xl font-bold">Import Inventory Items</h3>
-                  <p className="text-gray-600 text-xs mt-0.5">Select items from our comprehensive cafe & restaurant template</p>
+                  <h3 className="text-2xl font-bold">Import Inventory Items</h3>
+                  <p className="text-gray-600 text-sm mt-0.5">Select items from our comprehensive cafe & restaurant template</p>
                 </div>
                 <button
                   onClick={() => {
@@ -859,19 +859,19 @@ const CafeInventory = ({ showToast }) => {
               {/* Search and Filter */}
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
                     placeholder="Search items..."
                     value={templateSearch}
                     onChange={(e) => setTemplateSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full pl-10 pr-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
                 <select
                   value={templateCategory}
                   onChange={(e) => setTemplateCategory(e.target.value)}
-                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
                   <option value="All">All Categories</option>
                   <option value="Dry Store">🏪 Dry Store</option>
@@ -883,13 +883,13 @@ const CafeInventory = ({ showToast }) => {
               </div>
 
               {/* Selection Info */}
-              <div className="flex items-center justify-between mt-2 p-2 bg-blue-50 rounded-lg">
-                <p className="text-xs text-blue-900">
+              <div className="flex items-center justify-between mt-2 p-2.5 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-900">
                   <strong>{selectedTemplateItems.length}</strong> items selected • <strong>{getFilteredTemplateItems().length}</strong> available
                 </p>
                 <button
                   onClick={selectAllTemplateItems}
-                  className="text-xs font-semibold text-orange-600 hover:text-orange-700"
+                  className="text-sm font-semibold text-orange-600 hover:text-orange-700"
                 >
                   {selectedTemplateItems.length === getFilteredTemplateItems().length ? 'Deselect All' : 'Select All'}
                 </button>
@@ -911,22 +911,22 @@ const CafeInventory = ({ showToast }) => {
                           : 'border-gray-200 hover:border-orange-300 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-start gap-1.5">
-                        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                      <div className="flex items-start gap-2">
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
                           isSelected ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
                         }`}>
-                          {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                          {isSelected && <Check className="w-3 h-3 text-white" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1">
-                            <p className="font-semibold text-xs text-gray-900 truncate flex-1">{item.name}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-semibold text-sm text-gray-900 truncate flex-1">{item.name}</p>
                             {item.usageCount > 0 && (
-                              <span className="text-[9px] bg-green-100 text-green-700 px-1 py-0.5 rounded font-semibold" title={`Used in ${item.usageCount} dishes`}>
+                              <span className="text-[11px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-semibold" title={`Used in ${item.usageCount} dishes`}>
                                 {item.usageCount}
                               </span>
                             )}
                           </div>
-                          <div className="mt-1 flex items-center justify-between gap-1 text-[10px]">
+                          <div className="mt-1 flex items-center justify-between gap-1 text-xs">
                             <span className="text-gray-500 truncate">{item.category}</span>
                             <span className="text-gray-600 whitespace-nowrap">Min: {item.minStock}{item.unit}</span>
                           </div>
@@ -939,7 +939,7 @@ const CafeInventory = ({ showToast }) => {
 
               {getFilteredTemplateItems().length === 0 && (
                 <div className="text-center py-8">
-                  <p className="text-sm text-gray-500">No items found matching your search</p>
+                  <p className="text-base text-gray-500">No items found matching your search</p>
                 </div>
               )}
             </div>
@@ -954,14 +954,14 @@ const CafeInventory = ({ showToast }) => {
                     setTemplateSearch('');
                     setTemplateCategory('All');
                   }}
-                  className="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                  className="flex-1 px-5 py-2.5 text-base border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmBulkImport}
                   disabled={selectedTemplateItems.length === 0}
-                  className="flex-1 px-4 py-2 text-sm bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="flex-1 px-5 py-2.5 text-base bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Import {selectedTemplateItems.length} Item{selectedTemplateItems.length !== 1 ? 's' : ''}
                 </button>
