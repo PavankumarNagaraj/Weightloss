@@ -1,6 +1,21 @@
 // Production-Ready Cafe Service using Supabase Database
 import { supabase } from '../config/supabase';
 
+// ==================== MIGRATION UTILITIES ====================
+
+export const migrateOrderDates = async () => {
+  try {
+    // This function is for backward compatibility with localStorage migration
+    // In Supabase, all orders already have proper date fields
+    // This is a no-op for the database version
+    console.log('✅ Migration not needed - using Supabase database');
+    return true;
+  } catch (error) {
+    console.error('Error in migration check:', error);
+    return false;
+  }
+};
+
 // ==================== MENU MANAGEMENT ====================
 
 export const getMenuItems = async () => {
