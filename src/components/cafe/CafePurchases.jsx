@@ -41,7 +41,7 @@ const CafePurchases = ({ showToast }) => {
     const startDate = new Date();
     startDate.setDate(1);
     const endDate = new Date();
-    const monthStats = await getPurchaseStats(startDate, endDate);
+    const monthStats = await getPurchaseStats(startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]);
     setStats(monthStats);
   };
 
@@ -152,7 +152,7 @@ const CafePurchases = ({ showToast }) => {
             </div>
             <div className="relative p-6">
               <p className="text-sm font-semibold text-gray-600 mb-2">Total Spent</p>
-              <p className="text-4xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹{stats.totalAmount.toLocaleString()}</p>
+              <p className="text-4xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹{(stats.totalAmount || 0).toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-1">This Month</p>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
@@ -164,7 +164,7 @@ const CafePurchases = ({ showToast }) => {
             </div>
             <div className="relative p-6">
               <p className="text-sm font-semibold text-gray-600 mb-2">Items Purchased</p>
-              <p className="text-4xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{stats.totalItems}</p>
+              <p className="text-4xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{stats.totalItems || 0}</p>
               <p className="text-xs text-gray-500 mt-1">Unique Items</p>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
