@@ -46,11 +46,32 @@ const CafePurchases = ({ showToast }) => {
     }));
     setPurchases(mappedPurchases);
     
-    const startDate = new Date();
-    startDate.setDate(1);
-    const endDate = new Date();
-    const monthStats = await getPurchaseStats(startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]);
-    setStats(monthStats);
+    // Calculate stats from all purchases for this month
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthPurchases = mappedPurchases.filter(p => {
+      const purchaseDate = new Date(p.date);
+      return purchaseDate >= startOfMonth;
+    });
+    
+    const totalAmount = monthPurchases.reduce((sum, p) => sum + (parseFloat(p.totalAmount) || 0), 0);
+    const totalPurchases = monthPurchases.length;
+    
+    // Count unique items across all purchases
+    const allItems = new Set();
+    monthPurchases.forEach(purchase => {
+      if (purchase.items && Array.isArray(purchase.items)) {
+        purchase.items.forEach(item => {
+          allItems.add(item.materialName);
+        });
+      }
+    });
+    
+    setStats({
+      totalAmount,
+      totalPurchases,
+      totalItems: allItems.size,
+    });
   };
 
   const handleMaterialSelect = (material) => {
