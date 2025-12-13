@@ -619,7 +619,16 @@ export const getCurrentBalance = async () => {
 
     if (ordersError) throw ordersError;
 
-    const totalRevenue = orders.reduce((sum, o) => sum + parseFloat(o.payment_received || o.total_amount || 0), 0);
+    const revenue = orders.reduce((sum, o) => sum + parseFloat(o.payment_received || o.total_amount || 0), 0);
+
+    // Get total purchases
+    const { data: purchases, error: purchasesError } = await supabase
+      .from('cafe_purchases')
+      .select('total_amount');
+
+    if (purchasesError) throw purchasesError;
+
+    const purchasesTotal = purchases.reduce((sum, p) => sum + parseFloat(p.total_amount || 0), 0);
 
     // Get total expenses
     const { data: expenses, error: expensesError } = await supabase
@@ -628,7 +637,7 @@ export const getCurrentBalance = async () => {
 
     if (expensesError) throw expensesError;
 
-    const totalExpenses = expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+    const expensesTotal = expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
 
     // Get total investments
     const { data: investments, error: investmentsError } = await supabase
@@ -639,21 +648,35 @@ export const getCurrentBalance = async () => {
       console.error('Error getting investments:', investmentsError);
     }
 
-    const totalInvestments = investments ? investments.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0) : 0;
+    const investmentsTotal = investments ? investments.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0) : 0;
+
+    const totalIncome = revenue + investmentsTotal;
+    const totalCosts = purchasesTotal + expensesTotal;
+    const currentBalance = totalIncome - totalCosts;
 
     return {
-      totalRevenue,
-      totalExpenses,
-      totalInvestments,
-      currentBalance: totalRevenue - totalExpenses + totalInvestments,
+      currentBalance,
+      totalIncome,
+      totalCosts,
+      breakdown: {
+        revenue,
+        investments: investmentsTotal,
+        purchases: purchasesTotal,
+        expenses: expensesTotal,
+      },
     };
   } catch (error) {
     console.error('Error getting current balance:', error);
     return {
-      totalRevenue: 0,
-      totalExpenses: 0,
-      totalInvestments: 0,
       currentBalance: 0,
+      totalIncome: 0,
+      totalCosts: 0,
+      breakdown: {
+        revenue: 0,
+        investments: 0,
+        purchases: 0,
+        expenses: 0,
+      },
     };
   }
 };
