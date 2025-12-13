@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash, Download, Search, Check } from 'lucide-react';
-import { getInventory, addInventoryItem, updateInventoryStock, updateInventoryItem, getLowStockItems, getMenuItems } from '../../services/cafeService';
+import { getInventory, addInventoryItem, updateInventoryStock, updateInventoryItem, deleteInventoryItem, getLowStockItems, getMenuItems } from '../../services/cafeService';
 import { importBulkInventory } from '../../utils/bulkInventoryImport';
 import { inventoryTemplate } from '../../utils/inventoryTemplate';
 
@@ -181,13 +181,11 @@ const CafeInventory = ({ showToast }) => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (itemToDelete) {
-      const items = getInventory();
-      const updatedItems = items.filter(item => item.id !== itemToDelete);
-      localStorage.setItem('cafe_inventory', JSON.stringify(updatedItems));
+      await deleteInventoryItem(itemToDelete);
       loadInventory();
-      showToast('Inventory item deleted');
+      showToast('🗑️ Inventory item deleted');
       setShowDeleteModal(false);
       setItemToDelete(null);
     }
