@@ -28,11 +28,16 @@ const CafeOrders = ({ showToast }) => {
   useEffect(() => {
     loadOrders();
     setUsers(getUsers());
-    setMenuItems(getMenuItems());
+    loadMenuItems();
   }, []);
 
-  const loadOrders = () => {
-    const allOrders = getOrders();
+  const loadMenuItems = async () => {
+    const items = await getMenuItems();
+    setMenuItems(items);
+  };
+
+  const loadOrders = async () => {
+    const allOrders = await getOrders();
     setOrders(allOrders.reverse()); // Show newest first
   };
 
@@ -145,7 +150,7 @@ const CafeOrders = ({ showToast }) => {
     return Math.max(0, subtotal - discount);
   };
 
-  const handleCreateOrder = () => {
+  const handleCreateOrder = async () => {
     if (cart.length === 0) {
       alert('Please add items to cart');
       return;
@@ -171,7 +176,7 @@ const CafeOrders = ({ showToast }) => {
       totalAmount: total,
     };
 
-    createOrder(orderData);
+    await createOrder(orderData);
     showToast(`Order created successfully! ${customerType === 'trainer' ? '(Trainer - Free)' : ''}`);
     
     // Reset form
@@ -183,7 +188,7 @@ const CafeOrders = ({ showToast }) => {
     setPaymentMethod('Cash');
     setCart([]);
     setShowModal(false);
-    loadOrders();
+    await loadOrders();
   };
 
   const handleDeleteOrder = (orderId) => {

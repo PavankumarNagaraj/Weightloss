@@ -52,17 +52,17 @@ const CafeDashboard = ({ showToast }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const loadData = () => {
-    const dashboardStats = getDashboardStats();
+  const loadData = async () => {
+    const dashboardStats = await getDashboardStats();
     setStats(dashboardStats);
 
-    const orders = getOrders();
+    const orders = await getOrders();
     setRecentOrders(orders.slice(-5).reverse());
 
-    const lowStockItems = getLowStockItems();
+    const lowStockItems = await getLowStockItems();
     setLowStock(lowStockItems);
 
-    const currentBalance = getCurrentBalance();
+    const currentBalance = await getCurrentBalance();
     setBalance(currentBalance);
   };
 

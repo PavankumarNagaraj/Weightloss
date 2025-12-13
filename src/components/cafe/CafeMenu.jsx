@@ -27,34 +27,36 @@ const CafeMenu = ({ showToast }) => {
     loadInventory();
   }, []);
 
-  const loadInventory = () => {
-    setInventoryItems(getInventory());
+  const loadInventory = async () => {
+    const items = await getInventory();
+    setInventoryItems(items);
   };
 
-  const loadMenu = () => {
-    setMenuItems(getMenuItems());
+  const loadMenu = async () => {
+    const items = await getMenuItems();
+    setMenuItems(items);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (editingItem) {
-      updateMenuItem(editingItem.id, formData);
+      await updateMenuItem(editingItem.id, formData);
       showToast('Menu item updated successfully');
     } else {
-      addMenuItem(formData);
+      await addMenuItem(formData);
       showToast('Menu item added successfully');
     }
     
     resetForm();
-    loadMenu();
+    await loadMenu();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('Delete this menu item?')) {
-      deleteMenuItem(id);
+      await deleteMenuItem(id);
       showToast('Menu item deleted');
-      loadMenu();
+      await loadMenu();
     }
   };
 

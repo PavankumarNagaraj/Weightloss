@@ -29,18 +29,19 @@ const CafePurchases = ({ showToast }) => {
     loadInventory();
   }, []);
 
-  const loadInventory = () => {
-    setInventory(getInventory());
+  const loadInventory = async () => {
+    const items = await getInventory();
+    setInventory(items);
   };
 
-  const loadPurchases = () => {
-    const allPurchases = getPurchases();
+  const loadPurchases = async () => {
+    const allPurchases = await getPurchases();
     setPurchases(allPurchases);
     
     const startDate = new Date();
     startDate.setDate(1);
     const endDate = new Date();
-    const monthStats = getPurchaseStats(startDate, endDate);
+    const monthStats = await getPurchaseStats(startDate, endDate);
     setStats(monthStats);
   };
 
@@ -92,7 +93,7 @@ const CafePurchases = ({ showToast }) => {
     return formData.items.reduce((sum, item) => sum + item.total, 0);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const purchaseData = {
@@ -100,11 +101,11 @@ const CafePurchases = ({ showToast }) => {
       totalAmount: calculateTotal(),
     };
     
-    addPurchase(purchaseData);
+    await addPurchase(purchaseData);
     showToast('Purchase recorded successfully');
     resetForm();
-    loadPurchases();
-    loadInventory();
+    await loadPurchases();
+    await loadInventory();
   };
 
   const resetForm = () => {

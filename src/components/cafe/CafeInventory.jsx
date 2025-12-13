@@ -55,31 +55,28 @@ const CafeInventory = ({ showToast }) => {
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
-  const loadInventory = () => {
-    setInventory(getInventory());
-    setLowStock(getLowStockItems());
+  const loadInventory = async () => {
+    const items = await getInventory();
+    setInventory(items);
+    const lowStockItems = await getLowStockItems();
+    setLowStock(lowStockItems);
   };
 
-  const loadExistingMaterials = () => {
+  const loadExistingMaterials = async () => {
     // Get unique material names from inventory
-    const materials = getInventory().map(item => item.name);
+    const items = await getInventory();
+    const materials = items.map(item => item.name);
     setExistingMaterials([...new Set(materials)]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const existingItem = inventory.find(item => item.name.toLowerCase() === formData.name.toLowerCase());
     
     if (existingItem) {
       // Update existing item - only update minStock
-      const items = getInventory();
-      const updatedItems = items.map(item => 
-        item.id === existingItem.id 
-          ? { ...item, minStock: parseFloat(formData.minStock), category: formData.category }
-          : item
-      );
-      localStorage.setItem('cafe_inventory', JSON.stringify(updatedItems));
+      await updateInventoryStock(existingItem.id, formData.minStock, 'set');
       showToast(`Updated ${formData.name} settings`);
     } else {
       // Add new item with 0 stock
@@ -89,8 +86,9 @@ const CafeInventory = ({ showToast }) => {
         minStock: parseFloat(formData.minStock),
         unit: formData.unit,
         category: formData.category || 'Dry Store',
+        pricePerUnit: 0,
       };
-      addInventoryItem(newItem);
+      await addInventoryItem(newItem);
       
       // Add to existing materials list
       if (!existingMaterials.includes(formData.name)) {
