@@ -235,24 +235,24 @@ export const generateCleanDailyEmail = (data) => {
               <span style="font-size: 16px; font-weight: bold; color: #991b1b;">Total Expenses</span>
             </td>
             <td style="text-align: right; padding: 0;">
-              <span style="font-size: 24px; font-weight: 900; color: #dc2626;">₹${expenses.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+              <span style="font-size: 24px; font-weight: 900; color: #dc2626;">₹${(expenses.total || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
             </td>
           </tr>
         </table>
       </div>
 
       ${expenses.todayPurchases && expenses.todayPurchases.length > 0 ? `
-        <h4 style="color: #667eea; font-size: 14px; margin: 20px 0 10px 0; font-weight: bold;">🛍️ Purchase Orders (₹${expenses.purchases.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})})</h4>
+        <h4 style="color: #667eea; font-size: 14px; margin: 20px 0 10px 0; font-weight: bold;">🛍️ Purchase Orders (₹${(expenses.purchases || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})})</h4>
         ${expenses.todayPurchases.map(purchase => `
           <div style="margin-bottom: 15px; padding: 12px; background: #f9fafb; border-radius: 6px; border-left: 3px solid #667eea;">
             <table style="width: 100%; margin-bottom: 8px;">
               <tr>
                 <td style="padding: 0;">
                   <strong style="color: #667eea; font-size: 13px;">PO #${purchase.orderNumber || 'N/A'}</strong>
-                  <span style="color: #6b7280; font-size: 11px; margin-left: 8px;">${purchase.supplier}</span>
+                  <span style="color: #6b7280; font-size: 11px; margin-left: 8px;">${purchase.supplier || 'N/A'}</span>
                 </td>
                 <td style="text-align: right; padding: 0;">
-                  <strong style="color: #ef4444; font-size: 14px;">₹${purchase.totalCost.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+                  <strong style="color: #ef4444; font-size: 14px;">₹${(purchase.totalCost || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
                 </td>
               </tr>
             </table>
@@ -264,7 +264,7 @@ export const generateCleanDailyEmail = (data) => {
       ` : ''}
 
       ${expenses.todayExpenses && expenses.todayExpenses.length > 0 ? `
-        <h4 style="color: #f59e0b; font-size: 14px; margin: 20px 0 10px 0; font-weight: bold;">📝 Other Expenses (₹${expenses.other.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})})</h4>
+        <h4 style="color: #f59e0b; font-size: 14px; margin: 20px 0 10px 0; font-weight: bold;">📝 Other Expenses (₹${(expenses.other || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})})</h4>
         <table style="width: 100%;">
           <thead>
             <tr style="background: #f3f4f6;">
