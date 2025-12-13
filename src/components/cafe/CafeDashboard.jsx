@@ -10,7 +10,17 @@ const CafeDashboard = ({ showToast }) => {
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [lowStock, setLowStock] = useState([]);
-  const [balance, setBalance] = useState(null);
+  const [balance, setBalance] = useState({
+    currentBalance: 0,
+    totalIncome: 0,
+    totalCosts: 0,
+    breakdown: {
+      revenue: 0,
+      investments: 0,
+      purchases: 0,
+      expenses: 0
+    }
+  });
   const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {

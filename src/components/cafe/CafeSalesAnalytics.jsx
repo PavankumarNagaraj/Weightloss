@@ -97,13 +97,13 @@ const CafeSalesAnalytics = ({ showToast }) => {
     return { startDate, endDate };
   };
 
-  const calculateAnalytics = () => {
+  const calculateAnalytics = async () => {
     const dateRange = getDateRange();
     if (!dateRange) return;
 
     const { startDate, endDate } = dateRange;
-    const orders = getOrders();
-    const menuItems = getMenuItems();
+    const orders = await getOrders();
+    const menuItems = await getMenuItems();
 
     // Filter orders by date range
     const filteredOrders = orders.filter(o => {
