@@ -47,7 +47,19 @@ const CafeOrders = ({ showToast }) => {
 
   const loadOrders = async () => {
     const allOrders = await getOrders();
-    setOrders(allOrders.reverse()); // Show newest first
+    // Map snake_case to camelCase
+    const mappedOrders = allOrders.map(order => ({
+      ...order,
+      orderNumber: order.order_number ?? order.orderNumber,
+      customerName: order.customer_name ?? order.customerName,
+      customerPhone: order.customer_phone ?? order.customerPhone,
+      customerType: order.customer_type ?? order.customerType,
+      paymentMethod: order.payment_method ?? order.paymentMethod,
+      totalAmount: order.total_amount ?? order.totalAmount,
+      paymentReceived: order.payment_received ?? order.paymentReceived,
+      createdAt: order.created_at ?? order.createdAt,
+    }));
+    setOrders(mappedOrders.reverse()); // Show newest first
   };
 
   const getDateRange = (filter) => {
