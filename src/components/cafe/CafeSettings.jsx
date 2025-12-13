@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Mail, Clock, Save, Bell, Database } from 'lucide-react';
+import { getSettings, saveSettings } from '../../services/cafeService';
 
 const CafeSettings = ({ showToast }) => {
   const [cronTime, setCronTime] = useState('23:55');
@@ -12,13 +13,12 @@ const CafeSettings = ({ showToast }) => {
     loadSettings();
   }, []);
 
-  const loadSettings = () => {
-    // Load from localStorage for now
-    const settings = JSON.parse(localStorage.getItem('cafe_cron_settings') || '{}');
-    setCronTime(settings.cronTime || '23:55');
-    setRecipientEmail(settings.recipientEmail || '');
-    setRecipientName(settings.recipientName || '');
-    setAutoSendEnabled(settings.autoSendEnabled !== false);
+  const loadSettings = async () => {
+    const settings = await getSettings();
+    setCronTime(settings.cron_time || '23:55');
+    setRecipientEmail(settings.recipient_email || '');
+    setRecipientName(settings.recipient_name || '');
+    setAutoSendEnabled(settings.auto_send_enabled !== false);
   };
 
   const handleSaveSettings = async () => {
@@ -44,25 +44,19 @@ const CafeSettings = ({ showToast }) => {
     setSaving(true);
 
     try {
-      const settings = {
+      const settingsData = {
         cronTime,
         recipientEmail,
         recipientName,
         autoSendEnabled,
-        updatedAt: new Date().toISOString(),
       };
 
-      // Save to localStorage
-      localStorage.setItem('cafe_cron_settings', JSON.stringify(settings));
-
-      // TODO: In future, save to Supabase settings table
-      // await supabase.from('cafe_settings').upsert({ key: 'cron_config', value: settings });
+      await saveSettings(settingsData);
 
       showToast('✅ Settings saved successfully!');
-      
-      // Show info about cron job
-      const [hours, minutes] = cronTime.split(':');
-      showToast(`📧 Daily reports will be sent to ${recipientEmail} at ${cronTime} IST`, 5000);
+      setTimeout(() => {
+        showToast(`📧 Daily reports will be sent to ${recipientEmail} at ${cronTime} IST`);
+      }, 1000);
     } catch (error) {
       showToast('❌ Error saving settings: ' + error.message);
     } finally {

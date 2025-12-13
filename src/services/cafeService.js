@@ -1205,3 +1205,132 @@ export const getCashReconciliation = async (date = new Date()) => {
     orders: cashOrders,
   };
 };
+
+// ==================== WEEKLY MEAL PLANS ====================
+
+export const getWeeklyPlans = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_weekly_plans')
+      .select('*')
+      .order('week_start_date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting weekly plans:', error);
+    return [];
+  }
+};
+
+export const getWeeklyPlan = async (weekStartDate) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_weekly_plans')
+      .select('*')
+      .eq('week_start_date', weekStartDate)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
+    return data;
+  } catch (error) {
+    console.error('Error getting weekly plan:', error);
+    return null;
+  }
+};
+
+export const saveWeeklyPlan = async (weekStartDate, planData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_weekly_plans')
+      .upsert({
+        week_start_date: weekStartDate,
+        plan_data: planData,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'week_start_date'
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error saving weekly plan:', error);
+    throw error;
+  }
+};
+
+export const deleteWeeklyPlan = async (weekStartDate) => {
+  try {
+    const { error } = await supabase
+      .from('cafe_weekly_plans')
+      .delete()
+      .eq('week_start_date', weekStartDate);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting weekly plan:', error);
+    throw error;
+  }
+};
+
+// ==================== SETTINGS ====================
+
+export const getSettings = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_settings')
+      .select('*')
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
+    
+    // Return default settings if none exist
+    if (!data) {
+      return {
+        cron_time: '23:55',
+        recipient_email: '',
+        recipient_name: '',
+        auto_send_enabled: true,
+      };
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error getting settings:', error);
+    return {
+      cron_time: '23:55',
+      recipient_email: '',
+      recipient_name: '',
+      auto_send_enabled: true,
+    };
+  }
+};
+
+export const saveSettings = async (settingsData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_settings')
+      .upsert({
+        id: 1, // Single row for settings
+        cron_time: settingsData.cronTime,
+        recipient_email: settingsData.recipientEmail,
+        recipient_name: settingsData.recipientName,
+        auto_send_enabled: settingsData.autoSendEnabled,
+        last_email_sent: settingsData.lastEmailSent || null,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id'
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    throw error;
+  }
+};

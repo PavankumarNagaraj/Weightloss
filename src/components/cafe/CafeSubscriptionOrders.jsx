@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Edit2, Save, X, Plus, Copy, Trash2, Printer } from 'lucide-react';
-import { getMenuItems } from '../../services/cafeService';
+import { getMenuItems, getWeeklyPlan, saveWeeklyPlan, deleteWeeklyPlan } from '../../services/cafeService';
 
 const CafeSubscriptionOrders = ({ showToast }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -30,12 +30,12 @@ const CafeSubscriptionOrders = ({ showToast }) => {
     setMenuItems(items);
   };
 
-  const loadWeeklyPlan = () => {
+  const loadWeeklyPlan = async () => {
     const weekKey = formatDate(currentWeekStart);
-    const savedPlans = JSON.parse(localStorage.getItem('cafe_weekly_plans') || '{}');
+    const planData = await getWeeklyPlan(weekKey);
     
-    if (savedPlans[weekKey]) {
-      setWeeklyPlan(savedPlans[weekKey]);
+    if (planData && planData.plan_data) {
+      setWeeklyPlan(planData.plan_data);
     } else {
       // Initialize empty plan
       const emptyPlan = {};
@@ -50,12 +50,10 @@ const CafeSubscriptionOrders = ({ showToast }) => {
     }
   };
 
-  const saveWeeklyPlan = (plan) => {
+  const saveWeeklyPlanData = async (plan) => {
     const weekKey = formatDate(currentWeekStart);
-    const savedPlans = JSON.parse(localStorage.getItem('cafe_weekly_plans') || '{}');
-    savedPlans[weekKey] = plan;
-    localStorage.setItem('cafe_weekly_plans', JSON.stringify(savedPlans));
-    setWeeklyPlan(plan); // Update state to prevent blank page
+    await saveWeeklyPlan(weekKey, plan);
+    setWeeklyPlan(plan);
     showToast('Weekly plan saved successfully');
   };
 
@@ -90,7 +88,7 @@ const CafeSubscriptionOrders = ({ showToast }) => {
     };
 
     setWeeklyPlan(updatedPlan);
-    saveWeeklyPlan(updatedPlan);
+    saveWeeklyPlanData(updatedPlan);
     setEditingCell(null);
     setShowMealSelector(false);
     setSelectedMeal('');
@@ -112,7 +110,7 @@ const CafeSubscriptionOrders = ({ showToast }) => {
     };
 
     setWeeklyPlan(updatedPlan);
-    saveWeeklyPlan(updatedPlan);
+    saveWeeklyPlanData(updatedPlan);
   };
 
   const handleCopyDay = (sourceDay) => {
@@ -126,7 +124,7 @@ const CafeSubscriptionOrders = ({ showToast }) => {
     });
 
     setWeeklyPlan(updatedPlan);
-    saveWeeklyPlan(updatedPlan);
+    saveWeeklyPlanData(updatedPlan);
     showToast(`Copied ${sourceDay}'s meals to all days`);
   };
 
@@ -146,20 +144,16 @@ const CafeSubscriptionOrders = ({ showToast }) => {
     setCurrentWeekStart(getWeekStart(new Date()));
   };
 
-  const handleCopyToNextWeek = () => {
-    const currentWeekKey = formatDate(currentWeekStart);
+  const handleCopyToNextWeek = async () => {
     const nextWeekStart = new Date(currentWeekStart);
     nextWeekStart.setDate(nextWeekStart.getDate() + 7);
     const nextWeekKey = formatDate(nextWeekStart);
     
-    const savedPlans = JSON.parse(localStorage.getItem('cafe_weekly_plans') || '{}');
-    
     // Copy current week's plan to next week
-    if (savedPlans[currentWeekKey]) {
+    if (weeklyPlan && Object.keys(weeklyPlan).length > 0) {
       // Deep copy the current week's plan
-      const copiedPlan = JSON.parse(JSON.stringify(savedPlans[currentWeekKey]));
-      savedPlans[nextWeekKey] = copiedPlan;
-      localStorage.setItem('cafe_weekly_plans', JSON.stringify(savedPlans));
+      const copiedPlan = JSON.parse(JSON.stringify(weeklyPlan));
+      await saveWeeklyPlan(nextWeekKey, copiedPlan);
       
       // Navigate to next week and update state
       setCurrentWeekStart(nextWeekStart);
@@ -171,7 +165,7 @@ const CafeSubscriptionOrders = ({ showToast }) => {
     }
   };
 
-  const handleClearThisWeek = () => {
+  const handleClearThisWeek = async () => {
     // Check if this week is in the past
     const today = getWeekStart(new Date());
     if (currentWeekStart < today) {
@@ -181,11 +175,9 @@ const CafeSubscriptionOrders = ({ showToast }) => {
 
     if (window.confirm('Are you sure you want to clear all meals for this week?')) {
       const weekKey = formatDate(currentWeekStart);
-      const savedPlans = JSON.parse(localStorage.getItem('cafe_weekly_plans') || '{}');
       
-      // Delete this week's plan
-      delete savedPlans[weekKey];
-      localStorage.setItem('cafe_weekly_plans', JSON.stringify(savedPlans));
+      // Delete this week's plan from database
+      await deleteWeeklyPlan(weekKey);
       
       // Reset to empty plan
       const emptyPlan = {};

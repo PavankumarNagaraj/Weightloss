@@ -3,7 +3,7 @@ import {
   ShoppingCart, Package, DollarSign, TrendingUp, AlertTriangle,
   Users, Calendar, ArrowUp, ArrowDown, Clock, Wallet, Mail
 } from 'lucide-react';
-import { getDashboardStats, getOrders, getLowStockItems, getCurrentBalance } from '../../services/cafeService';
+import { getDashboardStats, getOrders, getLowStockItems, getCurrentBalance, getSettings, saveSettings } from '../../services/cafeService';
 import { sendDailyReport, getEmailSettings } from '../../services/emailService';
 
 const CafeDashboard = ({ showToast }) => {
@@ -27,12 +27,12 @@ const CafeDashboard = ({ showToast }) => {
     loadData();
     
     // Set up automated daily email based on settings
-    const checkAndSendEmail = () => {
-      // Get settings from localStorage
-      const cronSettings = JSON.parse(localStorage.getItem('cafe_cron_settings') || '{}');
+    const checkAndSendEmail = async () => {
+      // Get settings from database
+      const cronSettings = await getSettings();
       
       // Check if auto-send is enabled
-      if (cronSettings.autoSendEnabled === false) {
+      if (cronSettings.auto_send_enabled === false) {
         return;
       }
       
@@ -41,12 +41,13 @@ const CafeDashboard = ({ showToast }) => {
       const minutes = now.getMinutes();
       
       // Get configured time (default to 23:55 if not set)
-      const cronTime = cronSettings.cronTime || '23:55';
+      const cronTime = cronSettings.cron_time || '23:55';
       const [targetHours, targetMinutes] = cronTime.split(':').map(Number);
       
       // Check if it's the configured time
       if (hours === targetHours && minutes === targetMinutes) {
-        const lastSent = localStorage.getItem('last_email_sent_date');
+        const lastSentSettings = await getSettings();
+        const lastSent = lastSentSettings.last_email_sent;
         const today = now.toISOString().split('T')[0];
         
         // Only send if we haven't sent today
@@ -54,12 +55,20 @@ const CafeDashboard = ({ showToast }) => {
           console.log(`Triggering automated daily email at ${cronTime}`);
           
           // Get recipient from settings
-          const recipientEmail = cronSettings.recipientEmail || 'pavankumar.nagaraj@gmail.com';
-          const recipientName = cronSettings.recipientName || 'Cafe Manager';
+          const recipientEmail = cronSettings.recipient_email || 'pavankumar.nagaraj@gmail.com';
+          const recipientName = cronSettings.recipient_name || 'Cafe Manager';
           
-          sendDailyReport(recipientEmail, recipientName).then(result => {
+          sendDailyReport(recipientEmail, recipientName).then(async (result) => {
             if (result.success) {
-              localStorage.setItem('last_email_sent_date', today);
+              // Update last sent date in database
+              await saveSettings({
+                ...cronSettings,
+                cronTime: cronSettings.cron_time,
+                recipientEmail: cronSettings.recipient_email,
+                recipientName: cronSettings.recipient_name,
+                autoSendEnabled: cronSettings.auto_send_enabled,
+                lastEmailSent: today,
+              });
               console.log(`Automated daily email sent successfully to ${recipientEmail}`);
             } else {
               console.error('Failed to send automated email:', result.error);
