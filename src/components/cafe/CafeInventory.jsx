@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash, Download, Search, Check } from 'lucide-react';
-import { getInventory, addInventoryItem, updateInventoryStock, getLowStockItems } from '../../services/cafeService';
+import { getInventory, addInventoryItem, updateInventoryStock, updateInventoryItem, getLowStockItems } from '../../services/cafeService';
 import { importBulkInventory } from '../../utils/bulkInventoryImport';
 import { inventoryTemplate } from '../../utils/inventoryTemplate';
 
@@ -76,13 +76,26 @@ const CafeInventory = ({ showToast }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const existingItem = inventory.find(item => item.name.toLowerCase() === formData.name.toLowerCase());
-    
-    if (existingItem) {
-      // Update existing item - only update minStock
-      await updateInventoryStock(existingItem.id, formData.minStock, 'set');
-      showToast(`Updated ${formData.name} settings`);
+    if (editingItem) {
+      // Update existing item - update all fields
+      await updateInventoryItem(editingItem.id, {
+        name: formData.name,
+        currentStock: editingItem.currentStock, // Keep current stock as is
+        minStock: parseFloat(formData.minStock),
+        unit: formData.unit,
+        category: formData.category,
+        pricePerUnit: editingItem.pricePerUnit || 0, // Keep existing price
+      });
+      showToast(`✅ Updated ${formData.name}`);
     } else {
+      // Check if item already exists
+      const existingItem = inventory.find(item => item.name.toLowerCase() === formData.name.toLowerCase());
+      
+      if (existingItem) {
+        showToast(`⚠️ Item "${formData.name}" already exists. Use Edit to update it.`);
+        return;
+      }
+      
       // Add new item with 0 stock
       const newItem = {
         name: formData.name,
@@ -99,7 +112,7 @@ const CafeInventory = ({ showToast }) => {
         setExistingMaterials([...existingMaterials, formData.name]);
       }
       
-      showToast(`New item added: ${formData.name}. Add stock via Purchases tab.`);
+      showToast(`✅ New item added: ${formData.name}. Add stock via Purchases tab.`);
     }
     
     resetForm();
@@ -779,12 +792,12 @@ const CafeInventory = ({ showToast }) => {
       {/* Template Import Modal */}
       {showImportModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b">
-              <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-xl w-full max-w-6xl max-h-[95vh] flex flex-col">
+            <div className="p-4 border-b">
+              <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h3 className="text-2xl font-bold">Import Inventory Items</h3>
-                  <p className="text-gray-600 text-sm mt-1">Select items from our comprehensive cafe & restaurant template</p>
+                  <h3 className="text-xl font-bold">Import Inventory Items</h3>
+                  <p className="text-gray-600 text-xs mt-0.5">Select items from our comprehensive cafe & restaurant template</p>
                 </div>
                 <button
                   onClick={() => {
@@ -800,21 +813,21 @@ const CafeInventory = ({ showToast }) => {
               </div>
 
               {/* Search and Filter */}
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     placeholder="Search items..."
                     value={templateSearch}
                     onChange={(e) => setTemplateSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
                 <select
                   value={templateCategory}
                   onChange={(e) => setTemplateCategory(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
                   <option value="All">All Categories</option>
                   <option value="Dry Store">🏪 Dry Store</option>
@@ -826,13 +839,13 @@ const CafeInventory = ({ showToast }) => {
               </div>
 
               {/* Selection Info */}
-              <div className="flex items-center justify-between mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-900">
+              <div className="flex items-center justify-between mt-2 p-2 bg-blue-50 rounded-lg">
+                <p className="text-xs text-blue-900">
                   <strong>{selectedTemplateItems.length}</strong> items selected • <strong>{getFilteredTemplateItems().length}</strong> available
                 </p>
                 <button
                   onClick={selectAllTemplateItems}
-                  className="text-sm font-semibold text-orange-600 hover:text-orange-700"
+                  className="text-xs font-semibold text-orange-600 hover:text-orange-700"
                 >
                   {selectedTemplateItems.length === getFilteredTemplateItems().length ? 'Deselect All' : 'Select All'}
                 </button>
@@ -840,33 +853,31 @@ const CafeInventory = ({ showToast }) => {
             </div>
 
             {/* Items List */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="flex-1 overflow-y-auto p-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                 {getFilteredTemplateItems().map((item, index) => {
                   const isSelected = selectedTemplateItems.some(i => i.name === item.name);
                   return (
                     <div
                       key={index}
                       onClick={() => toggleTemplateItem(item)}
-                      className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                      className={`p-2 border-2 rounded-md cursor-pointer transition-all ${
                         isSelected
                           ? 'border-orange-500 bg-orange-50'
                           : 'border-gray-200 hover:border-orange-300 hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                              isSelected ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
-                            }`}>
-                              {isSelected && <Check className="w-3 h-3 text-white" />}
-                            </div>
-                            <p className="font-semibold text-gray-900">{item.name}</p>
-                          </div>
-                          <div className="mt-2 flex items-center gap-3 text-xs text-gray-600">
-                            <span className="bg-gray-100 px-2 py-1 rounded">{item.category}</span>
-                            <span>Min: {item.minStock} {item.unit}</span>
+                      <div className="flex items-start gap-1.5">
+                        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                          isSelected ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
+                        }`}>
+                          {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-xs text-gray-900 truncate">{item.name}</p>
+                          <div className="mt-1 flex flex-col gap-0.5">
+                            <span className="text-[10px] text-gray-500">{item.category}</span>
+                            <span className="text-[10px] text-gray-600">Min: {item.minStock} {item.unit}</span>
                           </div>
                         </div>
                       </div>
@@ -876,15 +887,15 @@ const CafeInventory = ({ showToast }) => {
               </div>
 
               {getFilteredTemplateItems().length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No items found matching your search</p>
+                <div className="text-center py-8">
+                  <p className="text-sm text-gray-500">No items found matching your search</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t bg-gray-50">
-              <div className="flex gap-3">
+            <div className="p-3 border-t bg-gray-50">
+              <div className="flex gap-2">
                 <button
                   onClick={() => {
                     setShowImportModal(false);
@@ -892,14 +903,14 @@ const CafeInventory = ({ showToast }) => {
                     setTemplateSearch('');
                     setTemplateCategory('All');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                  className="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmBulkImport}
                   disabled={selectedTemplateItems.length === 0}
-                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 text-sm bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Import {selectedTemplateItems.length} Item{selectedTemplateItems.length !== 1 ? 's' : ''}
                 </button>
