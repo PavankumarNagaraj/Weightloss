@@ -184,7 +184,7 @@ export const generateCleanDailyEmail = (data) => {
                   </span>
                 </td>
                 <td style="text-align: right; padding: 0;">
-                  <strong style="color: #10b981; font-size: 16px;">₹${order.totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+                  <strong style="color: #10b981; font-size: 16px;">₹${(order.totalAmount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
                 </td>
               </tr>
             </table>
