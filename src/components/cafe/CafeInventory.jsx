@@ -576,7 +576,7 @@ const CafeInventory = ({ showToast }) => {
                     </td>
                     <td className="px-4 py-2">
                       <span className={`font-bold ${isLowStock ? 'text-red-600' : 'text-gray-900'}`}>
-                        {item.currentStock}
+                        {item.currentStock} {item.unit}
                       </span>
                     </td>
                     <td className="px-4 py-2">
