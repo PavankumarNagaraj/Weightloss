@@ -30,6 +30,10 @@ const CafeInventory = ({ showToast }) => {
   const [selectedTemplateItems, setSelectedTemplateItems] = useState([]);
   const [templateCategory, setTemplateCategory] = useState('All');
   const [menuItems, setMenuItems] = useState([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteProgress, setDeleteProgress] = useState({ current: 0, total: 0 });
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
 
   const categories = ['Dry Store', 'Fresh Produce', 'Refrigerated', 'Frozen', 'Fruits'];
 
@@ -201,31 +205,55 @@ const CafeInventory = ({ showToast }) => {
       return;
     }
 
+    setIsImporting(true);
+    setImportProgress({ current: 0, total: selectedTemplateItems.length });
+
+    // Refresh inventory to get latest data
+    await loadInventory();
+    const currentInventory = await getInventory();
+
     let addedCount = 0;
     let skippedCount = 0;
+    let errorCount = 0;
 
-    for (const templateItem of selectedTemplateItems) {
-      const existingItem = inventory.find(
+    for (let i = 0; i < selectedTemplateItems.length; i++) {
+      const templateItem = selectedTemplateItems[i];
+      setImportProgress({ current: i + 1, total: selectedTemplateItems.length });
+      
+      const existingItem = currentInventory.find(
         item => item.name.toLowerCase() === templateItem.name.toLowerCase()
       );
 
       if (!existingItem) {
-        await addInventoryItem({
-          name: templateItem.name,
-          currentStock: 0,
-          minStock: templateItem.minStock,
-          unit: templateItem.unit,
-          category: templateItem.category,
-          pricePerUnit: 0,
-        });
-        addedCount++;
+        try {
+          await addInventoryItem({
+            name: templateItem.name,
+            currentStock: 0,
+            minStock: templateItem.minStock,
+            unit: templateItem.unit,
+            category: templateItem.category,
+            pricePerUnit: 0,
+          });
+          addedCount++;
+        } catch (error) {
+          console.error(`Error adding ${templateItem.name}:`, error);
+          errorCount++;
+          skippedCount++;
+        }
       } else {
         skippedCount++;
       }
     }
 
+    setIsImporting(false);
     loadInventory();
-    showToast(`✅ Import complete! Added: ${addedCount}, Skipped: ${skippedCount}`);
+    
+    if (errorCount > 0) {
+      showToast(`⚠️ Import complete! Added: ${addedCount}, Skipped: ${skippedCount} (${errorCount} errors)`);
+    } else {
+      showToast(`✅ Import complete! Added: ${addedCount}, Skipped: ${skippedCount}`);
+    }
+    
     setShowImportModal(false);
     setSelectedTemplateItems([]);
     setTemplateSearch('');
@@ -327,12 +355,16 @@ const CafeInventory = ({ showToast }) => {
 
   const confirmBulkDelete = async () => {
     const deletedCount = selectedItems.length;
+    setIsDeleting(true);
+    setDeleteProgress({ current: 0, total: deletedCount });
     
-    // Delete each selected item
-    for (const itemId of selectedItems) {
-      await deleteInventoryItem(itemId);
+    // Delete each selected item with progress
+    for (let i = 0; i < selectedItems.length; i++) {
+      setDeleteProgress({ current: i + 1, total: deletedCount });
+      await deleteInventoryItem(selectedItems[i]);
     }
     
+    setIsDeleting(false);
     setSelectedItems([]);
     setSelectAll(false);
     loadInventory();
@@ -811,22 +843,39 @@ const CafeInventory = ({ showToast }) => {
                   <Trash className="w-6 h-6 text-red-600" />
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-center mb-2">Delete {selectedItems.length} Items?</h3>
+              <h3 className="text-xl font-bold text-center mb-2">
+                {isDeleting ? `Deleting ${deleteProgress.current} of ${deleteProgress.total}...` : `Delete ${selectedItems.length} Items?`}
+              </h3>
               <p className="text-gray-600 text-center mb-6">
-                This action cannot be undone. All selected items will be permanently removed from your inventory.
+                {isDeleting ? 'Please wait while we delete the selected items...' : 'This action cannot be undone. All selected items will be permanently removed from your inventory.'}
               </p>
+              {isDeleting && (
+                <div className="mb-6">
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div 
+                      className="bg-red-600 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${(deleteProgress.current / deleteProgress.total) * 100}%` }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 text-center mt-2">
+                    {Math.round((deleteProgress.current / deleteProgress.total) * 100)}% complete
+                  </p>
+                </div>
+              )}
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowBulkDeleteModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmBulkDelete}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Delete All
+                  {isDeleting ? 'Deleting...' : 'Delete All'}
                 </button>
               </div>
             </div>
@@ -945,6 +994,21 @@ const CafeInventory = ({ showToast }) => {
               )}
             </div>
 
+            {/* Progress Bar */}
+            {isImporting && (
+              <div className="px-6 py-3 border-t">
+                <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                  <div 
+                    className="bg-orange-600 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-600 text-center mt-2">
+                  Importing {importProgress.current} of {importProgress.total} items ({Math.round((importProgress.current / importProgress.total) * 100)}%)
+                </p>
+              </div>
+            )}
+
             {/* Footer */}
             <div className="p-3 border-t bg-gray-50">
               <div className="flex gap-2">
@@ -961,10 +1025,10 @@ const CafeInventory = ({ showToast }) => {
                 </button>
                 <button
                   onClick={confirmBulkImport}
-                  disabled={selectedTemplateItems.length === 0}
+                  disabled={selectedTemplateItems.length === 0 || isImporting}
                   className="flex-1 px-5 py-2.5 text-base bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  Import {selectedTemplateItems.length} Item{selectedTemplateItems.length !== 1 ? 's' : ''}
+                  {isImporting ? `Importing ${importProgress.current}/${importProgress.total}...` : `Import ${selectedTemplateItems.length} Item${selectedTemplateItems.length !== 1 ? 's' : ''}`}
                 </button>
               </div>
             </div>
