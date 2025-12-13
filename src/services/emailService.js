@@ -154,9 +154,17 @@ export const generateDailyReport = async () => {
   const todayExpenses = expenses.filter(exp => exp.date === today && !exp.purchaseId);
   const expensesTotal = todayExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
   
-  // Today's purchases
-  const todayPurchases = purchases.filter(purchase => purchase.date === today);
-  const purchasesTotal = todayPurchases.reduce((sum, purchase) => sum + (purchase.totalCost || 0), 0);
+  // Today's purchases - map snake_case to camelCase
+  const mappedPurchases = purchases.map(p => ({
+    ...p,
+    orderNumber: p.order_number ?? p.orderNumber,
+    supplierName: p.supplier_name ?? p.supplierName,
+    totalAmount: p.total_amount ?? p.totalAmount,
+    createdAt: p.created_at ?? p.createdAt,
+  }));
+  
+  const todayPurchases = mappedPurchases.filter(purchase => purchase.date === today);
+  const purchasesTotal = todayPurchases.reduce((sum, purchase) => sum + (purchase.totalAmount || 0), 0);
   
   // Combined total expenses (purchases + other expenses)
   const totalExpenses = purchasesTotal + expensesTotal;

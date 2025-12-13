@@ -341,23 +341,6 @@ export const generateCleanDailyEmail = (data) => {
     </div>
     `}
 
-    <!-- Current Stock -->
-    <div class="section">
-      <div class="section-title">📦 Current Stock</div>
-      
-      <table class="stat-table">
-        <tr>
-          <td class="stat-label">Total Inventory Value</td>
-          <td class="stat-value">₹ ${inventory.totalValue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-        </tr>
-        <tr>
-          <td class="stat-label" style="border-bottom: none;">Low Stock Items</td>
-          <td class="stat-value" style="color: ${inventory.lowStockCount > 0 ? '#ef4444' : '#10b981'}; border-bottom: none;">${inventory.lowStockCount}</td>
-        </tr>
-      </table>
-      
-    </div>
-
     <div class="footer">
       <p>Afterburn Cafe • Daily Report</p>
       <p style="margin: 5px 0 0 0;">${new Date().toLocaleString()}</p>
