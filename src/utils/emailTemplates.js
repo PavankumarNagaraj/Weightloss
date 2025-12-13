@@ -291,7 +291,7 @@ export const generateCleanDailyEmail = (data) => {
     </div>
 
     <!-- Items to Buy -->
-    ${inventory.itemsToOrder.length > 0 ? `
+    ${inventory.lowStockItems.length > 0 ? `
     <div class="section">
       <div class="section-title">🛒 Items to Buy</div>
       <table>
@@ -299,24 +299,45 @@ export const generateCleanDailyEmail = (data) => {
           <tr>
             <th>Item</th>
             <th>Current</th>
-            <th>Need</th>
+            <th>Min Required</th>
+            <th>Recommended Buy</th>
+            <th>Est. Cost</th>
           </tr>
         </thead>
         <tbody>
-          ${inventory.itemsToOrder.map(item => `
+          ${inventory.lowStockItems.map(item => {
+            const rec = item.recommendation || {};
+            const hasPurchaseHistory = rec.purchaseCount > 0;
+            return `
             <tr>
               <td><strong>${item.name}</strong></td>
-              <td>${item.currentStock} ${item.unit}</td>
-              <td style="color: #ef4444; font-weight: bold;">${item.neededQty} ${item.unit}</td>
+              <td style="color: #ef4444;">${item.currentStock} ${item.unit}</td>
+              <td>${item.minStock} ${item.unit}</td>
+              <td style="color: #10b981; font-weight: bold;">
+                ${rec.recommendedQty || item.neededQty} ${rec.unit || item.unit}
+                ${hasPurchaseHistory ? `<br><span style="font-size: 11px; color: #6b7280;">Avg from ${rec.purchaseCount} purchases</span>` : `<br><span style="font-size: 11px; color: #f59e0b;">No history</span>`}
+              </td>
+              <td style="color: #7c3aed; font-weight: bold;">
+                ${rec.estimatedCost > 0 ? `₹${rec.estimatedCost.toLocaleString('en-IN')}` : '-'}
+                ${rec.avgPricePerUnit > 0 ? `<br><span style="font-size: 11px; color: #6b7280;">@₹${rec.avgPricePerUnit}/${rec.unit}</span>` : ''}
+              </td>
             </tr>
-          `).join('')}
+          `}).join('')}
+          ${inventory.lowStockItems.length > 0 ? `
+            <tr style="background-color: #f3f4f6; font-weight: bold;">
+              <td colspan="4" style="text-align: right; padding-right: 10px;">Total Estimated Cost:</td>
+              <td style="color: #7c3aed; font-size: 16px;">
+                ₹${inventory.lowStockItems.reduce((sum, item) => sum + ((item.recommendation?.estimatedCost || 0)), 0).toLocaleString('en-IN')}
+              </td>
+            </tr>
+          ` : ''}
         </tbody>
       </table>
     </div>
     ` : `
     <div class="section">
       <div class="section-title">🛒 Items to Buy</div>
-      <p style="color: #6b7280; margin: 0;">No urgent purchases needed</p>
+      <p style="color: #6b7280; margin: 0;">No purchases needed</p>
     </div>
     `}
 
@@ -335,54 +356,6 @@ export const generateCleanDailyEmail = (data) => {
         </tr>
       </table>
       
-      ${inventory.lowStockItems.length > 0 ? `
-      <table style="margin-top: 15px;">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Current</th>
-            <th>Min Required</th>
-            <th>Recommended Buy</th>
-            <th>Est. Cost</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${inventory.lowStockItems.slice(0, 10).map(item => {
-            const rec = item.recommendation || {};
-            const hasPurchaseHistory = rec.purchaseCount > 0;
-            return `
-            <tr>
-              <td>${item.name}</td>
-              <td style="color: #ef4444;">${item.currentStock} ${item.unit}</td>
-              <td>${item.minStock} ${item.unit}</td>
-              <td style="color: #10b981; font-weight: bold;">
-                ${rec.recommendedQty || item.neededQty} ${rec.unit || item.unit}
-                ${hasPurchaseHistory ? `<br><span style="font-size: 11px; color: #6b7280;">Avg from ${rec.purchaseCount} purchases</span>` : `<br><span style="font-size: 11px; color: #f59e0b;">No history</span>`}
-              </td>
-              <td style="color: #7c3aed; font-weight: bold;">
-                ${rec.estimatedCost > 0 ? `₹${rec.estimatedCost.toLocaleString('en-IN')}` : '-'}
-                ${rec.avgPricePerUnit > 0 ? `<br><span style="font-size: 11px; color: #6b7280;">@₹${rec.avgPricePerUnit}/${rec.unit}</span>` : ''}
-              </td>
-            </tr>
-          `}).join('')}
-          ${inventory.lowStockItems.length > 10 ? `
-            <tr>
-              <td colspan="5" style="text-align: center; color: #6b7280; font-size: 12px;">
-                +${inventory.lowStockItems.length - 10} more items
-              </td>
-            </tr>
-          ` : ''}
-          ${inventory.lowStockItems.length > 0 ? `
-            <tr style="background-color: #f3f4f6; font-weight: bold;">
-              <td colspan="4" style="text-align: right; padding-right: 10px;">Total Estimated Cost:</td>
-              <td style="color: #7c3aed; font-size: 16px;">
-                ₹${inventory.lowStockItems.reduce((sum, item) => sum + ((item.recommendation?.estimatedCost || 0)), 0).toLocaleString('en-IN')}
-              </td>
-            </tr>
-          ` : ''}
-        </tbody>
-      </table>
-      ` : ''}
     </div>
 
     <div class="footer">
