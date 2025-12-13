@@ -3,6 +3,10 @@
 export const generateCleanDailyEmail = (data) => {
   const { date, orders, inventory, creditOrders, expenses } = data;
   
+  // Calculate net revenue
+  const netRevenue = orders.revenue - expenses.total;
+  const isNegative = netRevenue < 0;
+  
   return `
 <!DOCTYPE html>
 <html>
@@ -155,9 +159,9 @@ export const generateCleanDailyEmail = (data) => {
     </div>
 
     <!-- 1. Revenue (Income - Expense) -->
-    <div class="revenue-box">
+    <div class="revenue-box" style="background: ${isNegative ? '#ef4444' : '#10b981'};">
       <div class="revenue-label">Net Revenue</div>
-      <div class="revenue-value">₹ ${(orders.revenue - expenses.total).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+      <div class="revenue-value">₹ ${netRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
       <div style="font-size: 13px; opacity: 0.9; margin-top: 10px;">
         Income: ₹${orders.revenue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} • 
         Expenses: ₹${expenses.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
