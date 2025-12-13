@@ -575,8 +575,8 @@ const CafeOrders = ({ showToast }) => {
 
       {/* New Order Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2">
-          <div className="bg-white rounded-xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-[98vw] max-h-[95vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="p-3 border-b bg-gradient-to-r from-orange-500 to-red-600 text-white">
               <div className="flex items-center justify-between">
@@ -587,10 +587,10 @@ const CafeOrders = ({ showToast }) => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                {/* Menu Items - 2/3 width */}
-                <div className="lg:col-span-2 space-y-2">
+            <div className="flex-1 overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 h-full">
+                {/* Menu Items - Left Side */}
+                <div className="space-y-2 p-3 border-r border-gray-200 overflow-y-auto">
                   <h4 className="text-sm font-bold text-gray-900 mb-2">Select Dishes</h4>
                   
                   {menuItems.length === 0 ? (
@@ -637,8 +637,8 @@ const CafeOrders = ({ showToast }) => {
                   )}
                 </div>
 
-                {/* Cart - 1/3 width */}
-                <div className="space-y-2">
+                {/* Cart - Right Side */}
+                <div className="space-y-2 p-3 overflow-y-auto">
                   <h4 className="text-sm font-bold text-gray-900">Order Cart</h4>
                   
                   {/* Customer Info */}
