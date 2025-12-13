@@ -136,24 +136,11 @@ function generateDailyReport(data: CafeData) {
     };
   };
 
-  // Get low stock items (simple list without recommendations)
+  // Get low stock items with purchase recommendations
   const lowStockItems = mappedInventory.filter((item: any) => {
     const currentStock = parseFloat(item.currentStock) || 0;
     const minStock = parseFloat(item.minStock) || 0;
     return currentStock <= minStock;
-  }).map((item: any) => ({
-    name: item.name,
-    currentStock: item.currentStock,
-    minStock: item.minStock,
-    unit: item.unit,
-    category: item.category,
-  }));
-
-  // Get items to order (critically low - below 50% of min stock) with purchase recommendations
-  const itemsToOrder = mappedInventory.filter((item: any) => {
-    const currentStock = parseFloat(item.currentStock) || 0;
-    const minStock = parseFloat(item.minStock) || 0;
-    return currentStock <= (minStock * 0.5);
   }).map((item: any) => {
     const recommendation = calculatePurchaseRecommendation(item.name);
     const neededQty = Math.ceil(item.minStock - item.currentStock);
@@ -173,6 +160,13 @@ function generateDailyReport(data: CafeData) {
         purchaseCount: 0,
       },
     };
+  });
+
+  // Get items to order (critically low - below 50% of min stock)
+  const itemsToOrder = lowStockItems.filter((item: any) => {
+    const currentStock = parseFloat(item.currentStock) || 0;
+    const minStock = parseFloat(item.minStock) || 0;
+    return currentStock <= (minStock * 0.5);
   });
 
   // Get credit orders
