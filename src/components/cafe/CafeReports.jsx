@@ -27,14 +27,17 @@ const CafeReports = ({ showToast }) => {
     }
   };
 
-  const loadData = () => {
-    setCreditOrders(getCreditOrders());
-    setInventoryVal(getInventoryValuation());
-    setCashRecon(getCashReconciliation(new Date(selectedDate)));
+  const loadData = async () => {
+    const credits = await getCreditOrders();
+    setCreditOrders(credits);
+    const invVal = await getInventoryValuation();
+    setInventoryVal(invVal);
+    const cashRec = await getCashReconciliation(new Date(selectedDate));
+    setCashRecon(cashRec);
   };
 
-  const handleExport = () => {
-    const data = exportAllData();
+  const handleExport = async () => {
+    const data = await exportAllData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -50,14 +53,14 @@ const CafeReports = ({ showToast }) => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target.result);
         if (confirm('This will replace all current data. Are you sure?')) {
-          const success = importAllData(data);
+          const success = await importAllData(data);
           if (success) {
             showToast('Data imported successfully!');
-            loadData();
+            await loadData();
           } else {
             showToast('Error importing data');
           }

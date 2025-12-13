@@ -25,8 +25,9 @@ const CafeSubscriptionOrders = ({ showToast }) => {
     return new Date(d.setDate(diff));
   }
 
-  const loadMenuItems = () => {
-    setMenuItems(getMenuItems());
+  const loadMenuItems = async () => {
+    const items = await getMenuItems();
+    setMenuItems(items);
   };
 
   const loadWeeklyPlan = () => {

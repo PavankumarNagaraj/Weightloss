@@ -20,33 +20,33 @@ const CafeSalesAnalytics = ({ showToast }) => {
     loadDishPerformance();
   }, [selectedPeriod, customStartDate, customEndDate]);
 
-  const loadDepletionData = () => {
-    const data = getInventoryDepletionRate(7);
+  const loadDepletionData = async () => {
+    const data = await getInventoryDepletionRate(7);
     setDepletionData(data);
   };
 
-  const loadDishPerformance = () => {
+  const loadDishPerformance = async () => {
     const dateRange = getDateRange();
     if (dateRange) {
-      const performance = getDishPerformance(dateRange.startDate, dateRange.endDate);
+      const performance = await getDishPerformance(dateRange.startDate, dateRange.endDate);
       setDishPerformance(performance);
     }
   };
 
-  const handleDishSelect = (dishName) => {
+  const handleDishSelect = async (dishName) => {
     setSelectedDish(dishName);
     if (dishName) {
-      const trendData = getDishTrend(dishName, 30);
+      const trendData = await getDishTrend(dishName, 30);
       setDishTrendData(trendData);
     } else {
       setDishTrendData([]);
     }
   };
 
-  const handleInventorySelect = (materialName) => {
+  const handleInventorySelect = async (materialName) => {
     setSelectedInventory(materialName);
     if (materialName) {
-      const trendData = getInventoryTrend(materialName, 30);
+      const trendData = await getInventoryTrend(materialName, 30);
       setInventoryTrendData(trendData);
     } else {
       setInventoryTrendData([]);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Download, ArrowUp, ArrowDown } from 'lucide-react';
-import { getOrders, getPurchases } from '../../services/cafeService';
+import { getOrders, getPurchases, getExpenses, getInvestments } from '../../services/cafeService';
 
 const CafeProfitLoss = ({ showToast }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('thisMonth');
@@ -52,17 +52,17 @@ const CafeProfitLoss = ({ showToast }) => {
     return { startDate, endDate };
   };
 
-  const calculatePL = () => {
+  const calculatePL = async () => {
     const dateRange = getDateRange();
     if (!dateRange) return;
 
     const { startDate, endDate } = dateRange;
 
     // Get all data
-    const orders = getOrders();
-    const purchases = getPurchases();
-    const expenses = JSON.parse(localStorage.getItem('cafe_expenses') || '[]');
-    const investments = JSON.parse(localStorage.getItem('cafe_investments') || '[]');
+    const orders = await getOrders();
+    const purchases = await getPurchases();
+    const expenses = await getExpenses();
+    const investments = await getInvestments();
 
     // Filter by date range
     const filteredOrders = orders.filter(o => {
