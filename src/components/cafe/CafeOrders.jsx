@@ -33,7 +33,16 @@ const CafeOrders = ({ showToast }) => {
 
   const loadMenuItems = async () => {
     const items = await getMenuItems();
-    setMenuItems(items);
+    // Map snake_case to camelCase
+    const mappedItems = items.map(item => ({
+      ...item,
+      customerPrice: item.customer_price ?? item.customerPrice,
+      trainerPrice: item.trainer_price ?? item.trainerPrice,
+      isVeg: item.is_veg ?? item.isVeg,
+      rawMaterials: item.raw_materials ?? item.rawMaterials,
+      isActive: item.is_active ?? item.isActive,
+    }));
+    setMenuItems(mappedItems);
   };
 
   const loadOrders = async () => {
