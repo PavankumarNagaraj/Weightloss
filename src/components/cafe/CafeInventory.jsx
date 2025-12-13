@@ -371,7 +371,7 @@ const CafeInventory = ({ showToast }) => {
             className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
           >
             <Upload className="w-5 h-5" />
-            Bulk Import (69 items)
+            Bulk Import
           </button>
           <button
             onClick={() => setShowModal(true)}
