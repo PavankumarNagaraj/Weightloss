@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Wallet, TrendingDown, X, Trash2, Edit, Calendar } from 'lucide-react';
-import { getPurchases } from '../../services/cafeService';
+import { getPurchases, getExpenses, addExpense, updateExpense, deleteExpense } from '../../services/cafeService';
 
 const EXPENSE_CATEGORIES = [
   'Rent',
@@ -38,9 +38,8 @@ const CafeExpenses = ({ showToast }) => {
     loadExpenses();
   }, []);
 
-  const loadExpenses = () => {
-    const stored = localStorage.getItem('cafe_expenses');
-    const allExpenses = stored ? JSON.parse(stored) : [];
+  const loadExpenses = async () => {
+    const allExpenses = await getExpenses();
     setExpenses(allExpenses);
     calculateStats(allExpenses);
   };
@@ -76,44 +75,34 @@ const CafeExpenses = ({ showToast }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const stored = localStorage.getItem('cafe_expenses');
-    const allExpenses = stored ? JSON.parse(stored) : [];
 
     if (editingExpense) {
       // Update existing
-      const updated = allExpenses.map(exp => 
-        exp.id === editingExpense.id ? { ...formData, id: exp.id } : exp
-      );
-      localStorage.setItem('cafe_expenses', JSON.stringify(updated));
+      await updateExpense(editingExpense.id, {
+        ...formData,
+        amount: parseFloat(formData.amount),
+      });
       showToast('Expense updated successfully');
     } else {
       // Add new
-      const newExpense = {
+      await addExpense({
         ...formData,
-        id: Date.now().toString(),
         amount: parseFloat(formData.amount),
-        createdAt: new Date().toISOString(),
-      };
-      allExpenses.push(newExpense);
-      localStorage.setItem('cafe_expenses', JSON.stringify(allExpenses));
+      });
       showToast('Expense recorded successfully');
     }
 
     resetForm();
-    loadExpenses();
+    await loadExpenses();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('Delete this expense record?')) {
-      const stored = localStorage.getItem('cafe_expenses');
-      const allExpenses = stored ? JSON.parse(stored) : [];
-      const updated = allExpenses.filter(exp => exp.id !== id);
-      localStorage.setItem('cafe_expenses', JSON.stringify(updated));
+      await deleteExpense(id);
       showToast('Expense deleted');
-      loadExpenses();
+      await loadExpenses();
     }
   };
 
