@@ -580,7 +580,7 @@ const CafeInventory = ({ showToast }) => {
                       </span>
                     </td>
                     <td className="px-4 py-2">
-                      <span className="text-gray-600">{item.minStock} g</span>
+                      <span className="text-gray-600">{item.minStock} {item.unit}</span>
                     </td>
                     <td className="px-4 py-2">
                       <span className="text-gray-600">{item.unit}</span>
