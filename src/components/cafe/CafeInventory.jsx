@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash, Download, Search, Check } from 'lucide-react';
-import { getInventory, addInventoryItem, updateInventoryStock, updateInventoryItem, getLowStockItems } from '../../services/cafeService';
+import { getInventory, addInventoryItem, updateInventoryStock, updateInventoryItem, getLowStockItems, getMenuItems } from '../../services/cafeService';
 import { importBulkInventory } from '../../utils/bulkInventoryImport';
 import { inventoryTemplate } from '../../utils/inventoryTemplate';
 
@@ -29,6 +29,7 @@ const CafeInventory = ({ showToast }) => {
   const [templateSearch, setTemplateSearch] = useState('');
   const [selectedTemplateItems, setSelectedTemplateItems] = useState([]);
   const [templateCategory, setTemplateCategory] = useState('All');
+  const [menuItems, setMenuItems] = useState([]);
 
   const categories = ['Dry Store', 'Fresh Produce', 'Refrigerated', 'Frozen', 'Fruits'];
 
@@ -48,6 +49,7 @@ const CafeInventory = ({ showToast }) => {
   useEffect(() => {
     loadInventory();
     loadExistingMaterials();
+    loadMenuItems();
     
     // Reload inventory when window gains focus (switching tabs)
     const handleFocus = () => {
@@ -71,6 +73,11 @@ const CafeInventory = ({ showToast }) => {
     const items = await getInventory();
     const materials = items.map(item => item.name);
     setExistingMaterials([...new Set(materials)]);
+  };
+
+  const loadMenuItems = async () => {
+    const items = await getMenuItems();
+    setMenuItems(items);
   };
 
   const handleSubmit = async (e) => {
@@ -246,11 +253,48 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const getFilteredTemplateItems = () => {
-    return inventoryTemplate.filter(item => {
+    // Calculate usage frequency for each template item
+    const itemsWithUsage = inventoryTemplate.map(item => {
+      // Count how many menu items use this ingredient
+      const usageCount = menuItems.filter(menuItem => 
+        menuItem.rawMaterials?.some(rm => 
+          rm.materialName?.toLowerCase() === item.name.toLowerCase()
+        )
+      ).length;
+
+      // Check if item exists in inventory and is low stock
+      const inventoryItem = inventory.find(inv => inv.name.toLowerCase() === item.name.toLowerCase());
+      const isLowStock = inventoryItem && parseFloat(inventoryItem.currentStock) <= parseFloat(inventoryItem.minStock);
+      const stockLevel = inventoryItem ? parseFloat(inventoryItem.currentStock) : 0;
+
+      return {
+        ...item,
+        usageCount,
+        isLowStock,
+        stockLevel,
+        exists: !!inventoryItem,
+      };
+    });
+
+    // Filter items
+    const filtered = itemsWithUsage.filter(item => {
       const matchesSearch = item.name.toLowerCase().includes(templateSearch.toLowerCase());
       const matchesCategory = templateCategory === 'All' || item.category === templateCategory;
-      const notInInventory = !inventory.some(inv => inv.name.toLowerCase() === item.name.toLowerCase());
+      const notInInventory = !item.exists;
       return matchesSearch && matchesCategory && notInInventory;
+    });
+
+    // Sort by priority:
+    // 1. Most used in menu items (high usage count)
+    // 2. Low stock items that exist
+    // 3. Alphabetically
+    return filtered.sort((a, b) => {
+      // Prioritize items used in menu
+      if (a.usageCount !== b.usageCount) {
+        return b.usageCount - a.usageCount; // Higher usage first
+      }
+      // Then alphabetically
+      return a.name.localeCompare(b.name);
     });
   };
 
@@ -874,10 +918,17 @@ const CafeInventory = ({ showToast }) => {
                           {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-xs text-gray-900 truncate">{item.name}</p>
-                          <div className="mt-1 flex flex-col gap-0.5">
-                            <span className="text-[10px] text-gray-500">{item.category}</span>
-                            <span className="text-[10px] text-gray-600">Min: {item.minStock} {item.unit}</span>
+                          <div className="flex items-center gap-1">
+                            <p className="font-semibold text-xs text-gray-900 truncate flex-1">{item.name}</p>
+                            {item.usageCount > 0 && (
+                              <span className="text-[9px] bg-green-100 text-green-700 px-1 py-0.5 rounded font-semibold" title={`Used in ${item.usageCount} dishes`}>
+                                {item.usageCount}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-1 flex items-center justify-between gap-1 text-[10px]">
+                            <span className="text-gray-500 truncate">{item.category}</span>
+                            <span className="text-gray-600 whitespace-nowrap">Min: {item.minStock}{item.unit}</span>
                           </div>
                         </div>
                       </div>
