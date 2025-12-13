@@ -36,7 +36,15 @@ const CafePurchases = ({ showToast }) => {
 
   const loadPurchases = async () => {
     const allPurchases = await getPurchases();
-    setPurchases(allPurchases);
+    // Map snake_case to camelCase for compatibility
+    const mappedPurchases = allPurchases.map(purchase => ({
+      ...purchase,
+      orderNumber: purchase.order_number ?? purchase.orderNumber,
+      supplierName: purchase.supplier_name ?? purchase.supplierName,
+      totalAmount: purchase.total_amount ?? purchase.totalAmount,
+      createdAt: purchase.created_at ?? purchase.createdAt,
+    }));
+    setPurchases(mappedPurchases);
     
     const startDate = new Date();
     startDate.setDate(1);
@@ -226,7 +234,7 @@ const CafePurchases = ({ showToast }) => {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹{purchase.totalAmount}</span>
+                    <span className="text-xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹{purchase.totalAmount || purchase.total_amount || 0}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-gray-600">{purchase.notes || '-'}</span>

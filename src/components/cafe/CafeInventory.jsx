@@ -67,7 +67,14 @@ const CafeInventory = ({ showToast }) => {
 
   const loadInventory = async () => {
     const items = await getInventory();
-    setInventory(items);
+    // Map snake_case to camelCase for compatibility
+    const mappedItems = items.map(item => ({
+      ...item,
+      currentStock: item.current_stock ?? item.currentStock,
+      minStock: item.min_stock ?? item.minStock,
+      pricePerUnit: item.price_per_unit ?? item.pricePerUnit,
+    }));
+    setInventory(mappedItems);
     const lowStockItems = await getLowStockItems();
     setLowStock(lowStockItems);
   };
