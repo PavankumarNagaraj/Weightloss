@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, TrendingUp, Users, X, Trash2, Edit } from 'lucide-react';
+import { getInvestments, addInvestment, updateInvestment, deleteInvestment } from '../../services/cafeService';
 
 const CafeInvestments = ({ showToast }) => {
   const [investments, setInvestments] = useState([]);
@@ -17,11 +18,16 @@ const CafeInvestments = ({ showToast }) => {
     loadInvestments();
   }, []);
 
-  const loadInvestments = () => {
-    const stored = localStorage.getItem('cafe_investments');
-    const allInvestments = stored ? JSON.parse(stored) : [];
-    setInvestments(allInvestments);
-    calculateStats(allInvestments);
+  const loadInvestments = async () => {
+    const allInvestments = await getInvestments();
+    // Map snake_case to camelCase
+    const mappedInvestments = allInvestments.map(inv => ({
+      ...inv,
+      partnerName: inv.partner_name ?? inv.partnerName,
+      createdAt: inv.created_at ?? inv.createdAt,
+    }));
+    setInvestments(mappedInvestments);
+    calculateStats(mappedInvestments);
   };
 
   const calculateStats = (allInvestments) => {
@@ -48,43 +54,33 @@ const CafeInvestments = ({ showToast }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const stored = localStorage.getItem('cafe_investments');
-    const allInvestments = stored ? JSON.parse(stored) : [];
+    const investmentData = {
+      partnerName: formData.partnerName,
+      amount: parseFloat(formData.amount),
+      date: formData.date,
+      notes: formData.notes,
+    };
 
     if (editingInvestment) {
-      // Update existing
-      const updated = allInvestments.map(inv => 
-        inv.id === editingInvestment.id ? { ...formData, id: inv.id } : inv
-      );
-      localStorage.setItem('cafe_investments', JSON.stringify(updated));
+      await updateInvestment(editingInvestment.id, investmentData);
       showToast('Investment updated successfully');
     } else {
-      // Add new
-      const newInvestment = {
-        ...formData,
-        id: Date.now().toString(),
-        amount: parseFloat(formData.amount),
-      };
-      allInvestments.push(newInvestment);
-      localStorage.setItem('cafe_investments', JSON.stringify(allInvestments));
+      await addInvestment(investmentData);
       showToast('Investment recorded successfully');
     }
 
     resetForm();
-    loadInvestments();
+    await loadInvestments();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('Delete this investment record?')) {
-      const stored = localStorage.getItem('cafe_investments');
-      const allInvestments = stored ? JSON.parse(stored) : [];
-      const updated = allInvestments.filter(inv => inv.id !== id);
-      localStorage.setItem('cafe_investments', JSON.stringify(updated));
+      await deleteInvestment(id);
       showToast('Investment deleted');
-      loadInvestments();
+      await loadInvestments();
     }
   };
 

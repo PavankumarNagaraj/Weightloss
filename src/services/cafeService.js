@@ -703,9 +703,10 @@ export const addInvestment = async (investmentData) => {
     const { data, error } = await supabase
       .from('cafe_investments')
       .insert([{
+        partner_name: investmentData.partnerName,
         amount: investmentData.amount,
-        description: investmentData.description,
         date: investmentData.date || new Date().toISOString().split('T')[0],
+        notes: investmentData.notes || '',
       }])
       .select()
       .single();
@@ -714,6 +715,43 @@ export const addInvestment = async (investmentData) => {
     return data;
   } catch (error) {
     console.error('Error adding investment:', error);
+    throw error;
+  }
+};
+
+export const updateInvestment = async (id, investmentData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_investments')
+      .update({
+        partner_name: investmentData.partnerName,
+        amount: investmentData.amount,
+        date: investmentData.date,
+        notes: investmentData.notes || '',
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error updating investment:', error);
+    throw error;
+  }
+};
+
+export const deleteInvestment = async (id) => {
+  try {
+    const { error } = await supabase
+      .from('cafe_investments')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting investment:', error);
     throw error;
   }
 };
