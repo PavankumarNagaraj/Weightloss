@@ -13,16 +13,23 @@ const CafeSalesAnalytics = ({ showToast }) => {
   const [dishTrendData, setDishTrendData] = useState([]);
   const [selectedInventory, setSelectedInventory] = useState('');
   const [inventoryTrendData, setInventoryTrendData] = useState([]);
+  const [inventoryItems, setInventoryItems] = useState([]);
 
   useEffect(() => {
     calculateAnalytics();
     loadDepletionData();
     loadDishPerformance();
+    loadInventoryItems();
   }, [selectedPeriod, customStartDate, customEndDate]);
 
   const loadDepletionData = async () => {
     const data = await getInventoryDepletionRate(7);
     setDepletionData(data);
+  };
+
+  const loadInventoryItems = async () => {
+    const items = await getInventory();
+    setInventoryItems(items);
   };
 
   const loadDishPerformance = async () => {
@@ -751,8 +758,8 @@ const CafeSalesAnalytics = ({ showToast }) => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-semibold"
             >
               <option value="">-- Choose an item --</option>
-              {depletionData.map(item => (
-                <option key={item.name} value={item.name}>{item.name}</option>
+              {inventoryItems.map(item => (
+                <option key={item.id} value={item.name}>{item.name}</option>
               ))}
             </select>
           </div>
