@@ -110,7 +110,21 @@ export const getInventory = async () => {
       .order('name', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    
+    // Map snake_case to camelCase for compatibility
+    const mappedInventory = (data || []).map(item => ({
+      ...item,
+      currentStock: item.current_stock ?? item.currentStock,
+      minStock: item.min_stock ?? item.minStock,
+      maxStock: item.max_stock ?? item.maxStock,
+      pricePerUnit: item.price_per_unit ?? item.pricePerUnit,
+      lastPurchasePrice: item.last_purchase_price ?? item.lastPurchasePrice,
+      lastPurchaseDate: item.last_purchase_date ?? item.lastPurchaseDate,
+      createdAt: item.created_at ?? item.createdAt,
+      updatedAt: item.updated_at ?? item.updatedAt,
+    }));
+    
+    return mappedInventory;
   } catch (error) {
     console.error('Error getting inventory:', error);
     return [];
