@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, ShoppingCart, Minus, X, Circle, Edit2 } from 'lucide-react';
-import { getOrders, createOrder } from '../../services/cafeService';
-import { getMenuItems } from '../../services/cafeService';
+import { getOrders, getMenuItems, createOrder, updateOrder, deleteOrder } from '../../services/cafeService';
 import { getUsers } from '../../services/dataService';
 
 const CafeOrders = ({ showToast }) => {
@@ -215,12 +214,10 @@ const CafeOrders = ({ showToast }) => {
     await loadOrders();
   };
 
-  const handleDeleteOrder = (orderId) => {
+  const handleDeleteOrder = async (orderId) => {
     if (confirm('Are you sure you want to delete this order?')) {
-      const orders = getOrders();
-      const updatedOrders = orders.filter(order => order.id !== orderId);
-      localStorage.setItem('cafe_orders', JSON.stringify(updatedOrders));
-      loadOrders();
+      await deleteOrder(orderId);
+      await loadOrders();
       showToast('Order deleted successfully');
     }
   };
@@ -230,13 +227,10 @@ const CafeOrders = ({ showToast }) => {
     setNewDiscount(order.discount || 0);
   };
 
-  const handleSaveDiscount = (orderId) => {
-    const orders = getOrders();
-    const orderIndex = orders.findIndex(o => o.id === orderId);
+  const handleSaveDiscount = async (orderId) => {
+    const order = orders.find(o => o.id === orderId);
     
-    if (orderIndex !== -1) {
-      const order = orders[orderIndex];
-      
+    if (order) {
       // Don't allow discount changes for trainer orders
       if (order.customerType === 'trainer') {
         showToast('Cannot change discount for trainer orders');
@@ -248,17 +242,15 @@ const CafeOrders = ({ showToast }) => {
       const subtotal = order.subtotal || order.totalAmount + (order.discount || 0);
       const newTotal = Math.max(0, subtotal - newDiscount);
       
-      // Update order
-      orders[orderIndex] = {
-        ...order,
+      // Update order in database
+      await updateOrder(orderId, {
         discount: newDiscount,
         totalAmount: newTotal,
         subtotal: subtotal,
-        updatedAt: new Date().toISOString(),
-      };
+        paymentReceived: order.paymentReceived,
+      });
       
-      localStorage.setItem('cafe_orders', JSON.stringify(orders));
-      loadOrders();
+      await loadOrders();
       setEditingDiscount(null);
       showToast(`Discount updated to ₹${newDiscount}`);
     }
@@ -274,19 +266,18 @@ const CafeOrders = ({ showToast }) => {
     setPaymentReceived(order.paymentReceived || order.totalAmount);
   };
 
-  const handleSavePayment = (orderId) => {
-    const orders = getOrders();
-    const orderIndex = orders.findIndex(o => o.id === orderId);
+  const handleSavePayment = async (orderId) => {
+    const order = orders.find(o => o.id === orderId);
     
-    if (orderIndex !== -1) {
-      orders[orderIndex] = {
-        ...orders[orderIndex],
+    if (order) {
+      await updateOrder(orderId, {
+        discount: order.discount,
+        totalAmount: order.totalAmount,
+        subtotal: order.subtotal,
         paymentReceived: paymentReceived,
-        updatedAt: new Date().toISOString(),
-      };
+      });
       
-      localStorage.setItem('cafe_orders', JSON.stringify(orders));
-      loadOrders();
+      await loadOrders();
       setEditingPayment(null);
       showToast(`Payment updated to ₹${paymentReceived}`);
     }

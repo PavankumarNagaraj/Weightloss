@@ -446,6 +446,44 @@ export const createOrder = async (orderData) => {
   }
 };
 
+export const updateOrder = async (orderId, orderData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_orders')
+      .update({
+        discount: orderData.discount,
+        total_amount: orderData.totalAmount,
+        subtotal: orderData.subtotal,
+        payment_received: orderData.paymentReceived,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error updating order:', error);
+    throw error;
+  }
+};
+
+export const deleteOrder = async (orderId) => {
+  try {
+    const { error } = await supabase
+      .from('cafe_orders')
+      .delete()
+      .eq('id', orderId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    throw error;
+  }
+};
+
 export const updateOrderStatus = async (orderId, status) => {
   try {
     const updateData = {
