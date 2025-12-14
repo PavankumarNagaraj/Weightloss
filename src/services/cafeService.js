@@ -368,7 +368,20 @@ export const getOrders = async () => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Map snake_case to camelCase for compatibility
+    const mappedOrders = (data || []).map(order => ({
+      ...order,
+      orderNumber: order.order_number ?? order.orderNumber,
+      customerName: order.customer_name ?? order.customerName,
+      customerType: order.customer_type ?? order.customerType,
+      paymentMethod: order.payment_method ?? order.paymentMethod,
+      totalAmount: order.total_amount ?? order.totalAmount,
+      paymentReceived: order.payment_received ?? order.paymentReceived,
+      createdAt: order.created_at ?? order.createdAt,
+    }));
+    
+    return mappedOrders;
   } catch (error) {
     console.error('Error getting orders:', error);
     return [];
