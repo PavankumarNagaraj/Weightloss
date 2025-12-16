@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings, Menu, X } from 'lucide-react';
 import CafeOrders from './cafe/CafeOrders';
 import CafeMenu from './cafe/CafeMenu';
 import CafeInventory from './cafe/CafeInventory';
@@ -20,6 +20,7 @@ const CafeManagement = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     // Check if user is already authenticated
@@ -66,30 +67,57 @@ const CafeManagement = () => {
         <div className="px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden p-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition"
+              >
+                {sidebarOpen ? (
+                  <X className="w-6 h-6 text-white" />
+                ) : (
+                  <Menu className="w-6 h-6 text-white" />
+                )}
+              </button>
+              
               <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg">
-                <ShoppingBag className="w-6 h-6 text-white" />
+                <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-black text-white">Cafe Management</h1>
-                <p className="text-xs text-purple-100 font-semibold">AFTERBURN Cafe</p>
+                <h1 className="text-lg sm:text-xl font-black text-white">Cafe Management</h1>
+                <p className="text-xs text-purple-100 font-semibold hidden sm:block">AFTERBURN Cafe</p>
               </div>
             </div>
             
             <Link
               to="/"
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg text-sm font-bold hover:bg-white/30 transition shadow-lg"
+              className="px-3 py-2 sm:px-4 bg-white/20 backdrop-blur-sm text-white rounded-lg text-xs sm:text-sm font-bold hover:bg-white/30 transition shadow-lg"
             >
-              ← Back to Main
+              <span className="hidden sm:inline">← Back to Main</span>
+              <span className="sm:hidden">← Back</span>
             </Link>
           </div>
         </div>
       </div>
 
       {/* Sidebar + Content Layout */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        
         {/* Sidebar Navigation */}
-        <div className="w-64 bg-white border-r-2 border-gray-200 shadow-lg overflow-y-auto">
-          <nav className="p-3 space-y-1">
+        <div className={`
+          fixed lg:static inset-y-0 left-0 z-40
+          w-64 bg-white border-r-2 border-gray-200 shadow-lg overflow-y-auto
+          transform transition-transform duration-300 ease-in-out
+          lg:transform-none
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
+          <nav className="p-3 space-y-1 mt-16 lg:mt-0">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || 
@@ -100,6 +128,7 @@ const CafeManagement = () => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition font-semibold ${
                     isActive
                       ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
@@ -107,7 +136,7 @@ const CafeManagement = () => {
                   }`}
                 >
                   <Icon className="w-5 h-5" />
-                  <span>{item.label}</span>
+                  <span className="text-sm sm:text-base">{item.label}</span>
                 </Link>
               );
             })}
@@ -115,8 +144,8 @@ const CafeManagement = () => {
         </div>
 
         {/* Main Content - Full Width */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6">
+        <div className="flex-1 overflow-y-auto w-full">
+          <div className="p-3 sm:p-4 lg:p-6 max-w-full">
             <Routes>
               <Route index element={<CafeDashboard showToast={handleToast} />} />
               <Route path="/orders" element={<CafeOrders showToast={handleToast} />} />
