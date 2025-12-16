@@ -588,6 +588,146 @@ export const getEmailSettings = () => {
   return settings ? JSON.parse(settings) : null;
 };
 
+// Send shopping list email
+export const sendShoppingListEmail = async (recipientEmail, recipientName, items) => {
+  try {
+    // Format items for email
+    const itemsList = items.map(item => {
+      const neededQty = Math.max(0, item.minStock - item.currentStock);
+      return `${item.name} - ${neededQty} ${item.unit}`;
+    }).join('\n');
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; }
+    .section { background: #f9fafb; padding: 20px; margin: 20px 0; border-radius: 10px; border-left: 4px solid #667eea; }
+    .item { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 16px; }
+    .footer { text-align: center; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛒 Shopping List</h1>
+      <p style="font-size: 18px; margin: 10px 0 0 0;">${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+    </div>
+
+    <div class="section">
+      <h2 style="color: #667eea; margin-bottom: 20px;">Items to Purchase (${items.length})</h2>
+      ${items.map(item => {
+        const neededQty = Math.max(0, item.minStock - item.currentStock);
+        return `
+          <div class="item">
+            <strong>${item.name}</strong> - <span style="color: #667eea; font-size: 18px; font-weight: bold;">${neededQty} ${item.unit}</span>
+            <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">
+              Current: ${item.currentStock} ${item.unit} | Min: ${item.minStock} ${item.unit} | Category: ${item.category}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    <div class="footer">
+      <p>This shopping list was generated from your Cafe Management System</p>
+      <p style="font-size: 12px; color: #9ca3af;">Generated at ${new Date().toLocaleTimeString()}</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    // Supabase configuration
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || 'YOUR_ANON_KEY';
+    
+    // Try Supabase Edge Function first
+    if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipientEmail,
+            recipientName,
+            subject: `🛒 Shopping List - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+            htmlContent,
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          return {
+            success: true,
+            messageId: result.messageId,
+            message: 'Shopping list sent successfully via Supabase',
+          };
+        }
+      } catch (supabaseError) {
+        console.log('Supabase function not available');
+      }
+    }
+    
+    // Fallback to local API only in development
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      try {
+        const response = await fetch('http://localhost:3001/api/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipientEmail,
+            recipientName,
+            subject: `🛒 Shopping List - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+            htmlContent,
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          return {
+            success: true,
+            messageId: result.messageId,
+            message: 'Shopping list sent successfully via local API',
+          };
+        }
+      } catch (apiError) {
+        console.log('Local API not available');
+      }
+    }
+    
+    // Final fallback: Download the shopping list HTML
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `shopping-list-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    return {
+      success: true,
+      message: 'Shopping list downloaded. Setup Supabase email function to send via email.',
+    };
+  } catch (error) {
+    console.error('Error sending shopping list:', error);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
 // Test email connection
 export const testEmailConnection = async (recipientEmail) => {
   try {

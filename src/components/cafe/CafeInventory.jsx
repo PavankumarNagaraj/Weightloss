@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash, Download, Search, Check } from 'lucide-react';
+import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash, Download, Search, Check, Mail } from 'lucide-react';
 import { getInventory, addInventoryItem, updateInventoryStock, updateInventoryItem, deleteInventoryItem, getLowStockItems, getMenuItems } from '../../services/cafeService';
 import { importBulkInventory } from '../../utils/bulkInventoryImport';
 import { inventoryTemplate } from '../../utils/inventoryTemplate';
+import { sendShoppingListEmail, getEmailSettings } from '../../services/emailService';
 
 const CafeInventory = ({ showToast }) => {
   const [inventory, setInventory] = useState([]);
@@ -34,6 +35,10 @@ const CafeInventory = ({ showToast }) => {
   const [deleteProgress, setDeleteProgress] = useState({ current: 0, total: 0 });
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailRecipient, setEmailRecipient] = useState('');
+  const [emailName, setEmailName] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const categories = ['Dry Store', 'Fresh Produce', 'Refrigerated', 'Frozen', 'Fruits'];
 
@@ -379,6 +384,62 @@ const CafeInventory = ({ showToast }) => {
     setShowBulkDeleteModal(false);
   };
 
+  const handleEmailShoppingList = () => {
+    if (selectedItems.length === 0) {
+      showToast('⚠️ No items selected');
+      return;
+    }
+
+    // Load saved email settings
+    const settings = getEmailSettings();
+    if (settings) {
+      setEmailRecipient(settings.email || '');
+      setEmailName(settings.name || '');
+    }
+    
+    setShowEmailModal(true);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailRecipient) {
+      showToast('⚠️ Please enter an email address');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailRecipient)) {
+      showToast('⚠️ Please enter a valid email address');
+      return;
+    }
+
+    setIsSendingEmail(true);
+
+    try {
+      const items = await getInventory();
+      const selectedItemsData = items.filter(item => selectedItems.includes(item.id));
+
+      const result = await sendShoppingListEmail(
+        emailRecipient,
+        emailName || 'Cafe Manager',
+        selectedItemsData
+      );
+
+      if (result.success) {
+        showToast(`✅ ${result.message}`);
+        setShowEmailModal(false);
+        setSelectedItems([]);
+        setSelectAll(false);
+      } else {
+        showToast(`❌ Failed to send email: ${result.error}`);
+      }
+    } catch (error) {
+      showToast(`❌ Error: ${error.message}`);
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   const handleDownloadShoppingList = async () => {
     if (selectedItems.length === 0) {
       showToast('⚠️ No items selected');
@@ -448,18 +509,28 @@ const CafeInventory = ({ showToast }) => {
           {selectedItems.length > 0 && (
             <>
               <button
+                onClick={handleEmailShoppingList}
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              >
+                <Mail className="w-5 h-5" />
+                <span className="hidden sm:inline">Email List ({selectedItems.length})</span>
+                <span className="sm:hidden">Email ({selectedItems.length})</span>
+              </button>
+              <button
                 onClick={handleDownloadShoppingList}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-bold hover:from-blue-700 hover:to-cyan-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-bold hover:from-blue-700 hover:to-cyan-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               >
                 <Download className="w-5 h-5" />
-                Download List ({selectedItems.length})
+                <span className="hidden sm:inline">Download List ({selectedItems.length})</span>
+                <span className="sm:hidden">Download ({selectedItems.length})</span>
               </button>
               <button
                 onClick={handleDeleteSelected}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl font-bold hover:from-red-700 hover:to-rose-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl font-bold hover:from-red-700 hover:to-rose-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               >
                 <Trash className="w-5 h-5" />
-                Delete Selected ({selectedItems.length})
+                <span className="hidden sm:inline">Delete Selected ({selectedItems.length})</span>
+                <span className="sm:hidden">Delete ({selectedItems.length})</span>
               </button>
             </>
           )}
@@ -1038,6 +1109,93 @@ const CafeInventory = ({ showToast }) => {
                   {isImporting ? `Importing ${importProgress.current}/${importProgress.total}...` : `Import ${selectedTemplateItems.length} Item${selectedTemplateItems.length !== 1 ? 's' : ''}`}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Shopping List Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-indigo-100 rounded-xl">
+                <Mail className="w-8 h-8 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-gray-900">Email Shopping List</h3>
+                <p className="text-sm text-gray-600">Send list to your email</p>
+              </div>
+            </div>
+
+            <div className="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4 mb-6">
+              <p className="text-sm text-indigo-800 font-semibold mb-2">📧 Shopping list includes:</p>
+              <ul className="text-xs text-indigo-700 space-y-1 ml-4">
+                <li>• {selectedItems.length} selected items</li>
+                <li>• Item name and quantity needed</li>
+                <li>• Current stock and minimum stock levels</li>
+                <li>• Category information</li>
+              </ul>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Recipient Email *
+                </label>
+                <input
+                  type="email"
+                  value={emailRecipient}
+                  onChange={(e) => setEmailRecipient(e.target.value)}
+                  placeholder="manager@example.com"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition outline-none font-semibold"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Recipient Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={emailName}
+                  onChange={(e) => setEmailName(e.target.value)}
+                  placeholder="Cafe Manager"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition outline-none font-semibold"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowEmailModal(false);
+                  setEmailRecipient('');
+                  setEmailName('');
+                }}
+                disabled={isSendingEmail}
+                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendEmail}
+                disabled={isSendingEmail}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSendingEmail ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Sending...
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    <Mail className="w-5 h-5" />
+                    Send Email
+                  </div>
+                )}
+              </button>
             </div>
           </div>
         </div>
