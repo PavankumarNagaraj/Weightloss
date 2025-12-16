@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings, Menu, X, Calculator } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings, Menu, X, Calculator, ChefHat, Trash } from 'lucide-react';
 import CafeOrders from './cafe/CafeOrders';
 import CafeMenu from './cafe/CafeMenu';
 import CafeInventory from './cafe/CafeInventory';
@@ -15,6 +15,8 @@ import CafeReports from './cafe/CafeReports';
 import CafeSettings from './cafe/CafeSettings';
 import CafeLogin from './cafe/CafeLogin';
 import CafeCostAnalysis from './cafe/CafeCostAnalysis';
+import CafeRecipes from './cafe/CafeRecipes';
+import CafeWaste from './cafe/CafeWaste';
 
 const CafeManagement = () => {
   const location = useLocation();
@@ -54,6 +56,8 @@ const CafeManagement = () => {
     { path: '/cafe/expenses', label: 'Expenses', icon: Wallet },
     { path: '/cafe/investments', label: 'Investments', icon: TrendingUp },
     { path: '/cafe/profit-loss', label: 'P&L', icon: TrendingDown },
+    { path: '/cafe/recipes', label: 'Recipes', icon: ChefHat },
+    { path: '/cafe/waste', label: 'Waste Tracking', icon: Trash },
     { path: '/cafe/cost-analysis', label: 'Cost Analysis', icon: Calculator },
     { path: '/cafe/analytics', label: 'Analytics', icon: BarChart2 },
     { path: '/cafe/reports', label: 'Reports', icon: FileText },
@@ -157,6 +161,8 @@ const CafeManagement = () => {
               <Route path="/expenses" element={<CafeExpenses showToast={handleToast} />} />
               <Route path="/investments" element={<CafeInvestments showToast={handleToast} />} />
               <Route path="/profit-loss" element={<CafeProfitLoss showToast={handleToast} />} />
+              <Route path="/recipes" element={<CafeRecipes showToast={handleToast} />} />
+              <Route path="/waste" element={<CafeWaste showToast={handleToast} />} />
               <Route path="/cost-analysis" element={<CafeCostAnalysis showToast={handleToast} />} />
               <Route path="/analytics" element={<CafeSalesAnalytics showToast={handleToast} />} />
               <Route path="/reports" element={<CafeReports showToast={handleToast} />} />
