@@ -28,53 +28,70 @@ const CafeDashboard = ({ showToast }) => {
     
     // Set up automated daily email based on settings
     const checkAndSendEmail = async () => {
-      // Get settings from database
-      const cronSettings = await getSettings();
-      
-      // Check if auto-send is enabled
-      if (cronSettings.auto_send_enabled === false) {
-        return;
-      }
-      
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      
-      // Get configured time (default to 23:55 if not set)
-      const cronTime = cronSettings.cron_time || '23:55';
-      const [targetHours, targetMinutes] = cronTime.split(':').map(Number);
-      
-      // Check if it's the configured time
-      if (hours === targetHours && minutes === targetMinutes) {
-        const lastSentSettings = await getSettings();
-        const lastSent = lastSentSettings.last_email_sent;
-        const today = now.toISOString().split('T')[0];
+      try {
+        // Get settings from database
+        const cronSettings = await getSettings();
         
-        // Only send if we haven't sent today
-        if (lastSent !== today) {
-          console.log(`Triggering automated daily email at ${cronTime}`);
+        // Check if auto-send is enabled
+        if (cronSettings.auto_send_enabled === false) {
+          return;
+        }
+        
+        // Check if recipient email is configured
+        if (!cronSettings.recipient_email) {
+          console.log('No recipient email configured for automated reports');
+          return;
+        }
+        
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        
+        // Get configured time (default to 23:55 if not set)
+        const cronTime = cronSettings.cron_time || '23:55';
+        const [targetHours, targetMinutes] = cronTime.split(':').map(Number);
+        
+        // Calculate time in minutes since midnight
+        const currentTimeInMinutes = hours * 60 + minutes;
+        const targetTimeInMinutes = targetHours * 60 + targetMinutes;
+        
+        // Check if we're within 5 minutes of the target time (more forgiving window)
+        const timeDifference = Math.abs(currentTimeInMinutes - targetTimeInMinutes);
+        
+        if (timeDifference <= 5) {
+          const lastSent = cronSettings.last_email_sent;
+          const today = now.toISOString().split('T')[0];
           
-          // Get recipient from settings
-          const recipientEmail = cronSettings.recipient_email || 'pavankumar.nagaraj@gmail.com';
-          const recipientName = cronSettings.recipient_name || 'Cafe Manager';
-          
-          sendDailyReport(recipientEmail, recipientName).then(async (result) => {
+          // Only send if we haven't sent today
+          if (lastSent !== today) {
+            console.log(`⏰ Triggering automated daily email at ${hours}:${minutes} (target: ${cronTime})`);
+            
+            // Get recipient from settings
+            const recipientEmail = cronSettings.recipient_email;
+            const recipientName = cronSettings.recipient_name || 'Cafe Manager';
+            
+            const result = await sendDailyReport(recipientEmail, recipientName);
+            
             if (result.success) {
               // Update last sent date in database
               await saveSettings({
-                ...cronSettings,
                 cronTime: cronSettings.cron_time,
                 recipientEmail: cronSettings.recipient_email,
                 recipientName: cronSettings.recipient_name,
                 autoSendEnabled: cronSettings.auto_send_enabled,
                 lastEmailSent: today,
               });
-              console.log(`Automated daily email sent successfully to ${recipientEmail}`);
+              console.log(`✅ Automated daily email sent successfully to ${recipientEmail}`);
+              showToast(`📧 Daily report sent to ${recipientEmail}`);
             } else {
-              console.error('Failed to send automated email:', result.error);
+              console.error('❌ Failed to send automated email:', result.error);
             }
-          });
+          } else {
+            console.log(`ℹ️ Email already sent today (${lastSent})`);
+          }
         }
+      } catch (error) {
+        console.error('Error in checkAndSendEmail:', error);
       }
     };
     
@@ -85,7 +102,7 @@ const CafeDashboard = ({ showToast }) => {
     checkAndSendEmail();
     
     return () => clearInterval(interval);
-  }, []);
+  }, [showToast]);
 
   const loadData = async () => {
     const dashboardStats = await getDashboardStats();
@@ -173,7 +190,7 @@ const CafeDashboard = ({ showToast }) => {
   return (
     <div className="space-y-6">
       {/* Header with Email Button */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Dashboard
@@ -188,6 +205,22 @@ const CafeDashboard = ({ showToast }) => {
           <Mail className="w-5 h-5" />
           {sendingEmail ? 'Sending...' : 'Email Report'}
         </button>
+      </div>
+
+      {/* Email Automation Status */}
+      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+        <div className="flex items-start gap-3">
+          <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm text-blue-900">
+              <strong>🔔 Automated Email:</strong> This page checks for scheduled email reports every minute. 
+              Keep this tab open for automated sending, or use the <strong>"Email Report"</strong> button above to send manually.
+            </p>
+            <p className="text-xs text-blue-700 mt-1">
+              Configure email settings in <strong>Settings</strong> page.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Current Balance - Prominent Display */}

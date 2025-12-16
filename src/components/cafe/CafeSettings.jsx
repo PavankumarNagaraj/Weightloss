@@ -125,6 +125,30 @@ const CafeSettings = ({ showToast }) => {
         </div>
       </div>
 
+      {/* Important Notice */}
+      <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 sm:p-6">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
+          <div>
+            <h3 className="font-bold text-yellow-900 mb-2">⚠️ Important: Automated Email Limitations</h3>
+            <div className="text-sm text-yellow-800 space-y-2">
+              <p>
+                <strong>Browser-Based Automation:</strong> The automated daily email only works when the Dashboard page is open in your browser at the scheduled time.
+              </p>
+              <p>
+                <strong>5-Minute Window:</strong> The system checks within a 5-minute window of your scheduled time to increase reliability.
+              </p>
+              <p>
+                <strong>Recommendation:</strong> Use the <strong>"Email Report"</strong> button on the Dashboard to send reports manually, or keep the Dashboard tab open in your browser.
+              </p>
+              <p className="text-xs mt-3 text-yellow-700">
+                💡 <strong>Tip:</strong> For true automated emails without browser dependency, you would need a backend server or Supabase Edge Function with cron triggers.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Settings Card */}
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border-2 border-gray-100 p-4 sm:p-8">
         <div className="space-y-6 sm:space-y-8">
