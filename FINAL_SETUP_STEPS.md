@@ -69,7 +69,7 @@ BEGIN
       );
     
     UPDATE cafe_settings 
-    SET last_email_sent = today_date 
+    SET last_email_sent = today_date::DATE 
     WHERE id = 1;
     
     RAISE NOTICE 'Email triggered successfully';
