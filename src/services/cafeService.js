@@ -1399,3 +1399,51 @@ export const saveSettings = async (settingsData) => {
     throw error;
   }
 };
+
+// ==================== CLEAR ALL DATA ====================
+
+export const clearAllCafeData = async (password) => {
+  // Password verification (change this to your desired password)
+  const ADMIN_PASSWORD = 'cafe2024';
+  
+  if (password !== ADMIN_PASSWORD) {
+    throw new Error('Incorrect password');
+  }
+
+  try {
+    const tables = [
+      'cafe_orders',
+      'cafe_menu',
+      'cafe_inventory',
+      'cafe_purchases',
+      'cafe_expenses',
+      'cafe_investments',
+      'cafe_weekly_plans'
+    ];
+
+    const results = [];
+    
+    for (const table of tables) {
+      const { error } = await supabase
+        .from(table)
+        .delete()
+        .neq('id', 0); // Delete all rows
+      
+      if (error) {
+        console.error(`Error clearing ${table}:`, error);
+        results.push({ table, success: false, error: error.message });
+      } else {
+        results.push({ table, success: true });
+      }
+    }
+
+    return {
+      success: true,
+      results,
+      message: 'All cafe data cleared successfully'
+    };
+  } catch (error) {
+    console.error('Error clearing all data:', error);
+    throw error;
+  }
+};

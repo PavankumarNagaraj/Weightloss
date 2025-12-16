@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings } from 'lucide-react';
 import CafeOrders from './cafe/CafeOrders';
@@ -13,17 +13,36 @@ import CafeProfitLoss from './cafe/CafeProfitLoss';
 import CafeSalesAnalytics from './cafe/CafeSalesAnalytics';
 import CafeReports from './cafe/CafeReports';
 import CafeSettings from './cafe/CafeSettings';
+import CafeLogin from './cafe/CafeLogin';
 
 const CafeManagement = () => {
   const location = useLocation();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if user is already authenticated
+    const authStatus = sessionStorage.getItem('cafe_authenticated');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    sessionStorage.setItem('cafe_authenticated', 'true');
+  };
 
   const handleToast = (message) => {
     setToastMessage(message);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
+
+  if (!isAuthenticated) {
+    return <CafeLogin onLogin={handleLogin} />;
+  }
 
   const navItems = [
     { path: '/cafe/orders', label: 'Orders', icon: ShoppingCart },

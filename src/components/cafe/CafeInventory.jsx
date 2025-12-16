@@ -379,13 +379,13 @@ const CafeInventory = ({ showToast }) => {
     setShowBulkDeleteModal(false);
   };
 
-  const handleDownloadShoppingList = () => {
+  const handleDownloadShoppingList = async () => {
     if (selectedItems.length === 0) {
       showToast('⚠️ No items selected');
       return;
     }
 
-    const items = getInventory();
+    const items = await getInventory();
     const selectedItemsData = items.filter(item => selectedItems.includes(item.id));
     
     // Create shopping list content
