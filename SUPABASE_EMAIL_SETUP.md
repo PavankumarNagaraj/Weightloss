@@ -1,8 +1,39 @@
-# 📧 Supabase Email Setup Guide
+# 📧 Automated Daily Email Setup with Supabase
+
+## 🎯 Overview
+
+This guide sets up **TRUE automated emails** that send daily reports without requiring your browser to be open. Uses:
+- **Supabase Edge Functions** - Serverless email sending
+- **pg_cron** - Database-level cron scheduler
+- **Resend API** - Reliable email delivery
+
+---
 
 ## 🚀 Quick Setup
 
-### **Step 1: Login to Supabase**
+### **Step 1: Get Resend API Key**
+
+1. Go to https://resend.com/
+2. Sign up for free account (100 emails/day free)
+3. Go to **API Keys** section
+4. Create new API key
+5. Copy the key (starts with `re_`)
+
+---
+
+### **Step 2: Install Supabase CLI**
+
+```bash
+# macOS
+brew install supabase/tap/supabase
+
+# Or use npm
+npm install -g supabase
+```
+
+---
+
+### **Step 3: Login to Supabase**
 
 ```bash
 supabase login
@@ -12,129 +43,132 @@ This will open your browser to authenticate.
 
 ---
 
-### **Step 2: Link to Your Supabase Project**
-
-If you have an existing Supabase project:
+### **Step 4: Link to Your Supabase Project**
 
 ```bash
 supabase link --project-ref YOUR_PROJECT_REF
 ```
 
-Or create a new project at https://supabase.com/dashboard
+Find your project ref at: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/general
 
 ---
 
-### **Step 3: Set Brevo API Key Secret**
-
-You need to get a Brevo API key first:
-
-1. Go to https://app.brevo.com/
-2. Navigate to **SMTP & API** → **API Keys**
-3. Create a new API key
-4. Copy the key (starts with `xkeysib-`)
-
-Then set it as a Supabase secret:
+### **Step 5: Set Resend API Key as Secret**
 
 ```bash
-supabase secrets set BREVO_API_KEY=xkeysib-YOUR_ACTUAL_API_KEY_HERE
+supabase secrets set RESEND_API_KEY=re_YOUR_ACTUAL_API_KEY_HERE
 ```
 
 ---
 
-### **Step 4: Deploy the Edge Function**
+### **Step 6: Deploy the Edge Function**
 
 ```bash
-supabase functions deploy send-email
+supabase functions deploy send-daily-report
 ```
 
-This deploys the email function to Supabase!
+This deploys the automated email function to Supabase!
 
 ---
 
-### **Step 5: Get Your Function URL**
+### **Step 7: Enable pg_cron Extension**
 
-After deployment, you'll get a URL like:
-```
-https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-email
+In Supabase Dashboard → SQL Editor, run:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_cron;
 ```
 
 ---
 
-### **Step 6: Update React App**
+### **Step 8: Setup Automated Cron Job**
 
-Update `/src/services/emailService.js`:
+Run the SQL migration file `setup_daily_email_cron.sql` in Supabase SQL Editor.
 
-Replace:
-```javascript
-const response = await fetch('http://localhost:3001/api/send-email', {
+Or manually schedule the cron job:
+
+```sql
+-- Schedule daily email at 23:55 IST (18:25 UTC)
+SELECT cron.schedule(
+  'daily-cafe-report',
+  '25 18 * * *',  -- 18:25 UTC = 23:55 IST
+  $$
+  SELECT
+    net.http_post(
+      url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-daily-report',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key')
+      ),
+      body := '{}'
+    );
+  $$
+);
 ```
 
-With:
-```javascript
-const SUPABASE_FUNCTION_URL = 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-email';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+**Note:** Adjust the cron time based on your `cafe_settings.cron_time`
 
-const response = await fetch(SUPABASE_FUNCTION_URL, {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-    'Content-Type': 'application/json',
-  },
-```
+---
 
-Get your anon key from: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api
+### **Step 9: Configure Email in Settings**
+
+In your cafe app:
+
+1. Go to **Settings** page
+2. Configure:
+   - **Recipient Email:** Your email address
+   - **Recipient Name:** Your name
+   - **Daily Report Time:** 23:55 (or your preferred time)
+   - **Enable Auto-Send:** ✅ Checked
+3. Click **Save Settings**
 
 ---
 
 ## 🧪 Test the Function
 
-### **Test Locally:**
+### **Test Manually:**
 
 ```bash
-# Start Supabase locally
-supabase start
-
-# In another terminal, serve the function
-supabase functions serve send-email --env-file ./supabase/.env.local
-
-# Test with curl
-curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/send-email' \
-  --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
+curl -i --location --request POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-daily-report' \
+  --header 'Authorization: Bearer YOUR_SERVICE_ROLE_KEY' \
   --header 'Content-Type: application/json' \
-  --data '{
-    "recipientEmail": "pavankumar.nagaraj@gmail.com",
-    "recipientName": "Pavan Kumar",
-    "subject": "Test Email",
-    "htmlContent": "<h1>Test from Supabase!</h1>"
-  }'
+  --data '{}'
 ```
 
-### **Test Production:**
+Get your service role key from: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api
 
-```bash
-curl -i --location --request POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-email' \
-  --header 'Authorization: Bearer YOUR_ANON_KEY' \
-  --header 'Content-Type: application/json' \
-  --data '{
-    "recipientEmail": "pavankumar.nagaraj@gmail.com",
-    "subject": "Test Email",
-    "htmlContent": "<h1>Test Email!</h1>"
-  }'
+### **Check Cron Jobs:**
+
+```sql
+-- View all scheduled jobs
+SELECT * FROM cron.job;
+
+-- View job run history
+SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
 ```
+
+### **Test from Dashboard:**
+
+Go to your cafe Dashboard and click the **"Email Report"** button to test immediately
 
 ---
 
 ## 📝 Environment Variables
 
-Create `supabase/.env.local` for local testing:
+### **Supabase Secrets (Production):**
 
 ```bash
-BREVO_API_KEY=xkeysib-YOUR_API_KEY_HERE
+supabase secrets set RESEND_API_KEY=re_YOUR_API_KEY_HERE
 ```
 
-For production, use:
+### **Local Testing:**
+
+Create `supabase/.env.local`:
+
 ```bash
-supabase secrets set BREVO_API_KEY=xkeysib-YOUR_API_KEY_HERE
+RESEND_API_KEY=re_YOUR_API_KEY_HERE
+SUPABASE_URL=http://localhost:54321
+SUPABASE_SERVICE_ROLE_KEY=your_local_service_role_key
 ```
 
 ---
@@ -142,93 +176,168 @@ supabase secrets set BREVO_API_KEY=xkeysib-YOUR_API_KEY_HERE
 ## 🔧 Configuration
 
 ### **Email Settings:**
-- **Sender:** Afterburn Cafe <pavan@afterburn.fit>
-- **Recipient:** pavankumar.nagaraj@gmail.com
-- **SMTP:** Brevo API (no direct SMTP needed)
+- **Provider:** Resend API
+- **Sender:** Configure in Resend dashboard
+- **Recipient:** Set in cafe Settings page
+- **Schedule:** Set in cafe Settings page (stored in `cafe_settings` table)
 
 ### **Supabase Function:**
-- **Name:** send-email
+- **Name:** send-daily-report
 - **Runtime:** Deno
 - **CORS:** Enabled for all origins
-- **Auth:** Requires Supabase anon key
+- **Trigger:** pg_cron (database-level scheduler)
+
+### **Cron Schedule:**
+- **Default:** 23:55 IST (18:25 UTC)
+- **Frequency:** Daily
+- **Adjustable:** Update cron expression in SQL
 
 ---
 
-## 📊 Usage from React App
+## 📊 How It Works
 
-Once deployed, the Dashboard "Email Report" button will:
+### **Automated Flow:**
 
-1. Generate daily report with actual data
-2. Call Supabase Edge Function
-3. Function sends email via Brevo API
-4. Email delivered to pavankumar.nagaraj@gmail.com
+1. **pg_cron** runs daily at scheduled time (e.g., 23:55 IST)
+2. Cron job calls **send-daily-report** Edge Function
+3. Function checks `cafe_settings` for:
+   - Is auto-send enabled?
+   - Has email been sent today?
+   - What's the recipient email?
+4. Function fetches data from database:
+   - Today's orders and revenue
+   - Low stock items
+   - Other cafe metrics
+5. Generates beautiful HTML email
+6. Sends via **Resend API**
+7. Updates `last_email_sent` in database
+8. Email delivered to recipient ✅
+
+### **Manual Sending:**
+
+- Dashboard "Email Report" button
+- Calls same Edge Function immediately
+- No browser dependency
+- Works anytime
 
 ---
 
 ## 🐛 Troubleshooting
 
-### **"Key not found" error:**
-- Make sure you've set the Brevo API key secret
-- Run: `supabase secrets set BREVO_API_KEY=your_key`
+### **"RESEND_API_KEY not configured" error:**
+```bash
+supabase secrets set RESEND_API_KEY=re_YOUR_KEY
+supabase functions deploy send-daily-report
+```
 
-### **CORS error:**
-- Function already has CORS headers enabled
-- Check that you're using the correct Authorization header
+### **Email not sending automatically:**
 
-### **Function not found:**
-- Verify deployment: `supabase functions list`
-- Redeploy: `supabase functions deploy send-email`
+1. Check if cron job is scheduled:
+```sql
+SELECT * FROM cron.job WHERE jobname = 'daily-cafe-report';
+```
 
-### **Email not sending:**
-- Check Brevo API key is valid
-- Check function logs: `supabase functions logs send-email`
-- Verify sender email is authorized in Brevo
+2. Check cron job execution history:
+```sql
+SELECT * FROM cron.job_run_details 
+WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'daily-cafe-report')
+ORDER BY start_time DESC LIMIT 5;
+```
+
+3. Check if auto-send is enabled:
+```sql
+SELECT auto_send_enabled, recipient_email, cron_time, last_email_sent 
+FROM cafe_settings WHERE id = 1;
+```
+
+### **Function logs:**
+```bash
+supabase functions logs send-daily-report --tail
+```
+
+### **Cron not triggering:**
+- Verify pg_cron extension is enabled
+- Check cron expression matches your timezone
+- IST = UTC + 5:30 (e.g., 23:55 IST = 18:25 UTC)
+
+### **Email already sent today:**
+- Function prevents duplicate emails
+- Check `last_email_sent` field in `cafe_settings`
+- Resets automatically next day
 
 ---
 
 ## 🎯 Complete Setup Commands
 
 ```bash
-# 1. Login
+# 1. Install Supabase CLI
+brew install supabase/tap/supabase
+
+# 2. Login
 supabase login
 
-# 2. Link project (or create new one)
+# 3. Link to your project
 supabase link --project-ref YOUR_PROJECT_REF
 
-# 3. Set API key secret
-supabase secrets set BREVO_API_KEY=xkeysib-YOUR_ACTUAL_KEY
+# 4. Set Resend API key
+supabase secrets set RESEND_API_KEY=re_YOUR_ACTUAL_KEY
 
-# 4. Deploy function
-supabase functions deploy send-email
+# 5. Deploy Edge Function
+supabase functions deploy send-daily-report
 
-# 5. Test it
-curl -i --location --request POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-email' \
-  --header 'Authorization: Bearer YOUR_ANON_KEY' \
-  --header 'Content-Type: application/json' \
-  --data '{"recipientEmail":"pavankumar.nagaraj@gmail.com","subject":"Test","htmlContent":"<h1>Works!</h1>"}'
+# 6. Enable pg_cron (in Supabase SQL Editor)
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+# 7. Run the cron setup SQL (in Supabase SQL Editor)
+# Copy contents of: supabase_migrations/setup_daily_email_cron.sql
+
+# 8. Configure in your app Settings page
+# - Set recipient email
+# - Set time (e.g., 23:55)
+# - Enable auto-send
+
+# 9. Test manually
+curl -i --location --request POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-daily-report' \
+  --header 'Authorization: Bearer YOUR_SERVICE_ROLE_KEY' \
+  --data '{}'
 ```
 
 ---
 
-## ✅ Benefits of Supabase
+## ✅ Benefits of This Setup
 
-- ✅ No local server needed
-- ✅ Serverless - scales automatically
-- ✅ Secure - API keys stored as secrets
-- ✅ CORS handled automatically
-- ✅ Free tier available
-- ✅ Easy deployment with CLI
-- ✅ Function logs for debugging
+- ✅ **No browser dependency** - Runs on Supabase servers
+- ✅ **True automation** - pg_cron triggers daily
+- ✅ **Serverless** - Scales automatically
+- ✅ **Secure** - API keys stored as Supabase secrets
+- ✅ **Reliable** - Database-level scheduling
+- ✅ **Free tier** - Resend: 100 emails/day, Supabase: generous limits
+- ✅ **Easy debugging** - Function logs and cron history
+- ✅ **Configurable** - Change time/recipient in Settings UI
 
 ---
 
 ## 🎉 You're All Set!
 
-Your email system is now:
+Your automated email system is now:
 - ✅ Deployed to Supabase Edge Functions
-- ✅ Using Brevo API for email sending
-- ✅ Accessible from your React app
-- ✅ Secure with environment variables
-- ✅ Production-ready!
+- ✅ Scheduled with pg_cron (database-level)
+- ✅ Using Resend API for reliable delivery
+- ✅ Completely independent of browser
+- ✅ Configurable via Settings page
+- ✅ Production-ready and scalable!
 
-Click "Email Report" on Dashboard and emails will be sent! 📧
+**Emails will now send automatically every day at your scheduled time!** 📧🎉
+
+---
+
+## 📅 Time Zone Conversion
+
+| IST Time | UTC Time | Cron Expression |
+|----------|----------|----------------|
+| 23:55 | 18:25 | `25 18 * * *` |
+| 23:00 | 17:30 | `30 17 * * *` |
+| 22:00 | 16:30 | `30 16 * * *` |
+| 09:00 | 03:30 | `30 3 * * *` |
+
+Use this table to convert your desired IST time to UTC for the cron expression.
