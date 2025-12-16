@@ -44,7 +44,7 @@ BEGIN
     -- Check if email already sent today
     today_date := (NOW() AT TIME ZONE 'UTC' + INTERVAL '5 hours 30 minutes')::DATE::TEXT;
     
-    IF settings_record.last_email_sent = today_date THEN
+    IF settings_record.last_email_sent::TEXT = today_date THEN
       RAISE NOTICE 'Email already sent today: %', today_date;
       RETURN;
     END IF;
