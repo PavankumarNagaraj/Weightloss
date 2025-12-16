@@ -1449,37 +1449,18 @@ export const clearAllCafeData = async (password) => {
         continue;
       }
 
-      // Try multiple delete approaches
+      // Delete all records using their IDs (works with UUID or integer IDs)
       console.log(`   🔄 Attempting to delete ${recordCount} records...`);
       
-      // Approach 1: Delete with gte condition
-      let deleteResult = await supabase
+      const ids = records.map(r => r.id);
+      
+      const deleteResult = await supabase
         .from(table)
         .delete()
-        .gte('id', 0);
+        .in('id', ids);
       
       if (deleteResult.error) {
-        console.log(`   ⚠️ Method 1 (gte) failed:`, deleteResult.error);
-        
-        // Approach 2: Delete with neq condition
-        deleteResult = await supabase
-          .from(table)
-          .delete()
-          .neq('id', -999999);
-        
-        if (deleteResult.error) {
-          console.log(`   ⚠️ Method 2 (neq) failed:`, deleteResult.error);
-          
-          // Approach 3: Delete with gt condition
-          deleteResult = await supabase
-            .from(table)
-            .delete()
-            .gt('id', -1);
-        }
-      }
-      
-      if (deleteResult.error) {
-        console.error(`❌ All delete methods failed for ${table}:`, deleteResult.error);
+        console.error(`❌ Delete failed for ${table}:`, deleteResult.error);
         results.push({ table, success: false, error: deleteResult.error.message, deleted: 0 });
       } else {
         // Verify deletion by checking if records still exist
