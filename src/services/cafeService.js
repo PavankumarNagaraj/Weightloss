@@ -1424,43 +1424,102 @@ export const clearAllCafeData = async (password) => {
     const results = [];
     let totalDeleted = 0;
     
+    console.log('🗑️ Starting Clear All Data operation...');
+    
     for (const table of tables) {
+      console.log(`\n📋 Processing table: ${table}`);
+      
       // First get all records to count them
       const { data: records, error: fetchError } = await supabase
         .from(table)
         .select('id');
       
       if (fetchError) {
-        console.error(`Error fetching ${table}:`, fetchError);
+        console.error(`❌ Error fetching ${table}:`, fetchError);
         results.push({ table, success: false, error: fetchError.message, deleted: 0 });
         continue;
       }
 
-      // Delete all records using gte (greater than or equal to) with a value that all IDs will match
-      const { error, count } = await supabase
+      const recordCount = records?.length || 0;
+      console.log(`   Found ${recordCount} records in ${table}`);
+
+      if (recordCount === 0) {
+        console.log(`   ⚠️ Table ${table} is already empty`);
+        results.push({ table, success: true, deleted: 0 });
+        continue;
+      }
+
+      // Try multiple delete approaches
+      console.log(`   🔄 Attempting to delete ${recordCount} records...`);
+      
+      // Approach 1: Delete with gte condition
+      let deleteResult = await supabase
         .from(table)
         .delete()
-        .gte('id', 0); // Delete all rows where id >= 0 (all rows)
+        .gte('id', 0);
       
-      const deletedCount = records?.length || 0;
-      totalDeleted += deletedCount;
+      if (deleteResult.error) {
+        console.log(`   ⚠️ Method 1 (gte) failed:`, deleteResult.error);
+        
+        // Approach 2: Delete with neq condition
+        deleteResult = await supabase
+          .from(table)
+          .delete()
+          .neq('id', -999999);
+        
+        if (deleteResult.error) {
+          console.log(`   ⚠️ Method 2 (neq) failed:`, deleteResult.error);
+          
+          // Approach 3: Delete with gt condition
+          deleteResult = await supabase
+            .from(table)
+            .delete()
+            .gt('id', -1);
+        }
+      }
       
-      if (error) {
-        console.error(`Error clearing ${table}:`, error);
-        results.push({ table, success: false, error: error.message, deleted: 0 });
+      if (deleteResult.error) {
+        console.error(`❌ All delete methods failed for ${table}:`, deleteResult.error);
+        results.push({ table, success: false, error: deleteResult.error.message, deleted: 0 });
       } else {
-        results.push({ table, success: true, deleted: deletedCount });
+        // Verify deletion by checking if records still exist
+        const { data: remainingRecords } = await supabase
+          .from(table)
+          .select('id')
+          .limit(1);
+        
+        const actuallyDeleted = remainingRecords?.length === 0;
+        console.log(`   ${actuallyDeleted ? '✅' : '❌'} Delete result for ${table}:`, {
+          attempted: recordCount,
+          remaining: remainingRecords?.length || 0,
+          success: actuallyDeleted
+        });
+        
+        totalDeleted += actuallyDeleted ? recordCount : 0;
+        results.push({ 
+          table, 
+          success: actuallyDeleted, 
+          deleted: actuallyDeleted ? recordCount : 0,
+          error: actuallyDeleted ? null : 'Records still exist after delete'
+        });
       }
     }
 
+    console.log('\n📊 Clear All Data Summary:', {
+      totalDeleted,
+      results
+    });
+
     return {
-      success: true,
+      success: totalDeleted > 0,
       results,
       totalDeleted,
-      message: `All cafe data cleared successfully (${totalDeleted} records deleted)`
+      message: totalDeleted > 0 
+        ? `Successfully deleted ${totalDeleted} records` 
+        : 'No records were deleted. Check console for details.'
     };
   } catch (error) {
-    console.error('Error clearing all data:', error);
+    console.error('❌ Error clearing all data:', error);
     throw error;
   }
 };
