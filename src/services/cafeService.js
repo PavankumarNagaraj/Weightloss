@@ -1422,25 +1422,42 @@ export const clearAllCafeData = async (password) => {
     ];
 
     const results = [];
+    let totalDeleted = 0;
     
     for (const table of tables) {
-      const { error } = await supabase
+      // First get all records to count them
+      const { data: records, error: fetchError } = await supabase
+        .from(table)
+        .select('id');
+      
+      if (fetchError) {
+        console.error(`Error fetching ${table}:`, fetchError);
+        results.push({ table, success: false, error: fetchError.message, deleted: 0 });
+        continue;
+      }
+
+      // Delete all records using gte (greater than or equal to) with a value that all IDs will match
+      const { error, count } = await supabase
         .from(table)
         .delete()
-        .neq('id', 0); // Delete all rows
+        .gte('id', 0); // Delete all rows where id >= 0 (all rows)
+      
+      const deletedCount = records?.length || 0;
+      totalDeleted += deletedCount;
       
       if (error) {
         console.error(`Error clearing ${table}:`, error);
-        results.push({ table, success: false, error: error.message });
+        results.push({ table, success: false, error: error.message, deleted: 0 });
       } else {
-        results.push({ table, success: true });
+        results.push({ table, success: true, deleted: deletedCount });
       }
     }
 
     return {
       success: true,
       results,
-      message: 'All cafe data cleared successfully'
+      totalDeleted,
+      message: `All cafe data cleared successfully (${totalDeleted} records deleted)`
     };
   } catch (error) {
     console.error('Error clearing all data:', error);
