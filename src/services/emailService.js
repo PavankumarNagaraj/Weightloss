@@ -591,50 +591,76 @@ export const getEmailSettings = () => {
 // Send shopping list email
 export const sendShoppingListEmail = async (recipientEmail, recipientName, items) => {
   try {
-    // Format items for email
-    const itemsList = items.map(item => {
+    // Calculate total cost
+    let totalCost = 0;
+    const itemsWithPricing = items.map(item => {
       const neededQty = Math.max(0, item.minStock - item.currentStock);
-      return `${item.name} - ${neededQty} ${item.unit}`;
-    }).join('\n');
+      const pricePerUnit = parseFloat(item.pricePerUnit) || 0;
+      const itemTotal = neededQty * pricePerUnit;
+      totalCost += itemTotal;
+      return {
+        name: item.name,
+        qty: neededQty,
+        unit: item.unit,
+        pricePerUnit,
+        total: itemTotal,
+        category: item.category
+      };
+    });
 
     const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; }
-    .section { background: #f9fafb; padding: 20px; margin: 20px 0; border-radius: 10px; border-left: 4px solid #667eea; }
-    .item { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 16px; }
-    .footer { text-align: center; color: #6b7280; margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb; }
+    body { font-family: Arial, sans-serif; line-height: 1.4; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 15px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
+    table { width: 100%; border-collapse: collapse; margin: 15px 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    th { background: #667eea; color: white; padding: 10px 8px; text-align: left; font-size: 13px; font-weight: 600; }
+    td { padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+    tr:last-child td { border-bottom: none; }
+    .total-row { background: #f3f4f6; font-weight: bold; font-size: 15px; }
+    .total-row td { padding: 12px 8px; border-top: 2px solid #667eea; }
+    .footer { text-align: center; color: #6b7280; margin-top: 20px; font-size: 11px; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1>🛒 Shopping List</h1>
-      <p style="font-size: 18px; margin: 10px 0 0 0;">${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      <p>${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
     </div>
 
-    <div class="section">
-      <h2 style="color: #667eea; margin-bottom: 20px;">Items to Purchase (${items.length})</h2>
-      ${items.map(item => {
-        const neededQty = Math.max(0, item.minStock - item.currentStock);
-        return `
-          <div class="item">
-            <strong>${item.name}</strong> - <span style="color: #667eea; font-size: 18px; font-weight: bold;">${neededQty} ${item.unit}</span>
-            <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">
-              Current: ${item.currentStock} ${item.unit} | Min: ${item.minStock} ${item.unit} | Category: ${item.category}
-            </div>
-          </div>
-        `;
-      }).join('')}
-    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th style="text-align: center;">Qty</th>
+          <th style="text-align: right;">Price/Unit</th>
+          <th style="text-align: right;">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsWithPricing.map(item => `
+          <tr>
+            <td><strong>${item.name}</strong></td>
+            <td style="text-align: center;">${item.qty} ${item.unit}</td>
+            <td style="text-align: right;">₹${item.pricePerUnit.toFixed(2)}</td>
+            <td style="text-align: right;">₹${item.total.toFixed(2)}</td>
+          </tr>
+        `).join('')}
+        <tr class="total-row">
+          <td colspan="3" style="text-align: right;">TOTAL</td>
+          <td style="text-align: right;">₹${totalCost.toFixed(2)}</td>
+        </tr>
+      </tbody>
+    </table>
 
     <div class="footer">
-      <p>This shopping list was generated from your Cafe Management System</p>
-      <p style="font-size: 12px; color: #9ca3af;">Generated at ${new Date().toLocaleTimeString()}</p>
+      <p>Generated from Cafe Management System at ${new Date().toLocaleTimeString()}</p>
     </div>
   </div>
 </body>
