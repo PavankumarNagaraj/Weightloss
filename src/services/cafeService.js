@@ -1402,6 +1402,314 @@ export const saveSettings = async (settingsData) => {
 
 // ==================== CLEAR ALL DATA ====================
 
+// ==================== RECIPE MANAGEMENT ====================
+
+export const getRecipes = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_recipes')
+      .select(`
+        *,
+        menu_item:cafe_menu(id, name, price),
+        ingredients:cafe_recipe_ingredients(*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting recipes:', error);
+    return [];
+  }
+};
+
+export const addRecipe = async (recipeData) => {
+  try {
+    const { data: recipe, error: recipeError } = await supabase
+      .from('cafe_recipes')
+      .insert([{
+        menu_item_id: recipeData.menuItemId,
+        recipe_name: recipeData.recipeName,
+        portion_size: recipeData.portionSize,
+        portion_unit: recipeData.portionUnit,
+        preparation_time: recipeData.preparationTime,
+        cooking_time: recipeData.cookingTime,
+        instructions: recipeData.instructions,
+        notes: recipeData.notes,
+      }])
+      .select()
+      .single();
+
+    if (recipeError) throw recipeError;
+
+    // Add ingredients
+    if (recipeData.ingredients && recipeData.ingredients.length > 0) {
+      const ingredients = recipeData.ingredients.map(ing => ({
+        recipe_id: recipe.id,
+        inventory_item_id: ing.inventoryItemId,
+        ingredient_name: ing.ingredientName,
+        quantity: ing.quantity,
+        unit: ing.unit,
+        cost_per_unit: ing.costPerUnit,
+        total_cost: ing.quantity * ing.costPerUnit,
+      }));
+
+      const { error: ingredientsError } = await supabase
+        .from('cafe_recipe_ingredients')
+        .insert(ingredients);
+
+      if (ingredientsError) throw ingredientsError;
+    }
+
+    return recipe;
+  } catch (error) {
+    console.error('Error adding recipe:', error);
+    throw error;
+  }
+};
+
+export const updateRecipe = async (recipeId, recipeData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_recipes')
+      .update({
+        recipe_name: recipeData.recipeName,
+        portion_size: recipeData.portionSize,
+        portion_unit: recipeData.portionUnit,
+        preparation_time: recipeData.preparationTime,
+        cooking_time: recipeData.cookingTime,
+        instructions: recipeData.instructions,
+        notes: recipeData.notes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', recipeId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Update ingredients - delete old and insert new
+    if (recipeData.ingredients) {
+      await supabase
+        .from('cafe_recipe_ingredients')
+        .delete()
+        .eq('recipe_id', recipeId);
+
+      if (recipeData.ingredients.length > 0) {
+        const ingredients = recipeData.ingredients.map(ing => ({
+          recipe_id: recipeId,
+          inventory_item_id: ing.inventoryItemId,
+          ingredient_name: ing.ingredientName,
+          quantity: ing.quantity,
+          unit: ing.unit,
+          cost_per_unit: ing.costPerUnit,
+          total_cost: ing.quantity * ing.costPerUnit,
+        }));
+
+        await supabase
+          .from('cafe_recipe_ingredients')
+          .insert(ingredients);
+      }
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error updating recipe:', error);
+    throw error;
+  }
+};
+
+export const deleteRecipe = async (recipeId) => {
+  try {
+    const { error } = await supabase
+      .from('cafe_recipes')
+      .delete()
+      .eq('id', recipeId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting recipe:', error);
+    throw error;
+  }
+};
+
+export const getRecipeCost = async (recipeId) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_recipe_ingredients')
+      .select('total_cost')
+      .eq('recipe_id', recipeId);
+
+    if (error) throw error;
+    
+    const totalCost = (data || []).reduce((sum, ing) => sum + (parseFloat(ing.total_cost) || 0), 0);
+    return totalCost;
+  } catch (error) {
+    console.error('Error calculating recipe cost:', error);
+    return 0;
+  }
+};
+
+// ==================== WASTE MANAGEMENT ====================
+
+export const getWasteLogs = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_waste_log')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting waste logs:', error);
+    return [];
+  }
+};
+
+export const addWasteLog = async (wasteData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_waste_log')
+      .insert([{
+        inventory_item_id: wasteData.inventoryItemId,
+        item_name: wasteData.itemName,
+        quantity: wasteData.quantity,
+        unit: wasteData.unit,
+        cost_per_unit: wasteData.costPerUnit,
+        total_cost: wasteData.quantity * wasteData.costPerUnit,
+        waste_reason: wasteData.wasteReason,
+        date: wasteData.date || new Date().toISOString().split('T')[0],
+        notes: wasteData.notes,
+        recorded_by: wasteData.recordedBy,
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error adding waste log:', error);
+    throw error;
+  }
+};
+
+export const deleteWasteLog = async (wasteId) => {
+  try {
+    const { error } = await supabase
+      .from('cafe_waste_log')
+      .delete()
+      .eq('id', wasteId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting waste log:', error);
+    throw error;
+  }
+};
+
+export const getWasteAnalytics = async (startDate, endDate) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_waste_log')
+      .select('*')
+      .gte('date', startDate)
+      .lte('date', endDate);
+
+    if (error) throw error;
+
+    const totalCost = (data || []).reduce((sum, log) => sum + (parseFloat(log.total_cost) || 0), 0);
+    const totalQuantity = (data || []).reduce((sum, log) => sum + (parseFloat(log.quantity) || 0), 0);
+    
+    // Group by reason
+    const byReason = {};
+    (data || []).forEach(log => {
+      if (!byReason[log.waste_reason]) {
+        byReason[log.waste_reason] = { count: 0, cost: 0 };
+      }
+      byReason[log.waste_reason].count++;
+      byReason[log.waste_reason].cost += parseFloat(log.total_cost) || 0;
+    });
+
+    return {
+      totalCost,
+      totalQuantity,
+      totalLogs: data?.length || 0,
+      byReason,
+      logs: data || []
+    };
+  } catch (error) {
+    console.error('Error getting waste analytics:', error);
+    return { totalCost: 0, totalQuantity: 0, totalLogs: 0, byReason: {}, logs: [] };
+  }
+};
+
+// ==================== COST ANALYSIS ====================
+
+export const getMenuItemProfitMargin = async (menuItemId) => {
+  try {
+    // Get menu item price
+    const { data: menuItem, error: menuError } = await supabase
+      .from('cafe_menu')
+      .select('price')
+      .eq('id', menuItemId)
+      .single();
+
+    if (menuError) throw menuError;
+
+    // Get recipe cost
+    const { data: recipe, error: recipeError } = await supabase
+      .from('cafe_recipes')
+      .select('id')
+      .eq('menu_item_id', menuItemId)
+      .single();
+
+    if (recipeError || !recipe) {
+      return { hasRecipe: false, price: menuItem.price };
+    }
+
+    const recipeCost = await getRecipeCost(recipe.id);
+    const price = parseFloat(menuItem.price) || 0;
+    const profit = price - recipeCost;
+    const profitMargin = price > 0 ? (profit / price) * 100 : 0;
+
+    return {
+      hasRecipe: true,
+      price,
+      cost: recipeCost,
+      profit,
+      profitMargin,
+    };
+  } catch (error) {
+    console.error('Error calculating profit margin:', error);
+    return { hasRecipe: false };
+  }
+};
+
+export const getAllMenuItemsCostAnalysis = async () => {
+  try {
+    const menuItems = await getMenuItems();
+    const analysis = [];
+
+    for (const item of menuItems) {
+      const profitData = await getMenuItemProfitMargin(item.id);
+      analysis.push({
+        ...item,
+        ...profitData,
+      });
+    }
+
+    return analysis;
+  } catch (error) {
+    console.error('Error getting cost analysis:', error);
+    return [];
+  }
+};
+
+// ==================== CLEAR ALL DATA ====================
+
 export const clearAllCafeData = async (password) => {
   // Password verification (change this to your desired password)
   const ADMIN_PASSWORD = 'cafe2024';
