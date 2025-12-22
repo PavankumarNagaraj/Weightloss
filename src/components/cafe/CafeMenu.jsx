@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, X } from 'lucide-react';
-import { getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, getInventory } from '../../services/cafeService';
+import { getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, getInventory, addInventoryItem } from '../../services/cafeService';
 
 const CafeMenu = ({ showToast }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -17,7 +17,7 @@ const CafeMenu = ({ showToast }) => {
     isVeg: true,
     rawMaterials: [],
   });
-  const [currentMaterial, setCurrentMaterial] = useState({ name: '', quantity: '', unit: 'g' });
+  const [currentMaterial, setCurrentMaterial] = useState({ name: '', quantity: '', unit: 'gm' });
   const [inventoryItems, setInventoryItems] = useState([]);
   const [materialSearchTerm, setMaterialSearchTerm] = useState('');
   const [showMaterialDropdown, setShowMaterialDropdown] = useState(false);
@@ -78,7 +78,7 @@ const CafeMenu = ({ showToast }) => {
 
   const resetForm = () => {
     setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [] });
-    setCurrentMaterial({ name: '', quantity: '', unit: 'g' });
+    setCurrentMaterial({ name: '', quantity: '', unit: 'gm' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
     setEditingItem(null);
@@ -105,13 +105,37 @@ const CafeMenu = ({ showToast }) => {
     item.name.toLowerCase().includes(materialSearchTerm.toLowerCase())
   );
 
-  const addRawMaterial = () => {
+  const addRawMaterial = async () => {
     if (currentMaterial.name && currentMaterial.quantity) {
+      // Check if material exists in inventory
+      const existingItem = inventoryItems.find(item => 
+        item.name.toLowerCase() === currentMaterial.name.toLowerCase()
+      );
+      
+      // If not in inventory, add it
+      if (!existingItem) {
+        try {
+          await addInventoryItem({
+            name: currentMaterial.name,
+            currentStock: 0,
+            minStock: 0,
+            unit: currentMaterial.unit,
+            category: 'Dry Store',
+            pricePerUnit: 0,
+          });
+          await loadInventory();
+          showToast(`✅ Added "${currentMaterial.name}" to inventory`);
+        } catch (error) {
+          showToast(`❌ Error adding to inventory: ${error.message}`);
+          return;
+        }
+      }
+      
       setFormData({
         ...formData,
         rawMaterials: [...formData.rawMaterials, { ...currentMaterial }]
       });
-      setCurrentMaterial({ name: '', quantity: '', unit: 'g' });
+      setCurrentMaterial({ name: '', quantity: '', unit: 'gm' });
       setMaterialSearchTerm('');
     }
   };
@@ -364,8 +388,11 @@ const CafeMenu = ({ showToast }) => {
                                 </button>
                               ))
                             ) : (
-                              <div className="px-3 py-2 text-sm text-gray-500">
-                                No inventory items found
+                              <div className="px-3 py-3 text-sm">
+                                <div className="text-gray-500 mb-2">No inventory items found</div>
+                                <div className="text-xs text-orange-600 font-semibold">
+                                  💡 Type ingredient name and click "Add" to create it
+                                </div>
                               </div>
                             )}
                           </div>
@@ -385,10 +412,8 @@ const CafeMenu = ({ showToast }) => {
                         className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                         disabled={currentMaterial.name && inventoryItems.find(item => item.name === currentMaterial.name)}
                       >
-                        <option value="g">g</option>
-                        <option value="kg">kg</option>
+                        <option value="gm">gm</option>
                         <option value="ml">ml</option>
-                        <option value="l">l</option>
                         <option value="pcs">pcs</option>
                       </select>
                       <button

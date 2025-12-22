@@ -599,12 +599,12 @@ const CafeInventory = ({ showToast }) => {
                   className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Material Name</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-40">Category</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-96">Material Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Category</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Current Stock</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Min Stock</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Unit</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-20">Unit</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-28">Status</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Actions</th>
             </tr>
           </thead>
