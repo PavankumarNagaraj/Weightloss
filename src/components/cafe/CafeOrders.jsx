@@ -143,8 +143,17 @@ const CafeOrders = ({ showToast }) => {
           : cartItem
       ));
     } else {
-      setCart([...cart, { ...item, price, quantity: 1 }]);
+      setCart([...cart, { ...item, price, quantity: 1, portionSize: 1.0 }]);
     }
+  };
+
+  const updatePortionSize = (itemId, newPortionSize) => {
+    setCart(cart.map(item => {
+      if (item.id === itemId) {
+        return { ...item, portionSize: newPortionSize };
+      }
+      return item;
+    }));
   };
 
   const removeFromCart = (itemId) => {
@@ -162,7 +171,10 @@ const CafeOrders = ({ showToast }) => {
   };
 
   const calculateSubtotal = () => {
-    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return cart.reduce((sum, item) => {
+      const portionSize = item.portionSize || 1.0;
+      return sum + (item.price * item.quantity * portionSize);
+    }, 0);
   };
 
   const calculateTotal = () => {
@@ -193,6 +205,8 @@ const CafeOrders = ({ showToast }) => {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
+        portionSize: item.portionSize || 1.0,
+        adjustedPrice: item.price * (item.portionSize || 1.0),
       })),
       subtotal: subtotal,
       discount: customerType === 'trainer' ? subtotal : discount,
@@ -688,6 +702,24 @@ const CafeOrders = ({ showToast }) => {
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
+                          
+                          {/* Portion Size Selector */}
+                          <div className="mb-2">
+                            <label className="text-xs text-gray-600 font-semibold mb-1 block">Portion Size:</label>
+                            <select
+                              value={item.portionSize || 1.0}
+                              onChange={(e) => updatePortionSize(item.id, parseFloat(e.target.value))}
+                              className="w-full px-2 py-1 text-xs border-2 border-purple-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
+                            >
+                              <option value="0.5">Half (0.5x) - ₹{(item.price * 0.5).toFixed(0)}</option>
+                              <option value="0.75">3/4 (0.75x) - ₹{(item.price * 0.75).toFixed(0)}</option>
+                              <option value="1.0">Regular (1x) - ₹{item.price}</option>
+                              <option value="1.25">Large (1.25x) - ₹{(item.price * 1.25).toFixed(0)}</option>
+                              <option value="1.5">Extra Large (1.5x) - ₹{(item.price * 1.5).toFixed(0)}</option>
+                              <option value="2.0">Double (2x) - ₹{(item.price * 2).toFixed(0)}</option>
+                            </select>
+                          </div>
+
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1">
                               <button
@@ -704,7 +736,14 @@ const CafeOrders = ({ showToast }) => {
                                 <Plus className="w-3 h-3" />
                               </button>
                             </div>
-                            <span className="text-sm font-bold text-gray-900">₹{item.price * item.quantity}</span>
+                            <div className="text-right">
+                              <div className="text-xs text-gray-500">
+                                {item.quantity} × ₹{(item.price * (item.portionSize || 1.0)).toFixed(0)}
+                              </div>
+                              <div className="text-sm font-bold text-gray-900">
+                                ₹{(item.price * item.quantity * (item.portionSize || 1.0)).toFixed(0)}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       ))

@@ -452,7 +452,9 @@ export const createOrder = async (orderData) => {
 
               if (!invError && inventoryItems && inventoryItems.length > 0) {
                 const inventoryItem = inventoryItems[0];
-                const quantityToDeduct = parseFloat(material.quantity) * orderItem.quantity;
+                // Account for portion size multiplier in inventory deduction
+                const portionSize = orderItem.portionSize || 1.0;
+                const quantityToDeduct = parseFloat(material.quantity) * orderItem.quantity * portionSize;
                 const newStock = parseFloat(inventoryItem.current_stock) - quantityToDeduct;
 
                 await supabase
