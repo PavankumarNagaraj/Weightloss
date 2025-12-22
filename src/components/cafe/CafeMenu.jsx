@@ -17,7 +17,7 @@ const CafeMenu = ({ showToast }) => {
     isVeg: true,
     rawMaterials: [],
   });
-  const [currentMaterial, setCurrentMaterial] = useState({ name: '', quantity: '', unit: 'gm' });
+  const [currentMaterial, setCurrentMaterial] = useState({ name: '', quantity: '', unit: 'gm', extraPrice: 0 });
   const [inventoryItems, setInventoryItems] = useState([]);
   const [materialSearchTerm, setMaterialSearchTerm] = useState('');
   const [showMaterialDropdown, setShowMaterialDropdown] = useState(false);
@@ -89,15 +89,21 @@ const CafeMenu = ({ showToast }) => {
     setCurrentMaterial({
       name: material.name,
       quantity: '',
-      unit: material.unit
+      unit: material.unit,
+      extraPrice: 0
     });
     setMaterialSearchTerm(material.name);
     setShowMaterialDropdown(false);
   };
 
-  const handleMaterialSearchChange = (value) => {
+  const handleMaterialChange = (value) => {
     setMaterialSearchTerm(value);
-    setCurrentMaterial({ ...currentMaterial, name: value });
+    const inventoryItem = inventoryItems.find(item => item.name.toLowerCase() === value.toLowerCase());
+    setCurrentMaterial({ 
+      ...currentMaterial, 
+      name: value,
+      unit: inventoryItem?.unit || currentMaterial.unit
+    });
     setShowMaterialDropdown(true);
   };
 
@@ -135,7 +141,7 @@ const CafeMenu = ({ showToast }) => {
         ...formData,
         rawMaterials: [...formData.rawMaterials, { ...currentMaterial }]
       });
-      setCurrentMaterial({ name: '', quantity: '', unit: 'gm' });
+      setCurrentMaterial({ name: '', quantity: '', unit: 'gm', extraPrice: 0 });
       setMaterialSearchTerm('');
     }
   };
@@ -404,7 +410,7 @@ const CafeMenu = ({ showToast }) => {
                         placeholder="Qty"
                         value={currentMaterial.quantity}
                         onChange={(e) => setCurrentMaterial({...currentMaterial, quantity: e.target.value})}
-                        className="col-span-3 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                       />
                       <select
                         value={currentMaterial.unit}
@@ -416,6 +422,15 @@ const CafeMenu = ({ showToast }) => {
                         <option value="ml">ml</option>
                         <option value="pcs">pcs</option>
                       </select>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Extra ₹/unit"
+                        value={currentMaterial.extraPrice}
+                        onChange={(e) => setCurrentMaterial({...currentMaterial, extraPrice: parseFloat(e.target.value) || 0})}
+                        className="col-span-3 px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        title="Price per unit when customer adds extra"
+                      />
                       <button
                         type="button"
                         onClick={addRawMaterial}
@@ -434,6 +449,11 @@ const CafeMenu = ({ showToast }) => {
                           <div className="flex-1">
                             <span className="font-semibold text-gray-900">{material.name}</span>
                             <span className="text-gray-600 ml-2">- {material.quantity} {material.unit}</span>
+                            {material.extraPrice > 0 && (
+                              <span className="text-orange-600 ml-2 text-xs font-semibold">
+                                (Extra: ₹{material.extraPrice}/{material.unit})
+                              </span>
+                            )}
                           </div>
                           <button
                             type="button"

@@ -17,7 +17,6 @@ const CafeInventory = ({ showToast }) => {
     unit: 'gm',
     category: 'Dry Store',
     pricePerUnit: 0,
-    extraPrice: 0,
     expiryDate: '',
     lastUsedDate: null,
   });
@@ -85,7 +84,6 @@ const CafeInventory = ({ showToast }) => {
       currentStock: item.current_stock ?? item.currentStock,
       minStock: item.min_stock ?? item.minStock,
       pricePerUnit: item.price_per_unit ?? item.pricePerUnit,
-      extraPrice: item.extra_price ?? item.extraPrice ?? item.pricePerUnit ?? 0,
       expiryDate: item.expiry_date ?? item.expiryDate ?? null,
       lastUsedDate: item.last_used_date ?? item.lastUsedDate ?? null,
       isArchived: item.is_archived ?? item.isArchived ?? false,
@@ -133,7 +131,6 @@ const CafeInventory = ({ showToast }) => {
         currentStock: editingItem.currentStock, // Keep current stock as is
         minStock: parseFloat(formData.minStock),
         pricePerUnit: parseFloat(formData.pricePerUnit) || 0,
-        extraPrice: parseFloat(formData.extraPrice) || 0,
         expiryDate: formData.expiryDate || null,
         unit: formData.unit,
         category: formData.category,
@@ -172,7 +169,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', pricePerUnit: 0, extraPrice: 0, expiryDate: '', lastUsedDate: null });
+    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', pricePerUnit: 0, expiryDate: '', lastUsedDate: null });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -189,7 +186,6 @@ const CafeInventory = ({ showToast }) => {
         unit: existingItem.unit,
         category: existingItem.category,
         pricePerUnit: existingItem.pricePerUnit || existingItem.price_per_unit || 0,
-        extraPrice: existingItem.extraPrice || existingItem.extra_price || existingItem.pricePerUnit || existingItem.price_per_unit || 0,
         expiryDate: existingItem.expiryDate || existingItem.expiry_date || '',
         lastUsedDate: existingItem.lastUsedDate || existingItem.last_used_date || null,
       });
@@ -770,6 +766,26 @@ const CafeInventory = ({ showToast }) => {
                   
                   return true;
                 })
+                .sort((a, b) => {
+                  // Check if items are used in menu
+                  const aUsed = menuItems.some(menuItem => {
+                    if (menuItem.is_active === false) return false;
+                    const materials = menuItem.raw_materials || [];
+                    return materials.some(mat => mat.name.toLowerCase() === a.name.toLowerCase());
+                  });
+                  const bUsed = menuItems.some(menuItem => {
+                    if (menuItem.is_active === false) return false;
+                    const materials = menuItem.raw_materials || [];
+                    return materials.some(mat => mat.name.toLowerCase() === b.name.toLowerCase());
+                  });
+                  
+                  // Used items come first
+                  if (aUsed && !bUsed) return -1;
+                  if (!aUsed && bUsed) return 1;
+                  
+                  // Within same group (both used or both unused), sort A-Z
+                  return a.name.localeCompare(b.name);
+                })
                 .map((item) => {
                 // Convert current stock to grams for comparison
                 const currentStockInGrams = convertToGrams(item.currentStock, item.unit);
@@ -902,7 +918,6 @@ const CafeInventory = ({ showToast }) => {
                               unit: item.unit,
                               category: item.category || 'Dry Store',
                               pricePerUnit: item.pricePerUnit || 0,
-                              extraPrice: item.extraPrice || 0,
                               expiryDate: item.expiryDate || '',
                               lastUsedDate: item.lastUsedDate || null,
                             });
@@ -1043,33 +1058,18 @@ const CafeInventory = ({ showToast }) => {
                   )}
                 </div>
 
-                {/* Pricing Section */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Cost Price (per unit)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.pricePerUnit}
-                      onChange={(e) => setFormData({...formData, pricePerUnit: parseFloat(e.target.value) || 0})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="Cost per unit"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Used for cost analysis</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Extra Price (per unit)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.extraPrice}
-                      onChange={(e) => setFormData({...formData, extraPrice: parseFloat(e.target.value) || 0})}
-                      className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="Charge for extras"
-                    />
-                    <p className="text-xs text-orange-600 mt-1 font-semibold">💰 Charged when added as extra</p>
-                  </div>
+                {/* Cost Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Cost Price (per unit)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.pricePerUnit}
+                    onChange={(e) => setFormData({...formData, pricePerUnit: parseFloat(e.target.value) || 0})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Cost per unit"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Supplier cost - used for cost analysis</p>
                 </div>
 
                 {/* Expiry Date (Optional) */}

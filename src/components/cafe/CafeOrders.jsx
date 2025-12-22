@@ -32,19 +32,15 @@ const CafeOrders = ({ showToast }) => {
 
   const loadMenuItems = async () => {
     const items = await getMenuItems();
-    const { getInventory } = await import('../../services/cafeService');
-    const inventory = await getInventory();
     
-    // Map snake_case to camelCase and enrich with inventory prices
+    // Map snake_case to camelCase - extra prices now come from menu items
     const mappedItems = items.map(item => {
       const rawMaterials = item.raw_materials ?? item.rawMaterials ?? [];
       const enrichedMaterials = rawMaterials.map(material => {
-        const inventoryItem = inventory.find(inv => 
-          inv.name.toLowerCase() === material.name.toLowerCase()
-        );
         return {
           ...material,
-          pricePerUnit: inventoryItem?.extra_price || inventoryItem?.extraPrice || inventoryItem?.price_per_unit || inventoryItem?.pricePerUnit || 0
+          // Use extra price from menu item (set by cafe), not from inventory (supplier cost)
+          pricePerUnit: material.extraPrice || material.extra_price || 0
         };
       });
       
