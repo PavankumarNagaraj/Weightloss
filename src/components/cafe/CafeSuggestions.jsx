@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, AlertTriangle, DollarSign, Package, ArrowUp, ArrowDown, CheckCircle, XCircle, Lightbulb } from 'lucide-react';
-import { getPurchases, getMenuItems, getRecipes, getRecipeIngredients, getInventory } from '../../services/cafeService';
+import { getPurchases, getMenuItems, getRecipes, getInventory } from '../../services/cafeService';
 
 const CafeSuggestions = ({ showToast }) => {
   const [suggestions, setSuggestions] = useState([]);
@@ -94,7 +94,8 @@ const CafeSuggestions = ({ showToast }) => {
       const menuItem = menuItems.find(m => m.id === recipe.menu_item_id);
       if (!menuItem) continue;
 
-      const ingredients = await getRecipeIngredients(recipe.id);
+      // Ingredients are already included in the recipe object from getRecipes()
+      const ingredients = recipe.ingredients || [];
       
       let totalCostIncrease = 0;
       let affectedIngredients = [];
