@@ -525,11 +525,11 @@ const CafeInventory = ({ showToast }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 p-2 md:p-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Inventory Management</h2>
-          <p className="text-gray-600 font-semibold mt-1">Track your raw materials and stock levels</p>
+          <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Inventory Management</h2>
+          <p className="text-sm md:text-base text-gray-600 font-semibold mt-1">Track your raw materials and stock levels</p>
         </div>
         <div className="flex items-center gap-3">
           {selectedItems.length > 0 && (
@@ -713,11 +713,11 @@ const CafeInventory = ({ showToast }) => {
       </div>
 
       {/* Inventory Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+        <table className="w-full min-w-[900px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left w-12">
+              <th className="px-3 md:px-6 py-3 text-left w-12">
                 <input
                   type="checkbox"
                   checked={selectAll}
