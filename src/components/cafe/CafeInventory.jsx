@@ -18,6 +18,8 @@ const CafeInventory = ({ showToast }) => {
     category: 'Dry Store',
     pricePerUnit: 0,
     extraPrice: 0,
+    expiryDate: '',
+    lastUsedDate: null,
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -27,6 +29,9 @@ const CafeInventory = ({ showToast }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [existingMaterials, setExistingMaterials] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [usageFilter, setUsageFilter] = useState('all'); // 'all', 'used', 'unused'
+  const [showArchived, setShowArchived] = useState(false);
+  const [showCostDashboard, setShowCostDashboard] = useState(true);
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [templateSearch, setTemplateSearch] = useState('');
@@ -81,6 +86,9 @@ const CafeInventory = ({ showToast }) => {
       minStock: item.min_stock ?? item.minStock,
       pricePerUnit: item.price_per_unit ?? item.pricePerUnit,
       extraPrice: item.extra_price ?? item.extraPrice ?? item.pricePerUnit ?? 0,
+      expiryDate: item.expiry_date ?? item.expiryDate ?? null,
+      lastUsedDate: item.last_used_date ?? item.lastUsedDate ?? null,
+      isArchived: item.is_archived ?? item.isArchived ?? false,
     }));
     setInventory(mappedItems);
     // Get low stock items and filter by menu usage
@@ -126,6 +134,7 @@ const CafeInventory = ({ showToast }) => {
         minStock: parseFloat(formData.minStock),
         pricePerUnit: parseFloat(formData.pricePerUnit) || 0,
         extraPrice: parseFloat(formData.extraPrice) || 0,
+        expiryDate: formData.expiryDate || null,
         unit: formData.unit,
         category: formData.category,
       });
@@ -163,7 +172,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', pricePerUnit: 0, extraPrice: 0 });
+    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', pricePerUnit: 0, extraPrice: 0, expiryDate: '', lastUsedDate: null });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -181,6 +190,8 @@ const CafeInventory = ({ showToast }) => {
         category: existingItem.category,
         pricePerUnit: existingItem.pricePerUnit || existingItem.price_per_unit || 0,
         extraPrice: existingItem.extraPrice || existingItem.extra_price || existingItem.pricePerUnit || existingItem.price_per_unit || 0,
+        expiryDate: existingItem.expiryDate || existingItem.expiry_date || '',
+        lastUsedDate: existingItem.lastUsedDate || existingItem.last_used_date || null,
       });
     } else {
       setFormData({
@@ -573,6 +584,57 @@ const CafeInventory = ({ showToast }) => {
         </div>
       </div>
 
+      {/* Cost Impact Dashboard */}
+      {showCostDashboard && (() => {
+        const usedIngredients = new Set();
+        menuItems.forEach(menuItem => {
+          if (menuItem.is_active !== false) {
+            const materials = menuItem.raw_materials || [];
+            materials.forEach(mat => usedIngredients.add(mat.name.toLowerCase()));
+          }
+        });
+        
+        const unusedItems = inventory.filter(item => !usedIngredients.has(item.name.toLowerCase()) && !item.isArchived);
+        const unusedValue = unusedItems.reduce((sum, item) => {
+          const value = (item.currentStock || 0) * (item.pricePerUnit || 0);
+          return sum + value;
+        }, 0);
+        
+        const expiringItems = inventory.filter(item => {
+          if (!item.expiryDate) return false;
+          const daysUntilExpiry = Math.ceil((new Date(item.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+          return daysUntilExpiry <= 7 && daysUntilExpiry >= 0;
+        });
+        
+        return (
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-bold text-gray-900">💰 Cost Impact Dashboard</h3>
+              <button onClick={() => setShowCostDashboard(false)} className="text-gray-500 hover:text-gray-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg p-3 shadow-sm">
+                <div className="text-xs text-gray-600 font-semibold mb-1">Unused Inventory Value</div>
+                <div className="text-2xl font-bold text-orange-600">₹{unusedValue.toFixed(0)}</div>
+                <div className="text-xs text-gray-500 mt-1">{unusedItems.length} items not in menu</div>
+              </div>
+              <div className="bg-white rounded-lg p-3 shadow-sm">
+                <div className="text-xs text-gray-600 font-semibold mb-1">Active Ingredients</div>
+                <div className="text-2xl font-bold text-green-600">{usedIngredients.size}</div>
+                <div className="text-xs text-gray-500 mt-1">Used in menu items</div>
+              </div>
+              <div className="bg-white rounded-lg p-3 shadow-sm">
+                <div className="text-xs text-gray-600 font-semibold mb-1">Expiring Soon</div>
+                <div className="text-2xl font-bold text-red-600">{expiringItems.length}</div>
+                <div className="text-xs text-gray-500 mt-1">Within 7 days</div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Info Banner */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
         <div className="flex items-center gap-3">
@@ -596,8 +658,44 @@ const CafeInventory = ({ showToast }) => {
         </div>
       )}
 
-      {/* Category Filter */}
+      {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        {/* Usage Filter */}
+        <div className="flex items-center gap-2 flex-wrap mb-4 pb-4 border-b border-gray-200">
+          <span className="text-sm font-semibold text-gray-700">Usage Status:</span>
+          {[
+            { value: 'all', label: '📋 All Items', color: 'purple' },
+            { value: 'used', label: '✅ Used in Menu', color: 'green' },
+            { value: 'unused', label: '⚪ Unused', color: 'gray' }
+          ].map(filter => (
+            <button
+              key={filter.value}
+              onClick={() => setUsageFilter(filter.value)}
+              className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
+                usageFilter === filter.value
+                  ? filter.color === 'purple' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg' :
+                    filter.color === 'green' ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg' :
+                    'bg-gray-600 text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+          <div className="flex-1"></div>
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
+              showArchived
+                ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {showArchived ? '📦 Showing Archived' : '📦 Show Archived'}
+          </button>
+        </div>
+        
+        {/* Category Filter */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-semibold text-gray-700">Filter by Category:</span>
           {['All', ...categories].map(cat => (
@@ -652,7 +750,26 @@ const CafeInventory = ({ showToast }) => {
               </tr>
             ) : (
               inventory
-                .filter(item => selectedCategory === 'All' || item.category === selectedCategory)
+                .filter(item => {
+                  // Category filter
+                  if (selectedCategory !== 'All' && item.category !== selectedCategory) return false;
+                  
+                  // Archive filter
+                  if (item.isArchived && !showArchived) return false;
+                  if (!item.isArchived && showArchived) return false;
+                  
+                  // Usage filter
+                  const isUsedInMenu = menuItems.some(menuItem => {
+                    if (menuItem.is_active === false) return false;
+                    const materials = menuItem.raw_materials || [];
+                    return materials.some(mat => mat.name.toLowerCase() === item.name.toLowerCase());
+                  });
+                  
+                  if (usageFilter === 'used' && !isUsedInMenu) return false;
+                  if (usageFilter === 'unused' && isUsedInMenu) return false;
+                  
+                  return true;
+                })
                 .map((item) => {
                 // Convert current stock to grams for comparison
                 const currentStockInGrams = convertToGrams(item.currentStock, item.unit);
@@ -665,6 +782,15 @@ const CafeInventory = ({ showToast }) => {
                   return materials.some(mat => mat.name.toLowerCase() === item.name.toLowerCase());
                 });
                 
+                // Check expiry status
+                let expiryStatus = null;
+                if (item.expiryDate) {
+                  const daysUntilExpiry = Math.ceil((new Date(item.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+                  if (daysUntilExpiry < 0) expiryStatus = 'expired';
+                  else if (daysUntilExpiry <= 3) expiryStatus = 'critical';
+                  else if (daysUntilExpiry <= 7) expiryStatus = 'warning';
+                }
+                
                 return (
                   <tr key={item.id} className={`hover:bg-gray-50 ${isLowStock && isUsedInMenu ? 'bg-red-50' : ''} ${!isUsedInMenu ? 'opacity-40' : ''} ${selectedItems.includes(item.id) ? 'bg-purple-50' : ''}`}>
                     <td className="px-4 py-2">
@@ -676,12 +802,52 @@ const CafeInventory = ({ showToast }) => {
                       />
                     </td>
                     <td className="px-4 py-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">{item.name}</span>
-                        {!isUsedInMenu && (
-                          <span className="px-2 py-0.5 bg-gray-200 text-gray-600 rounded text-xs font-semibold">
-                            Unused
-                          </span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-900">{item.name}</span>
+                          {!isUsedInMenu && (
+                            <span className="px-2 py-0.5 bg-gray-200 text-gray-600 rounded text-xs font-semibold">
+                              Unused
+                            </span>
+                          )}
+                          {item.isArchived && (
+                            <span className="px-2 py-0.5 bg-amber-200 text-amber-700 rounded text-xs font-semibold">
+                              📦 Archived
+                            </span>
+                          )}
+                          {expiryStatus === 'expired' && (
+                            <span className="px-2 py-0.5 bg-red-200 text-red-700 rounded text-xs font-semibold">
+                              ⚠️ Expired
+                            </span>
+                          )}
+                          {expiryStatus === 'critical' && (
+                            <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded text-xs font-semibold">
+                              ⏰ Expires in {Math.ceil((new Date(item.expiryDate) - new Date()) / (1000 * 60 * 60 * 24))}d
+                            </span>
+                          )}
+                          {expiryStatus === 'warning' && (
+                            <span className="px-2 py-0.5 bg-orange-100 text-orange-600 rounded text-xs font-semibold">
+                              ⏰ Expires in {Math.ceil((new Date(item.expiryDate) - new Date()) / (1000 * 60 * 60 * 24))}d
+                            </span>
+                          )}
+                        </div>
+                        {item.lastUsedDate && (
+                          <div className="text-xs text-gray-500">
+                            Last used: {new Date(item.lastUsedDate).toLocaleDateString()}
+                          </div>
+                        )}
+                        {!isUsedInMenu && !item.isArchived && (
+                          <div className="flex gap-1 mt-1">
+                            <button
+                              onClick={() => {
+                                window.location.hash = '#/cafe/menu';
+                                showToast(`💡 Add "${item.name}" to a menu item to activate it`);
+                              }}
+                              className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-semibold hover:bg-green-200 transition"
+                            >
+                              + Add to Menu
+                            </button>
+                          </div>
                         )}
                       </div>
                     </td>
@@ -735,6 +901,10 @@ const CafeInventory = ({ showToast }) => {
                               minStock: item.minStock,
                               unit: item.unit,
                               category: item.category || 'Dry Store',
+                              pricePerUnit: item.pricePerUnit || 0,
+                              extraPrice: item.extraPrice || 0,
+                              expiryDate: item.expiryDate || '',
+                              lastUsedDate: item.lastUsedDate || null,
                             });
                             setSearchTerm(item.name);
                             setShowModal(true);
@@ -900,6 +1070,21 @@ const CafeInventory = ({ showToast }) => {
                     />
                     <p className="text-xs text-orange-600 mt-1 font-semibold">💰 Charged when added as extra</p>
                   </div>
+                </div>
+
+                {/* Expiry Date (Optional) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Expiry Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.expiryDate}
+                    onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">For perishable items - get alerts before expiry</p>
                 </div>
 
                 {/* Type (Storage Category) */}
