@@ -16,7 +16,6 @@ const CafeInventory = ({ showToast }) => {
     minStock: '',
     unit: 'gm',
     category: 'Dry Store',
-    pricePerUnit: 0,
     expiryDate: '',
     lastUsedDate: null,
   });
@@ -130,7 +129,6 @@ const CafeInventory = ({ showToast }) => {
         name: formData.name,
         currentStock: editingItem.currentStock, // Keep current stock as is
         minStock: parseFloat(formData.minStock),
-        pricePerUnit: parseFloat(formData.pricePerUnit) || 0,
         expiryDate: formData.expiryDate || null,
         unit: formData.unit,
         category: formData.category,
@@ -169,7 +167,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', pricePerUnit: 0, expiryDate: '', lastUsedDate: null });
+    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', expiryDate: '', lastUsedDate: null });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -185,7 +183,6 @@ const CafeInventory = ({ showToast }) => {
         minStock: existingItem.minStock || existingItem.min_stock || 0,
         unit: existingItem.unit,
         category: existingItem.category,
-        pricePerUnit: existingItem.pricePerUnit || existingItem.price_per_unit || 0,
         expiryDate: existingItem.expiryDate || existingItem.expiry_date || '',
         lastUsedDate: existingItem.lastUsedDate || existingItem.last_used_date || null,
       });
@@ -917,7 +914,6 @@ const CafeInventory = ({ showToast }) => {
                               minStock: item.minStock,
                               unit: item.unit,
                               category: item.category || 'Dry Store',
-                              pricePerUnit: item.pricePerUnit || 0,
                               expiryDate: item.expiryDate || '',
                               lastUsedDate: item.lastUsedDate || null,
                             });
@@ -1058,19 +1054,6 @@ const CafeInventory = ({ showToast }) => {
                   )}
                 </div>
 
-                {/* Cost Price */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Cost Price (per unit)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.pricePerUnit}
-                    onChange={(e) => setFormData({...formData, pricePerUnit: parseFloat(e.target.value) || 0})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Cost per unit"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Supplier cost - used for cost analysis</p>
-                </div>
 
                 {/* Expiry Date (Optional) */}
                 <div>

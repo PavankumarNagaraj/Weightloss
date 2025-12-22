@@ -340,18 +340,17 @@ const CafeOrders = ({ showToast }) => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-4 md:space-y-6 p-2 md:p-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Orders</h2>
-          <p className="text-gray-600 font-semibold mt-1">Manage cafe orders</p>
+          <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Orders</h2>
+          <p className="text-sm md:text-base text-gray-600 font-semibold mt-1">Manage cafe orders</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+          className="flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl text-sm md:text-base w-full md:w-auto"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4 md:w-5 md:h-5" />
           New Order
         </button>
       </div>
@@ -422,18 +421,18 @@ const CafeOrders = ({ showToast }) => {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+        <table className="w-full min-w-[800px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Order #</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Customer</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Items</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Payment</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Received</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-40">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Actions</th>
+              <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Order #</th>
+              <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Customer</th>
+              <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Items</th>
+              <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Amount</th>
+              <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Payment</th>
+              <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Received</th>
+              <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-40">Date</th>
+              <th className="px-3 md:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">

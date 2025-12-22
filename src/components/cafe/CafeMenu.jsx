@@ -96,7 +96,7 @@ const CafeMenu = ({ showToast }) => {
     setShowMaterialDropdown(false);
   };
 
-  const handleMaterialChange = (value) => {
+  const handleMaterialSearchChange = (value) => {
     setMaterialSearchTerm(value);
     const inventoryItem = inventoryItems.find(item => item.name.toLowerCase() === value.toLowerCase());
     setCurrentMaterial({ 
@@ -286,8 +286,8 @@ const CafeMenu = ({ showToast }) => {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl w-full max-w-4xl my-8">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold">{editingItem ? 'Edit' : 'Add'} Menu Item</h3>
@@ -363,6 +363,13 @@ const CafeMenu = ({ showToast }) => {
                   
                   {/* Add Raw Material */}
                   <div className="bg-gray-50 rounded-lg p-4 mb-3">
+                    {/* Headers */}
+                    <div className="grid grid-cols-12 gap-2 mb-2 text-xs font-semibold text-gray-600">
+                      <div className="col-span-5">Ingredient Name</div>
+                      <div className="col-span-2">Quantity</div>
+                      <div className="col-span-2">Unit</div>
+                      <div className="col-span-3">Extra Price (₹/unit)</div>
+                    </div>
                     <div className="grid grid-cols-12 gap-2">
                       {/* Searchable Material Dropdown */}
                       <div className="col-span-5 relative">
