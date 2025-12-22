@@ -18,7 +18,7 @@ const CafePurchases = ({ showToast }) => {
   const [currentItem, setCurrentItem] = useState({
     materialName: '',
     quantity: '',
-    unit: 'g',
+    unit: 'gm',
     totalPrice: '',
   });
   const [materialSearchTerm, setMaterialSearchTerm] = useState('');
@@ -106,7 +106,7 @@ const CafePurchases = ({ showToast }) => {
           total: parseFloat(currentItem.totalPrice)
         }]
       });
-      setCurrentItem({ materialName: '', quantity: '', unit: 'g', totalPrice: '' });
+      setCurrentItem({ materialName: '', quantity: '', unit: 'gm', totalPrice: '' });
       setMaterialSearchTerm('');
     }
   };
@@ -139,7 +139,7 @@ const CafePurchases = ({ showToast }) => {
 
   const resetForm = () => {
     setFormData({ supplierName: '', items: [], totalAmount: '', notes: '' });
-    setCurrentItem({ materialName: '', quantity: '', unit: 'g', totalPrice: '' });
+    setCurrentItem({ materialName: '', quantity: '', unit: 'gm', totalPrice: '' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
     setShowModal(false);
@@ -349,10 +349,8 @@ const CafePurchases = ({ showToast }) => {
                         className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                         disabled={currentItem.materialName && inventory.find(item => item.name === currentItem.materialName)}
                       >
-                        <option value="g">g</option>
-                        <option value="kg">kg</option>
+                        <option value="gm">gm</option>
                         <option value="ml">ml</option>
-                        <option value="l">l</option>
                         <option value="pcs">pcs</option>
                       </select>
                       

@@ -14,7 +14,7 @@ const CafeInventory = ({ showToast }) => {
     name: '',
     currentStock: 0,
     minStock: '',
-    unit: 'g',
+    unit: 'gm',
     category: 'Dry Store',
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -143,7 +143,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'g', category: 'Dry Store' });
+    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store' });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -806,10 +806,8 @@ const CafeInventory = ({ showToast }) => {
                         onChange={(e) => setFormData({...formData, unit: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       >
-                        <option value="g">g</option>
-                        <option value="kg">kg</option>
+                        <option value="gm">gm</option>
                         <option value="ml">ml</option>
-                        <option value="l">l</option>
                         <option value="pcs">pcs</option>
                       </select>
                     </div>
