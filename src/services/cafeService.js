@@ -452,9 +452,17 @@ export const createOrder = async (orderData) => {
 
               if (!invError && inventoryItems && inventoryItems.length > 0) {
                 const inventoryItem = inventoryItems[0];
-                // Account for portion size multiplier in inventory deduction
-                const portionSize = orderItem.portionSize || 1.0;
-                const quantityToDeduct = parseFloat(material.quantity) * orderItem.quantity * portionSize;
+                // Base quantity deduction
+                const baseQuantityToDeduct = parseFloat(material.quantity) * orderItem.quantity;
+                
+                // Check if this ingredient has extra quantity added
+                const extraIngredient = (orderItem.extraIngredients || []).find(
+                  e => e.name.toLowerCase() === material.name.toLowerCase()
+                );
+                const extraQuantity = extraIngredient ? parseFloat(extraIngredient.quantity) : 0;
+                
+                // Total deduction = base + extra
+                const quantityToDeduct = baseQuantityToDeduct + extraQuantity;
                 const newStock = parseFloat(inventoryItem.current_stock) - quantityToDeduct;
 
                 await supabase

@@ -32,15 +32,32 @@ const CafeOrders = ({ showToast }) => {
 
   const loadMenuItems = async () => {
     const items = await getMenuItems();
-    // Map snake_case to camelCase
-    const mappedItems = items.map(item => ({
-      ...item,
-      customerPrice: item.customer_price ?? item.customerPrice,
-      trainerPrice: item.trainer_price ?? item.trainerPrice,
-      isVeg: item.is_veg ?? item.isVeg,
-      rawMaterials: item.raw_materials ?? item.rawMaterials,
-      isActive: item.is_active ?? item.isActive,
-    }));
+    const { getInventory } = await import('../../services/cafeService');
+    const inventory = await getInventory();
+    
+    // Map snake_case to camelCase and enrich with inventory prices
+    const mappedItems = items.map(item => {
+      const rawMaterials = item.raw_materials ?? item.rawMaterials ?? [];
+      const enrichedMaterials = rawMaterials.map(material => {
+        const inventoryItem = inventory.find(inv => 
+          inv.name.toLowerCase() === material.name.toLowerCase()
+        );
+        return {
+          ...material,
+          pricePerUnit: inventoryItem?.price_per_unit || inventoryItem?.pricePerUnit || 0
+        };
+      });
+      
+      return {
+        ...item,
+        customerPrice: item.customer_price ?? item.customerPrice,
+        trainerPrice: item.trainer_price ?? item.trainerPrice,
+        isVeg: item.is_veg ?? item.isVeg,
+        rawMaterials: enrichedMaterials,
+        raw_materials: enrichedMaterials,
+        isActive: item.is_active ?? item.isActive,
+      };
+    });
     setMenuItems(mappedItems);
   };
 
@@ -143,14 +160,30 @@ const CafeOrders = ({ showToast }) => {
           : cartItem
       ));
     } else {
-      setCart([...cart, { ...item, price, quantity: 1, portionSize: 1.0 }]);
+      setCart([...cart, { ...item, price, quantity: 1, extraIngredients: [] }]);
     }
   };
 
-  const updatePortionSize = (itemId, newPortionSize) => {
+  const updateExtraIngredient = (itemId, ingredientName, quantity, unit, pricePerUnit) => {
     setCart(cart.map(item => {
       if (item.id === itemId) {
-        return { ...item, portionSize: newPortionSize };
+        const existingExtras = item.extraIngredients || [];
+        const existingIndex = existingExtras.findIndex(e => e.name === ingredientName);
+        
+        let newExtras;
+        if (quantity === 0) {
+          // Remove ingredient if quantity is 0
+          newExtras = existingExtras.filter(e => e.name !== ingredientName);
+        } else if (existingIndex >= 0) {
+          // Update existing
+          newExtras = [...existingExtras];
+          newExtras[existingIndex] = { name: ingredientName, quantity, unit, pricePerUnit };
+        } else {
+          // Add new
+          newExtras = [...existingExtras, { name: ingredientName, quantity, unit, pricePerUnit }];
+        }
+        
+        return { ...item, extraIngredients: newExtras };
       }
       return item;
     }));
@@ -172,8 +205,11 @@ const CafeOrders = ({ showToast }) => {
 
   const calculateSubtotal = () => {
     return cart.reduce((sum, item) => {
-      const portionSize = item.portionSize || 1.0;
-      return sum + (item.price * item.quantity * portionSize);
+      const basePrice = item.price * item.quantity;
+      const extrasCost = (item.extraIngredients || []).reduce((extraSum, extra) => {
+        return extraSum + (extra.quantity * extra.pricePerUnit);
+      }, 0);
+      return sum + basePrice + extrasCost;
     }, 0);
   };
 
@@ -200,14 +236,19 @@ const CafeOrders = ({ showToast }) => {
       userId: selectedUser || null,
       customerType: customerType,
       paymentMethod: paymentMethod,
-      items: cart.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        portionSize: item.portionSize || 1.0,
-        adjustedPrice: item.price * (item.portionSize || 1.0),
-      })),
+      items: cart.map(item => {
+        const extrasCost = (item.extraIngredients || []).reduce((sum, extra) => 
+          sum + (extra.quantity * extra.pricePerUnit), 0
+        );
+        return {
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          extraIngredients: item.extraIngredients || [],
+          adjustedPrice: item.price + (extrasCost / item.quantity),
+        };
+      }),
       subtotal: subtotal,
       discount: customerType === 'trainer' ? subtotal : discount,
       totalAmount: total,
@@ -703,22 +744,50 @@ const CafeOrders = ({ showToast }) => {
                             </button>
                           </div>
                           
-                          {/* Portion Size Selector */}
-                          <div className="mb-2">
-                            <label className="text-xs text-gray-600 font-semibold mb-1 block">Portion Size:</label>
-                            <select
-                              value={item.portionSize || 1.0}
-                              onChange={(e) => updatePortionSize(item.id, parseFloat(e.target.value))}
-                              className="w-full px-2 py-1 text-xs border-2 border-purple-200 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
-                            >
-                              <option value="0.5">Half (0.5x) - ₹{(item.price * 0.5).toFixed(0)}</option>
-                              <option value="0.75">3/4 (0.75x) - ₹{(item.price * 0.75).toFixed(0)}</option>
-                              <option value="1.0">Regular (1x) - ₹{item.price}</option>
-                              <option value="1.25">Large (1.25x) - ₹{(item.price * 1.25).toFixed(0)}</option>
-                              <option value="1.5">Extra Large (1.5x) - ₹{(item.price * 1.5).toFixed(0)}</option>
-                              <option value="2.0">Double (2x) - ₹{(item.price * 2).toFixed(0)}</option>
-                            </select>
-                          </div>
+                          {/* Extra Ingredients */}
+                          {item.raw_materials && item.raw_materials.length > 0 && (
+                            <div className="mb-2">
+                              <label className="text-xs text-gray-600 font-semibold mb-1 block">Add Extra:</label>
+                              <div className="space-y-1">
+                                {item.raw_materials
+                                  .filter(mat => ['Eggs', 'Chicken', 'Paneer', 'Mutton', 'Fish', 'Prawns'].some(main => 
+                                    mat.name.toLowerCase().includes(main.toLowerCase())
+                                  ))
+                                  .map((material) => {
+                                    const currentExtra = (item.extraIngredients || []).find(e => e.name === material.name);
+                                    const extraQty = currentExtra ? currentExtra.quantity : 0;
+                                    const pricePerUnit = material.pricePerUnit || 0;
+                                    
+                                    return (
+                                      <div key={material.name} className="flex items-center gap-2 bg-orange-50 rounded px-2 py-1">
+                                        <span className="text-xs font-medium text-gray-700 flex-1">{material.name}</span>
+                                        <div className="flex items-center gap-1">
+                                          <button
+                                            onClick={() => updateExtraIngredient(item.id, material.name, Math.max(0, extraQty - (material.unit === 'pcs' ? 1 : 50)), material.unit, pricePerUnit)}
+                                            className="w-5 h-5 bg-gray-200 rounded flex items-center justify-center hover:bg-gray-300 transition"
+                                            disabled={extraQty === 0}
+                                          >
+                                            <Minus className="w-3 h-3" />
+                                          </button>
+                                          <span className="text-xs font-bold w-12 text-center">
+                                            {extraQty > 0 ? `+${extraQty}${material.unit}` : '0'}
+                                          </span>
+                                          <button
+                                            onClick={() => updateExtraIngredient(item.id, material.name, extraQty + (material.unit === 'pcs' ? 1 : 50), material.unit, pricePerUnit)}
+                                            className="w-5 h-5 bg-orange-600 text-white rounded flex items-center justify-center hover:bg-orange-700 transition"
+                                          >
+                                            <Plus className="w-3 h-3" />
+                                          </button>
+                                        </div>
+                                        {extraQty > 0 && pricePerUnit > 0 && (
+                                          <span className="text-xs text-orange-600 font-semibold">+₹{(extraQty * pricePerUnit).toFixed(0)}</span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            </div>
+                          )}
 
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1">
@@ -738,10 +807,16 @@ const CafeOrders = ({ showToast }) => {
                             </div>
                             <div className="text-right">
                               <div className="text-xs text-gray-500">
-                                {item.quantity} × ₹{(item.price * (item.portionSize || 1.0)).toFixed(0)}
+                                {item.quantity} × ₹{item.price}
+                                {(item.extraIngredients || []).length > 0 && (
+                                  <span className="text-orange-600"> + extras</span>
+                                )}
                               </div>
                               <div className="text-sm font-bold text-gray-900">
-                                ₹{(item.price * item.quantity * (item.portionSize || 1.0)).toFixed(0)}
+                                ₹{(
+                                  item.price * item.quantity + 
+                                  (item.extraIngredients || []).reduce((sum, extra) => sum + (extra.quantity * extra.pricePerUnit), 0)
+                                ).toFixed(0)}
                               </div>
                             </div>
                           </div>

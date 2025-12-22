@@ -126,28 +126,6 @@ const CafeSettings = ({ showToast }) => {
       </div>
 
       {/* Important Notice */}
-      <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 sm:p-6">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
-          <div>
-            <h3 className="font-bold text-yellow-900 mb-2">⚠️ Important: Automated Email Limitations</h3>
-            <div className="text-sm text-yellow-800 space-y-2">
-              <p>
-                <strong>Browser-Based Automation:</strong> The automated daily email only works when the Dashboard page is open in your browser at the scheduled time.
-              </p>
-              <p>
-                <strong>5-Minute Window:</strong> The system checks within a 5-minute window of your scheduled time to increase reliability.
-              </p>
-              <p>
-                <strong>Recommendation:</strong> Use the <strong>"Email Report"</strong> button on the Dashboard to send reports manually, or keep the Dashboard tab open in your browser.
-              </p>
-              <p className="text-xs mt-3 text-yellow-700">
-                💡 <strong>Tip:</strong> For true automated emails without browser dependency, you would need a backend server or Supabase Edge Function with cron triggers.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Settings Card */}
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border-2 border-gray-100 p-4 sm:p-8">
@@ -235,48 +213,9 @@ const CafeSettings = ({ showToast }) => {
           </div>
 
           {/* Info Box */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6">
-            <div className="flex items-start gap-3">
-              <Bell className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-              <div>
-                <h4 className="font-bold text-blue-900 mb-2">How it works</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• Daily reports are sent automatically via Supabase Edge Functions</li>
-                  <li>• Reports include: orders, revenue, expenses, low stock items, and credit orders</li>
-                  <li>• Email is sent using Brevo API for reliable delivery</li>
-                  <li>• You can also manually send reports from any tab using the "Email Report" button</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+
 
           {/* Database Info */}
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
-            <div className="flex items-start gap-3">
-              <Database className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
-              <div>
-                <h4 className="font-bold text-green-900 mb-2">Supabase Cron Configuration</h4>
-                <p className="text-sm text-green-800 mb-2">
-                  To update the cron schedule in Supabase, run this SQL command:
-                </p>
-                <pre className="bg-white/50 border border-green-300 rounded-lg p-3 text-xs font-mono text-green-900 overflow-x-auto">
-{`SELECT cron.schedule(
-  'daily-email-report',
-  '${convertToUTC(cronTime).split(':')[1]} ${convertToUTC(cronTime).split(':')[0]} * * *',
-  $$
-  SELECT net.http_post(
-    url:='https://capvowxxembnycdonghv.supabase.co/functions/v1/daily-email-cron',
-    headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb
-  ) AS request_id;
-  $$
-);`}
-                </pre>
-                <p className="text-xs text-green-700 mt-2">
-                  Note: Cron schedule uses UTC time. The command above is already converted from IST.
-                </p>
-              </div>
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t-2 border-gray-100">

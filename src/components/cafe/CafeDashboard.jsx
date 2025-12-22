@@ -208,20 +208,6 @@ const CafeDashboard = ({ showToast }) => {
       </div>
 
       {/* Email Automation Status */}
-      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-        <div className="flex items-start gap-3">
-          <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm text-blue-900">
-              <strong>🔔 Automated Email:</strong> This page checks for scheduled email reports every minute. 
-              Keep this tab open for automated sending, or use the <strong>"Email Report"</strong> button above to send manually.
-            </p>
-            <p className="text-xs text-blue-700 mt-1">
-              Configure email settings in <strong>Settings</strong> page.
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* Current Balance - Prominent Display */}
       {balance && (
