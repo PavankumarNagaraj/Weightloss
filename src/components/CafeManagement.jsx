@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings, Menu, X, Calculator, ChefHat, Trash } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings, Menu, X, Calculator, ChefHat, Trash, Lightbulb } from 'lucide-react';
 import CafeOrders from './cafe/CafeOrders';
 import CafeMenu from './cafe/CafeMenu';
 import CafeInventory from './cafe/CafeInventory';
@@ -17,6 +17,7 @@ import CafeLogin from './cafe/CafeLogin';
 import CafeCostAnalysis from './cafe/CafeCostAnalysis';
 import CafeRecipes from './cafe/CafeRecipes';
 import CafeWaste from './cafe/CafeWaste';
+import CafeSuggestions from './cafe/CafeSuggestions';
 
 const CafeManagement = () => {
   const location = useLocation();
@@ -59,6 +60,7 @@ const CafeManagement = () => {
     { path: '/cafe/recipes', label: 'Recipes', icon: ChefHat },
     { path: '/cafe/waste', label: 'Waste Tracking', icon: Trash },
     { path: '/cafe/cost-analysis', label: 'Cost Analysis', icon: Calculator },
+    { path: '/cafe/suggestions', label: 'Suggestions', icon: Lightbulb },
     { path: '/cafe/analytics', label: 'Analytics', icon: BarChart2 },
     { path: '/cafe/reports', label: 'Reports', icon: FileText },
     { path: '/cafe/subscription-orders', label: 'Subscriptions', icon: Calendar },
@@ -164,6 +166,7 @@ const CafeManagement = () => {
               <Route path="/recipes" element={<CafeRecipes showToast={handleToast} />} />
               <Route path="/waste" element={<CafeWaste showToast={handleToast} />} />
               <Route path="/cost-analysis" element={<CafeCostAnalysis showToast={handleToast} />} />
+              <Route path="/suggestions" element={<CafeSuggestions showToast={handleToast} />} />
               <Route path="/analytics" element={<CafeSalesAnalytics showToast={handleToast} />} />
               <Route path="/reports" element={<CafeReports showToast={handleToast} />} />
               <Route path="/subscription-orders" element={<CafeSubscriptionOrders showToast={handleToast} />} />
