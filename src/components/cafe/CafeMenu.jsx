@@ -365,14 +365,15 @@ const CafeMenu = ({ showToast }) => {
                   <div className="bg-gray-50 rounded-lg p-4 mb-3">
                     {/* Headers */}
                     <div className="grid grid-cols-12 gap-2 mb-2 text-xs font-semibold text-gray-600">
-                      <div className="col-span-5">Ingredient Name</div>
+                      <div className="col-span-4">Ingredient Name</div>
                       <div className="col-span-2">Quantity</div>
                       <div className="col-span-2">Unit</div>
-                      <div className="col-span-3">Extra Price (₹/unit)</div>
+                      <div className="col-span-2">Extra Price (₹/unit)</div>
+                      <div className="col-span-2">Action</div>
                     </div>
                     <div className="grid grid-cols-12 gap-2">
                       {/* Searchable Material Dropdown */}
-                      <div className="col-span-5 relative">
+                      <div className="col-span-4 relative">
                         <input
                           type="text"
                           placeholder="Search inventory..."
@@ -433,9 +434,12 @@ const CafeMenu = ({ showToast }) => {
                         type="number"
                         step="0.01"
                         placeholder="Extra ₹/unit"
-                        value={currentMaterial.extraPrice}
-                        onChange={(e) => setCurrentMaterial({...currentMaterial, extraPrice: parseFloat(e.target.value) || 0})}
-                        className="col-span-3 px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        value={currentMaterial.extraPrice === 0 ? '' : currentMaterial.extraPrice}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setCurrentMaterial({...currentMaterial, extraPrice: value === '' ? 0 : parseFloat(value) || 0});
+                        }}
+                        className="col-span-2 px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                         title="Price per unit when customer adds extra"
                       />
                       <button
