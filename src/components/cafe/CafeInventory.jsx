@@ -16,6 +16,8 @@ const CafeInventory = ({ showToast }) => {
     minStock: '',
     unit: 'gm',
     category: 'Dry Store',
+    pricePerUnit: 0,
+    extraPrice: 0,
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -78,9 +80,26 @@ const CafeInventory = ({ showToast }) => {
       currentStock: item.current_stock ?? item.currentStock,
       minStock: item.min_stock ?? item.minStock,
       pricePerUnit: item.price_per_unit ?? item.pricePerUnit,
+      extraPrice: item.extra_price ?? item.extraPrice ?? item.pricePerUnit ?? 0,
     }));
     setInventory(mappedItems);
-    const lowStockItems = await getLowStockItems();
+    // Get low stock items and filter by menu usage
+    const allLowStockItems = await getLowStockItems();
+    const menuItemsList = await getMenuItems();
+    
+    // Check which ingredients are used in active menu items
+    const usedIngredients = new Set();
+    menuItemsList.forEach(menuItem => {
+      if (menuItem.is_active !== false) {
+        const materials = menuItem.raw_materials || [];
+        materials.forEach(mat => usedIngredients.add(mat.name.toLowerCase()));
+      }
+    });
+    
+    // Filter low stock to only show items used in menu
+    const lowStockItems = allLowStockItems.filter(item => 
+      usedIngredients.has(item.name.toLowerCase())
+    );
     setLowStock(lowStockItems);
   };
 
@@ -105,9 +124,10 @@ const CafeInventory = ({ showToast }) => {
         name: formData.name,
         currentStock: editingItem.currentStock, // Keep current stock as is
         minStock: parseFloat(formData.minStock),
+        pricePerUnit: parseFloat(formData.pricePerUnit) || 0,
+        extraPrice: parseFloat(formData.extraPrice) || 0,
         unit: formData.unit,
         category: formData.category,
-        pricePerUnit: editingItem.pricePerUnit || 0, // Keep existing price
       });
       showToast(`✅ Updated ${formData.name}`);
     } else {
@@ -143,7 +163,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store' });
+    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', pricePerUnit: 0, extraPrice: 0 });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -154,11 +174,13 @@ const CafeInventory = ({ showToast }) => {
     const existingItem = inventory.find(item => item.name === materialName);
     if (existingItem) {
       setFormData({
-        name: materialName,
-        currentStock: existingItem.currentStock,
-        minStock: existingItem.minStock,
+        name: existingItem.name,
+        currentStock: existingItem.currentStock || existingItem.current_stock || 0,
+        minStock: existingItem.minStock || existingItem.min_stock || 0,
         unit: existingItem.unit,
-        category: existingItem.category || 'Dry Store',
+        category: existingItem.category,
+        pricePerUnit: existingItem.pricePerUnit || existingItem.price_per_unit || 0,
+        extraPrice: existingItem.extraPrice || existingItem.extra_price || existingItem.pricePerUnit || existingItem.price_per_unit || 0,
       });
     } else {
       setFormData({
@@ -623,8 +645,15 @@ const CafeInventory = ({ showToast }) => {
                 const currentStockInGrams = convertToGrams(item.currentStock, item.unit);
                 const isLowStock = currentStockInGrams <= item.minStock;
                 
+                // Check if item is used in any active menu item
+                const isUsedInMenu = menuItems.some(menuItem => {
+                  if (menuItem.is_active === false) return false;
+                  const materials = menuItem.raw_materials || [];
+                  return materials.some(mat => mat.name.toLowerCase() === item.name.toLowerCase());
+                });
+                
                 return (
-                  <tr key={item.id} className={`hover:bg-gray-50 ${isLowStock ? 'bg-red-50' : ''} ${selectedItems.includes(item.id) ? 'bg-purple-50' : ''}`}>
+                  <tr key={item.id} className={`hover:bg-gray-50 ${isLowStock && isUsedInMenu ? 'bg-red-50' : ''} ${!isUsedInMenu ? 'opacity-40' : ''} ${selectedItems.includes(item.id) ? 'bg-purple-50' : ''}`}>
                     <td className="px-4 py-2">
                       <input
                         type="checkbox"
@@ -822,6 +851,35 @@ const CafeInventory = ({ showToast }) => {
                       </div>
                     </div>
                   )}
+                </div>
+
+                {/* Pricing Section */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Cost Price (per unit)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.pricePerUnit}
+                      onChange={(e) => setFormData({...formData, pricePerUnit: parseFloat(e.target.value) || 0})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Cost per unit"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Used for cost analysis</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Extra Price (per unit)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.extraPrice}
+                      onChange={(e) => setFormData({...formData, extraPrice: parseFloat(e.target.value) || 0})}
+                      className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Charge for extras"
+                    />
+                    <p className="text-xs text-orange-600 mt-1 font-semibold">💰 Charged when added as extra</p>
+                  </div>
                 </div>
 
                 {/* Type (Storage Category) */}

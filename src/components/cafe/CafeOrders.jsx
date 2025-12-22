@@ -44,7 +44,7 @@ const CafeOrders = ({ showToast }) => {
         );
         return {
           ...material,
-          pricePerUnit: inventoryItem?.price_per_unit || inventoryItem?.pricePerUnit || 0
+          pricePerUnit: inventoryItem?.extra_price || inventoryItem?.extraPrice || inventoryItem?.price_per_unit || inventoryItem?.pricePerUnit || 0
         };
       });
       
