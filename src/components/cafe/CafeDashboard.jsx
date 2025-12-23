@@ -243,12 +243,11 @@ const CafeDashboard = ({ showToast }) => {
                     </div>
                     <div className="h-px bg-white/30 my-2"></div>
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-white/70">Purchases:</span>
-                      <span className="text-white font-bold">₹{balance.breakdown.purchases.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="text-white/70">Other Expenses:</span>
+                      <span className="text-white/70">Total Expenses:</span>
                       <span className="text-white font-bold">₹{balance.breakdown.expenses.toLocaleString()}</span>
+                    </div>
+                    <div className="text-xs text-white/50 mt-1">
+                      (Includes purchases, rent, utilities, etc.)
                     </div>
                   </div>
                 </div>

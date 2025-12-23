@@ -752,20 +752,10 @@ export const getCurrentBalance = async () => {
 
     const revenue = orders.reduce((sum, o) => sum + parseFloat(o.payment_received || o.total_amount || 0), 0);
 
-    // Get total purchases
-    const { data: purchases, error: purchasesError } = await supabase
-      .from('cafe_purchases')
-      .select('total_amount');
-
-    if (purchasesError) throw purchasesError;
-
-    const purchasesTotal = purchases.reduce((sum, p) => sum + parseFloat(p.total_amount || 0), 0);
-
-    // Get total expenses (excluding purchase expenses to avoid double-counting)
+    // Get total expenses (includes purchases since every purchase creates an expense)
     const { data: expenses, error: expensesError } = await supabase
       .from('cafe_expenses')
-      .select('amount, purchase_id')
-      .is('purchase_id', null); // Only get expenses NOT linked to purchases
+      .select('amount');
 
     if (expensesError) throw expensesError;
 
@@ -783,7 +773,7 @@ export const getCurrentBalance = async () => {
     const investmentsTotal = investments ? investments.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0) : 0;
 
     const totalIncome = revenue + investmentsTotal;
-    const totalCosts = purchasesTotal + expensesTotal;
+    const totalCosts = expensesTotal; // Just expenses, which includes purchases
     const currentBalance = totalIncome - totalCosts;
 
     return {
@@ -793,7 +783,6 @@ export const getCurrentBalance = async () => {
       breakdown: {
         revenue,
         investments: investmentsTotal,
-        purchases: purchasesTotal,
         expenses: expensesTotal,
       },
     };
@@ -806,7 +795,6 @@ export const getCurrentBalance = async () => {
       breakdown: {
         revenue: 0,
         investments: 0,
-        purchases: 0,
         expenses: 0,
       },
     };
