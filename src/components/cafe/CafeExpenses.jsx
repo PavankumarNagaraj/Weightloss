@@ -40,8 +40,15 @@ const CafeExpenses = ({ showToast }) => {
 
   const loadExpenses = async () => {
     const allExpenses = await getExpenses();
-    setExpenses(allExpenses);
-    calculateStats(allExpenses);
+    // Map snake_case to camelCase
+    const mappedExpenses = allExpenses.map(exp => ({
+      ...exp,
+      orderNumber: exp.order_number ?? exp.orderNumber,
+      purchaseId: exp.purchase_id ?? exp.purchaseId,
+      paymentMethod: exp.payment_method ?? exp.paymentMethod,
+    }));
+    setExpenses(mappedExpenses);
+    calculateStats(mappedExpenses);
   };
 
   const calculateStats = (allExpenses) => {
@@ -66,10 +73,17 @@ const CafeExpenses = ({ showToast }) => {
       byCategory[exp.category] += parseFloat(exp.amount);
     });
 
+    // Calculate purchase-related expenses
+    const purchaseExpenses = allExpenses.filter(exp => exp.purchaseId || exp.category === 'Inventory Purchase');
+    const purchaseExpensesThisMonth = thisMonth.filter(exp => exp.purchaseId || exp.category === 'Inventory Purchase');
+
     setStats({
       totalExpenses: allExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0),
       thisMonthExpenses: thisMonth.reduce((sum, exp) => sum + parseFloat(exp.amount), 0),
       todayExpenses: today.reduce((sum, exp) => sum + parseFloat(exp.amount), 0),
+      purchaseExpenses: purchaseExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0),
+      purchaseExpensesThisMonth: purchaseExpensesThisMonth.reduce((sum, exp) => sum + parseFloat(exp.amount), 0),
+      purchaseCount: purchaseExpenses.length,
       byCategory: byCategory,
       expenseCount: allExpenses.length,
     });
@@ -162,7 +176,7 @@ const CafeExpenses = ({ showToast }) => {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
           {/* Today's Expenses */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-50 to-orange-50 border-2 border-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
             <div className="absolute inset-0 opacity-5">
@@ -201,6 +215,26 @@ const CafeExpenses = ({ showToast }) => {
               <p className="text-xs text-gray-500 mt-1">Current Month</p>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+          </div>
+
+          {/* Purchase Expenses */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent"></div>
+            </div>
+            <div className="relative p-4 md:p-6">
+              <div className="flex items-center gap-2 md:gap-3 mb-2">
+                <div className="p-2 md:p-3 bg-blue-500 rounded-xl shadow-lg">
+                  <TrendingDown className="w-4 h-4 md:w-6 md:h-6 text-white" />
+                </div>
+                <p className="text-xs md:text-sm font-semibold text-gray-600">Purchase Expenses</p>
+              </div>
+              <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                ₹{stats.purchaseExpensesThisMonth.toLocaleString()}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">{stats.purchaseCount} Purchases</p>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
           </div>
 
           {/* Total Expenses */}
@@ -305,12 +339,14 @@ const CafeExpenses = ({ showToast }) => {
                         <td className="px-6 py-4">
                           {expense.orderNumber ? (
                             <button
-                              onClick={() => {
-                                const purchases = getPurchases();
+                              onClick={async () => {
+                                const purchases = await getPurchases();
                                 const purchase = purchases.find(p => p.id === expense.purchaseId);
                                 if (purchase) {
                                   setSelectedPurchase(purchase);
                                   setShowPurchaseDetailModal(true);
+                                } else {
+                                  showToast('❌ Purchase details not found');
                                 }
                               }}
                               className="text-sm font-bold text-purple-600 hover:text-purple-800 hover:underline cursor-pointer"
