@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Calendar, DollarSign, Users, Clock, Pause, Play, XCircle, CheckCircle } from 'lucide-react';
-import { getCustomers, getSubscriptions, addSubscription, updateSubscription, deleteSubscription } from '../../services/cafeService';
+import { Plus, Edit, Trash2, X, Calendar, DollarSign, Users, Clock, Pause, Play, XCircle, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { getCustomers, getSubscriptions, addSubscription, updateSubscription, deleteSubscription, autoExpireSubscriptions, renewSubscription } from '../../services/cafeService';
 
 const CafeSubscriptionManagement = ({ showToast }) => {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -160,6 +160,38 @@ const CafeSubscriptionManagement = ({ showToast }) => {
     return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
   });
 
+  const handleAutoExpire = async () => {
+    try {
+      const result = await autoExpireSubscriptions();
+      if (result.success && result.expiredCount > 0) {
+        showToast(`✅ Expired ${result.expiredCount} subscriptions`);
+        await loadData();
+      } else {
+        showToast('✓ No subscriptions to expire');
+      }
+    } catch (error) {
+      showToast('❌ Error expiring subscriptions');
+      console.error(error);
+    }
+  };
+
+  const handleRenew = async (subscription) => {
+    const currentEndDate = new Date(subscription.end_date);
+    const newEndDate = new Date(currentEndDate);
+    newEndDate.setMonth(newEndDate.getMonth() + 1);
+    
+    if (window.confirm(`Renew subscription for ${subscription.customer?.name} until ${newEndDate.toLocaleDateString()}?`)) {
+      try {
+        await renewSubscription(subscription.id, newEndDate.toISOString().split('T')[0]);
+        showToast('✅ Subscription renewed successfully');
+        await loadData();
+      } catch (error) {
+        showToast('❌ Error renewing subscription');
+        console.error(error);
+      }
+    }
+  };
+
   return (
     <div className="space-y-4 md:space-y-6 p-2 md:p-0">
       {/* Header */}
@@ -172,14 +204,24 @@ const CafeSubscriptionManagement = ({ showToast }) => {
             Manage customer subscriptions and meal plans
           </p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-pink-700 transition shadow-lg text-sm md:text-base w-full md:w-auto"
-        >
-          <Plus className="w-4 h-4 md:w-5 md:h-5" />
-          <span className="hidden sm:inline">New Subscription</span>
-          <span className="sm:hidden">New</span>
-        </button>
+        <div className="flex gap-2 w-full md:w-auto">
+          <button
+            onClick={handleAutoExpire}
+            className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition shadow-lg text-sm"
+            title="Auto-expire past subscriptions"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden sm:inline">Auto-Expire</span>
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-pink-700 transition shadow-lg text-sm md:text-base flex-1 md:flex-none"
+          >
+            <Plus className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="hidden sm:inline">New Subscription</span>
+            <span className="sm:hidden">New</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -299,7 +341,7 @@ const CafeSubscriptionManagement = ({ showToast }) => {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       {subscription.status === 'active' && (
                         <button
                           onClick={() => handleStatusChange(subscription, 'paused')}
@@ -316,6 +358,15 @@ const CafeSubscriptionManagement = ({ showToast }) => {
                           title="Resume subscription"
                         >
                           <Play className="w-4 h-4" />
+                        </button>
+                      )}
+                      {(subscription.status === 'expired' || subscription.status === 'active') && (
+                        <button
+                          onClick={() => handleRenew(subscription)}
+                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                          title="Renew subscription"
+                        >
+                          <RefreshCw className="w-4 h-4" />
                         </button>
                       )}
                       <button

@@ -2177,6 +2177,7 @@ export const generateSubscriptionOrders = async (date) => {
   try {
     const targetDate = new Date(date);
     const dayOfWeek = targetDate.toLocaleDateString('en-US', { weekday: 'long' });
+    const today = date;
     
     // Get active subscriptions for this day
     const { data: subscriptions, error: subError } = await supabase
@@ -2191,6 +2192,10 @@ export const generateSubscriptionOrders = async (date) => {
 
     if (subError) throw subError;
 
+    if (!subscriptions || subscriptions.length === 0) {
+      return { success: true, ordersCreated: 0, message: 'No active subscriptions found for this date' };
+    }
+
     // Get weekly plan for this date
     const weekStart = getWeekStart(targetDate);
     const weekKey = weekStart.toISOString().split('T')[0];
@@ -2202,20 +2207,42 @@ export const generateSubscriptionOrders = async (date) => {
 
     if (planError && planError.code !== 'PGRST116') throw planError;
 
-    const generatedOrders = [];
+    if (!weeklyPlan || !weeklyPlan.plan_data) {
+      return { success: false, ordersCreated: 0, message: 'No meal plan found for this week' };
+    }
 
-    for (const subscription of subscriptions || []) {
+    const generatedOrders = [];
+    const ordersToInsert = [];
+
+    for (const subscription of subscriptions) {
       // Check if this day is in delivery days
       if (!subscription.delivery_days?.includes(dayOfWeek)) continue;
 
       // Generate orders for each meal type
       for (const mealType of subscription.meal_types || []) {
-        const meal = weeklyPlan?.plan_data?.[dayOfWeek]?.[mealType];
+        const meal = weeklyPlan.plan_data[dayOfWeek]?.[mealType];
         
         if (meal) {
-          // Create order
+          // Check for duplicate order
+          const { data: existingOrder } = await supabase
+            .from('cafe_orders')
+            .select('id')
+            .eq('subscription_id', subscription.id)
+            .eq('date', today)
+            .ilike('notes', `%${mealType}%`)
+            .single();
+
+          if (existingOrder) {
+            console.log(`Order already exists for subscription ${subscription.id}, ${mealType}`);
+            continue;
+          }
+
+          // Create order with proper field names
           const orderData = {
+            order_number: `ORD${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`,
             order_type: 'delivery',
+            customer_name: subscription.customer?.name || 'Subscription Customer',
+            customer_phone: subscription.customer?.phone || '',
             customer_type: 'subscription',
             items: [{
               id: meal.id,
@@ -2223,34 +2250,50 @@ export const generateSubscriptionOrders = async (date) => {
               price: meal.price || 0,
               quantity: 1,
             }],
-            total: meal.price || 0,
+            subtotal: meal.price || 0,
+            discount: 0,
+            total_amount: meal.price || 0,
             payment_method: 'subscription',
-            status: 'pending',
-            customer_name: subscription.customer?.name || 'Subscription Customer',
-            customer_phone: subscription.customer?.phone || '',
+            payment_received: meal.price || 0,
+            status: 'completed',
+            date: today,
             delivery_address: subscription.customer?.address || '',
-            subscription_id: subscription.id,
             delivery_status: 'pending',
+            delivery_time: subscription.delivery_time || null,
+            subscription_id: subscription.id,
             notes: `Subscription Order - ${mealType}`,
           };
 
-          const { data: order, error: orderError } = await supabase
-            .from('cafe_orders')
-            .insert([orderData])
-            .select()
-            .single();
-
-          if (!orderError) {
-            generatedOrders.push(order);
-          }
+          ordersToInsert.push(orderData);
         }
       }
     }
 
-    return generatedOrders;
+    // Batch insert all orders
+    if (ordersToInsert.length > 0) {
+      const { data: orders, error: orderError } = await supabase
+        .from('cafe_orders')
+        .insert(ordersToInsert)
+        .select();
+
+      if (orderError) throw orderError;
+      generatedOrders.push(...(orders || []));
+    }
+
+    return { 
+      success: true, 
+      ordersCreated: generatedOrders.length,
+      orders: generatedOrders,
+      message: `Successfully generated ${generatedOrders.length} orders`
+    };
   } catch (error) {
     console.error('Error generating subscription orders:', error);
-    throw error;
+    return { 
+      success: false, 
+      ordersCreated: 0, 
+      error: error.message,
+      message: 'Failed to generate orders'
+    };
   }
 };
 
@@ -2260,3 +2303,150 @@ function getWeekStart(date) {
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   return new Date(d.setDate(diff));
 }
+
+// ==================== ADDITIONAL SUBSCRIPTION FUNCTIONS ====================
+
+export const getCustomerSubscriptions = async (customerId) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_subscriptions')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching customer subscriptions:', error);
+    return [];
+  }
+};
+
+export const getSubscriptionOrders = async (subscriptionId) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_orders')
+      .select('*')
+      .eq('subscription_id', subscriptionId)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching subscription orders:', error);
+    return [];
+  }
+};
+
+export const getExpiredSubscriptions = async () => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const { data, error } = await supabase
+      .from('cafe_subscriptions')
+      .select(`
+        *,
+        customer:cafe_customers(*)
+      `)
+      .eq('status', 'active')
+      .lt('end_date', today);
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching expired subscriptions:', error);
+    return [];
+  }
+};
+
+export const autoExpireSubscriptions = async () => {
+  try {
+    const expiredSubs = await getExpiredSubscriptions();
+    
+    if (expiredSubs.length === 0) {
+      return { success: true, expiredCount: 0 };
+    }
+
+    const expiredIds = expiredSubs.map(sub => sub.id);
+    
+    const { error } = await supabase
+      .from('cafe_subscriptions')
+      .update({ status: 'expired' })
+      .in('id', expiredIds);
+
+    if (error) throw error;
+
+    return { 
+      success: true, 
+      expiredCount: expiredSubs.length,
+      subscriptions: expiredSubs
+    };
+  } catch (error) {
+    console.error('Error auto-expiring subscriptions:', error);
+    return { success: false, expiredCount: 0, error: error.message };
+  }
+};
+
+export const renewSubscription = async (subscriptionId, newEndDate) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_subscriptions')
+      .update({ 
+        end_date: newEndDate,
+        status: 'active'
+      })
+      .eq('id', subscriptionId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error renewing subscription:', error);
+    throw error;
+  }
+};
+
+export const getSubscriptionStats = async () => {
+  try {
+    const { data: allSubs, error: subsError } = await supabase
+      .from('cafe_subscriptions')
+      .select('*');
+
+    if (subsError) throw subsError;
+
+    const active = allSubs.filter(s => s.status === 'active');
+    const paused = allSubs.filter(s => s.status === 'paused');
+    const expired = allSubs.filter(s => s.status === 'expired');
+    
+    const mrr = active.reduce((sum, s) => sum + parseFloat(s.monthly_amount || 0), 0);
+
+    const today = new Date();
+    const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const expiringSoon = active.filter(s => {
+      const endDate = new Date(s.end_date);
+      return endDate <= thirtyDaysFromNow && endDate > today;
+    });
+
+    return {
+      total: allSubs.length,
+      active: active.length,
+      paused: paused.length,
+      expired: expired.length,
+      mrr: mrr,
+      expiringSoon: expiringSoon.length,
+      expiringSoonList: expiringSoon
+    };
+  } catch (error) {
+    console.error('Error fetching subscription stats:', error);
+    return {
+      total: 0,
+      active: 0,
+      paused: 0,
+      expired: 0,
+      mrr: 0,
+      expiringSoon: 0,
+      expiringSoonList: []
+    };
+  }
+};

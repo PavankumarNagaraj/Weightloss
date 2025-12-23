@@ -70,6 +70,10 @@ const CafeOrders = ({ showToast }) => {
       totalAmount: order.total_amount ?? order.totalAmount,
       paymentReceived: order.payment_received ?? order.paymentReceived,
       createdAt: order.created_at ?? order.createdAt,
+      orderType: order.order_type ?? order.orderType,
+      deliveryStatus: order.delivery_status ?? order.deliveryStatus,
+      deliveryAddress: order.delivery_address ?? order.deliveryAddress,
+      subscriptionId: order.subscription_id ?? order.subscriptionId,
     }));
     setOrders(mappedOrders.reverse()); // Show newest first
   };
@@ -452,16 +456,37 @@ const CafeOrders = ({ showToast }) => {
                   </td>
                   <td className="px-6 py-4">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-semibold text-gray-900">{order.customerName || 'Walk-in Customer'}</p>
                         {order.customerType === 'trainer' && (
                           <span className="px-2 py-0.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-xs font-bold rounded-full">
                             TRAINER
                           </span>
                         )}
+                        {order.subscriptionId && (
+                          <span className="px-2 py-0.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold rounded-full">
+                            SUBSCRIPTION
+                          </span>
+                        )}
+                        {order.orderType === 'delivery' && (
+                          <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
+                            order.deliveryStatus === 'delivered' ? 'bg-green-100 text-green-700' :
+                            order.deliveryStatus === 'in_transit' ? 'bg-blue-100 text-blue-700' :
+                            order.deliveryStatus === 'failed' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {order.deliveryStatus === 'delivered' ? '✓ DELIVERED' :
+                             order.deliveryStatus === 'in_transit' ? '🚚 IN TRANSIT' :
+                             order.deliveryStatus === 'failed' ? '✗ FAILED' :
+                             '⏳ PENDING'}
+                          </span>
+                        )}
                       </div>
                       {order.customerPhone && (
                         <p className="text-sm text-gray-500">{order.customerPhone}</p>
+                      )}
+                      {order.deliveryAddress && (
+                        <p className="text-xs text-gray-400 mt-1">📍 {order.deliveryAddress}</p>
                       )}
                     </div>
                   </td>
