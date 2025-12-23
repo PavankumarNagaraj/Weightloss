@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings, Menu, X, Calculator, ChefHat, Trash, Lightbulb } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings, Menu, X, Calculator, ChefHat, Trash, Lightbulb, Users } from 'lucide-react';
 import CafeOrders from './cafe/CafeOrders';
 import CafeMenu from './cafe/CafeMenu';
 import CafeInventory from './cafe/CafeInventory';
@@ -18,6 +18,7 @@ import CafeCostAnalysis from './cafe/CafeCostAnalysis';
 import CafeRecipes from './cafe/CafeRecipes';
 import CafeWaste from './cafe/CafeWaste';
 import CafeSuggestions from './cafe/CafeSuggestions';
+import CafeCustomers from './cafe/CafeCustomers';
 
 const CafeManagement = () => {
   const location = useLocation();
@@ -51,6 +52,7 @@ const CafeManagement = () => {
 
   const navItems = [
     { path: '/cafe/orders', label: 'Orders', icon: ShoppingCart },
+    { path: '/cafe/customers', label: 'Customers', icon: Users },
     { path: '/cafe/menu', label: 'Menu', icon: ShoppingBag },
     { path: '/cafe/inventory', label: 'Inventory', icon: Package },
     { path: '/cafe/purchases', label: 'Purchases', icon: DollarSign },
@@ -129,8 +131,7 @@ const CafeManagement = () => {
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || 
-                              (item.path === '/cafe/orders' && location.pathname === '/cafe') ||
-                              (item.path === '/cafe/dashboard' && location.pathname === '/cafe');
+                              (item.path === '/cafe/orders' && location.pathname === '/cafe');
               
               return (
                 <Link
@@ -155,8 +156,9 @@ const CafeManagement = () => {
         <div className="flex-1 overflow-y-auto w-full">
           <div className="p-3 sm:p-4 lg:p-6 max-w-full">
             <Routes>
-              <Route index element={<CafeDashboard showToast={handleToast} />} />
+              <Route index element={<CafeOrders showToast={handleToast} />} />
               <Route path="/orders" element={<CafeOrders showToast={handleToast} />} />
+              <Route path="/customers" element={<CafeCustomers showToast={handleToast} />} />
               <Route path="/menu" element={<CafeMenu showToast={handleToast} />} />
               <Route path="/inventory" element={<CafeInventory showToast={handleToast} />} />
               <Route path="/purchases" element={<CafePurchases showToast={handleToast} />} />
