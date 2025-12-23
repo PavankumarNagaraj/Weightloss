@@ -29,9 +29,12 @@ export const getVendorPricesForItem = async (itemName) => {
           const unit = item.unit;
           const purchaseDate = purchase.date || purchase.created_at;
 
-          if (!vendorPrices[supplierName]) {
-            vendorPrices[supplierName] = {
-              vendorName: supplierName,
+          // Use lowercase vendor name as key for case-insensitive grouping
+          const vendorKey = supplierName.toLowerCase();
+          
+          if (!vendorPrices[vendorKey]) {
+            vendorPrices[vendorKey] = {
+              vendorName: supplierName, // Keep original case for display
               purchases: [],
               avgPricePerUnit: 0,
               lastPrice: 0,
@@ -40,23 +43,26 @@ export const getVendorPricesForItem = async (itemName) => {
               purchaseCount: 0,
               unit: unit,
             };
+          } else {
+            // Update vendor name to most recent capitalization
+            vendorPrices[vendorKey].vendorName = supplierName;
           }
 
-          vendorPrices[supplierName].purchases.push({
+          vendorPrices[vendorKey].purchases.push({
             pricePerUnit,
             quantity,
             date: purchaseDate,
             total: pricePerUnit * quantity,
           });
 
-          vendorPrices[supplierName].totalQuantityBought += quantity;
-          vendorPrices[supplierName].purchaseCount += 1;
+          vendorPrices[vendorKey].totalQuantityBought += quantity;
+          vendorPrices[vendorKey].purchaseCount += 1;
 
           // Update last purchase info
-          if (!vendorPrices[supplierName].lastPurchaseDate || 
-              new Date(purchaseDate) > new Date(vendorPrices[supplierName].lastPurchaseDate)) {
-            vendorPrices[supplierName].lastPrice = pricePerUnit;
-            vendorPrices[supplierName].lastPurchaseDate = purchaseDate;
+          if (!vendorPrices[vendorKey].lastPurchaseDate || 
+              new Date(purchaseDate) > new Date(vendorPrices[vendorKey].lastPurchaseDate)) {
+            vendorPrices[vendorKey].lastPrice = pricePerUnit;
+            vendorPrices[vendorKey].lastPurchaseDate = purchaseDate;
           }
         }
       });
@@ -174,33 +180,39 @@ export const getVendorPerformanceSummary = async () => {
       const supplierName = purchase.supplier_name || purchase.supplierName;
       if (!supplierName) return;
 
-      if (!vendorStats[supplierName]) {
-        vendorStats[supplierName] = {
-          vendorName: supplierName,
+      // Use lowercase vendor name as key for case-insensitive grouping
+      const vendorKey = supplierName.toLowerCase();
+
+      if (!vendorStats[vendorKey]) {
+        vendorStats[vendorKey] = {
+          vendorName: supplierName, // Keep original case for display
           totalPurchases: 0,
           totalSpent: 0,
           itemsSupplied: new Set(),
           lastPurchaseDate: null,
           avgOrderValue: 0,
         };
+      } else {
+        // Update vendor name to most recent capitalization
+        vendorStats[vendorKey].vendorName = supplierName;
       }
 
       const totalAmount = parseFloat(purchase.total_amount || purchase.totalAmount || 0);
-      vendorStats[supplierName].totalPurchases += 1;
-      vendorStats[supplierName].totalSpent += totalAmount;
+      vendorStats[vendorKey].totalPurchases += 1;
+      vendorStats[vendorKey].totalSpent += totalAmount;
 
       const items = purchase.items || [];
       items.forEach(item => {
         const materialName = item.materialName || item.name;
         if (materialName) {
-          vendorStats[supplierName].itemsSupplied.add(materialName);
+          vendorStats[vendorKey].itemsSupplied.add(materialName);
         }
       });
 
       const purchaseDate = purchase.date || purchase.created_at;
-      if (!vendorStats[supplierName].lastPurchaseDate || 
-          new Date(purchaseDate) > new Date(vendorStats[supplierName].lastPurchaseDate)) {
-        vendorStats[supplierName].lastPurchaseDate = purchaseDate;
+      if (!vendorStats[vendorKey].lastPurchaseDate || 
+          new Date(purchaseDate) > new Date(vendorStats[vendorKey].lastPurchaseDate)) {
+        vendorStats[vendorKey].lastPurchaseDate = purchaseDate;
       }
     });
 
@@ -215,6 +227,42 @@ export const getVendorPerformanceSummary = async () => {
     return vendorArray.sort((a, b) => b.totalSpent - a.totalSpent);
   } catch (error) {
     console.error('Error getting vendor performance:', error);
+    return [];
+  }
+};
+
+/**
+ * Get all unique vendor names for autocomplete
+ * @returns {Array} Array of unique vendor names
+ */
+export const getAllVendorNames = async () => {
+  try {
+    const purchases = await getPurchases();
+    const vendorNames = new Set();
+
+    purchases.forEach(purchase => {
+      const supplierName = purchase.supplier_name || purchase.supplierName;
+      if (supplierName) {
+        // Store in lowercase for comparison, but keep original for display
+        const vendorKey = supplierName.toLowerCase();
+        // Find if we already have this vendor (case-insensitive)
+        let found = false;
+        for (const existing of vendorNames) {
+          if (existing.toLowerCase() === vendorKey) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          vendorNames.add(supplierName);
+        }
+      }
+    });
+
+    // Convert to array and sort alphabetically
+    return Array.from(vendorNames).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  } catch (error) {
+    console.error('Error getting vendor names:', error);
     return [];
   }
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, X, Trash2, Edit, Upload, Image as ImageIcon } from 'lucide-react';
 import { getPurchases, getPurchaseStats, addPurchase, updatePurchase, deletePurchase, getInventory } from '../../services/cafeService';
 import { uploadReceiptToCloudinary } from '../../services/cloudinaryUpload';
+import { getAllVendorNames } from '../../services/vendorPriceService';
 
 const CafePurchases = ({ showToast }) => {
   const [purchases, setPurchases] = useState([]);
@@ -31,11 +32,19 @@ const CafePurchases = ({ showToast }) => {
   });
   const [materialSearchTerm, setMaterialSearchTerm] = useState('');
   const [showMaterialDropdown, setShowMaterialDropdown] = useState(false);
+  const [vendorNames, setVendorNames] = useState([]);
+  const [showVendorDropdown, setShowVendorDropdown] = useState(false);
 
   useEffect(() => {
     loadPurchases();
     loadInventory();
+    loadVendorNames();
   }, []);
+
+  const loadVendorNames = async () => {
+    const vendors = await getAllVendorNames();
+    setVendorNames(vendors);
+  };
 
   const loadInventory = async () => {
     const items = await getInventory();
@@ -412,18 +421,56 @@ const CafePurchases = ({ showToast }) => {
               </div>
               
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Supplier Name */}
-                <div>
+                {/* Supplier Name with Autocomplete */}
+                <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Supplier Name (Optional)
                   </label>
                   <input
                     type="text"
                     value={formData.supplierName}
-                    onChange={(e) => setFormData({...formData, supplierName: e.target.value})}
+                    onChange={(e) => {
+                      setFormData({...formData, supplierName: e.target.value});
+                      setShowVendorDropdown(e.target.value.length > 0);
+                    }}
+                    onFocus={() => setShowVendorDropdown(formData.supplierName.length > 0)}
+                    onBlur={() => setTimeout(() => setShowVendorDropdown(false), 200)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="e.g., ABC Suppliers"
+                    placeholder="e.g., ABC Suppliers (start typing for suggestions)"
                   />
+                  
+                  {/* Vendor Autocomplete Dropdown */}
+                  {showVendorDropdown && vendorNames.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {vendorNames
+                        .filter(vendor => 
+                          vendor.toLowerCase().includes(formData.supplierName.toLowerCase())
+                        )
+                        .map((vendor, index) => (
+                          <div
+                            key={index}
+                            onClick={() => {
+                              setFormData({...formData, supplierName: vendor});
+                              setShowVendorDropdown(false);
+                            }}
+                            className="px-4 py-2 hover:bg-orange-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-900">{vendor}</span>
+                              <span className="text-xs text-gray-500">Previous vendor</span>
+                            </div>
+                          </div>
+                        ))
+                      }
+                      {vendorNames.filter(vendor => 
+                        vendor.toLowerCase().includes(formData.supplierName.toLowerCase())
+                      ).length === 0 && (
+                        <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                          No matching vendors. Type to add new vendor.
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Add Items Section */}

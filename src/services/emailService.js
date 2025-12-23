@@ -168,6 +168,13 @@ export const generateDailyReport = async () => {
   
   const lowStockItems = await Promise.all(lowStockItemsPromises);
   
+  // Sort items by vendor name so all items from same vendor are grouped together
+  lowStockItems.sort((a, b) => {
+    const vendorA = a.lowestCostVendor?.name || 'ZZZ_No Vendor';
+    const vendorB = b.lowestCostVendor?.name || 'ZZZ_No Vendor';
+    return vendorA.localeCompare(vendorB, undefined, { sensitivity: 'base' });
+  });
+  
   // Get items that need to be ordered (stock below 50% of min, only items used in menu)
   const itemsToOrder = inventory.filter(item => {
     const currentStock = parseFloat(item.currentStock) || 0;

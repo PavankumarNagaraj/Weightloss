@@ -297,7 +297,7 @@ export const generateCleanDailyEmail = (data) => {
     <!-- Items to Buy -->
     ${inventory.lowStockItems.length > 0 ? `
     <div class="section">
-      <div class="section-title">🛒 Items to Buy (Lowest Cost Vendors)</div>
+      <div class="section-title">🛒 Items to Buy (Grouped by Vendor)</div>
       <table>
         <thead>
           <tr>
@@ -310,13 +310,24 @@ export const generateCleanDailyEmail = (data) => {
           </tr>
         </thead>
         <tbody>
-          ${inventory.lowStockItems.map(item => {
+          ${inventory.lowStockItems.map((item, index) => {
+            const prevItem = index > 0 ? inventory.lowStockItems[index - 1] : null;
+            const currentVendor = item.lowestCostVendor?.name || 'No Vendor';
+            const prevVendor = prevItem?.lowestCostVendor?.name || '';
+            const isNewVendor = currentVendor !== prevVendor;
             const rec = item.recommendation || {};
             const vendor = item.lowestCostVendor;
             const hasVendor = vendor && vendor.name;
             const hasMultipleVendors = item.vendorCount > 1;
             const savings = parseFloat(item.potentialSavings || 0);
             return `
+            ${isNewVendor ? `
+            <tr style="background-color: #dbeafe; border-top: 3px solid #3b82f6;">
+              <td colspan="6" style="padding: 12px; font-weight: bold; color: #1e40af; font-size: 15px;">
+                📦 ${currentVendor}
+              </td>
+            </tr>
+            ` : ''}
             <tr>
               <td><strong>${item.name}</strong></td>
               <td style="color: #ef4444;">${item.currentStock} ${item.unit}</td>
