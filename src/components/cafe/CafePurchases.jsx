@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, X, Trash2, Edit, Upload, Image as ImageIcon } from 'lucide-react';
-import { getPurchases, getPurchaseStats, addPurchase, updatePurchase, deletePurchase, getInventory } from '../../services/cafeService';
+import { getPurchases, getPurchaseStats, addPurchase, updatePurchase, deletePurchase, getInventory, addInventoryItem } from '../../services/cafeService';
 import { uploadReceiptToCloudinary } from '../../services/cloudinaryUpload';
 import { getAllVendorNames } from '../../services/vendorPriceService';
 
