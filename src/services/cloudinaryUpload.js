@@ -17,8 +17,8 @@ export const uploadReceiptToCloudinary = async (file, purchaseOrderNumber) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    formData.append('folder', `cafe/receipts/${purchaseOrderNumber}`);
-    formData.append('transformation', 'q_auto,f_auto');
+    // Use public_id to organize files instead of folder (which is set in preset)
+    formData.append('public_id', `${purchaseOrderNumber}_${Date.now()}`);
 
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -29,7 +29,9 @@ export const uploadReceiptToCloudinary = async (file, purchaseOrderNumber) => {
     );
 
     if (!response.ok) {
-      throw new Error('Failed to upload to Cloudinary');
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Cloudinary error:', errorData);
+      throw new Error(errorData.error?.message || 'Failed to upload to Cloudinary');
     }
 
     const data = await response.json();
