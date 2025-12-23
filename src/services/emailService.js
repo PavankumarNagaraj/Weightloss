@@ -1,6 +1,6 @@
 // Email Service using Brevo SMTP
 // Handles daily reports and notifications
-import { getOrders, getInventory, getExpenses, getPurchases } from './cafeService';
+import { getOrders, getInventory, getExpenses, getPurchases, getMenuItems } from './cafeService';
 
 const BREVO_CONFIG = {
   host: 'smtp-relay.brevo.com',
@@ -21,6 +21,7 @@ export const generateDailyReport = async () => {
   const inventoryData = await getInventory();
   const expenses = await getExpenses();
   const purchases = await getPurchases();
+  const menuItems = await getMenuItems();
   
   // Map snake_case to camelCase
   const inventory = inventoryData.map(item => ({
@@ -100,11 +101,26 @@ export const generateDailyReport = async () => {
     };
   };
 
-  // Get low stock items with purchase recommendations
+  // Helper function to check if an item is used in any menu dish
+  const isItemUsedInMenu = (itemName) => {
+    return menuItems.some(menuItem => {
+      const rawMaterials = menuItem.raw_materials || menuItem.rawMaterials || [];
+      return rawMaterials.some(material => 
+        material.name?.toLowerCase() === itemName.toLowerCase() ||
+        material.materialName?.toLowerCase() === itemName.toLowerCase()
+      );
+    });
+  };
+
+  // Get low stock items with purchase recommendations (only items used in menu)
   const lowStockItems = inventory.filter(item => {
     const currentStock = parseFloat(item.currentStock) || 0;
     const minStock = parseFloat(item.minStock) || 0;
-    return currentStock <= minStock;
+    const isLowStock = currentStock <= minStock;
+    const usedInMenu = isItemUsedInMenu(item.name);
+    
+    // Only include items that are low stock AND used in menu/dishes
+    return isLowStock && usedInMenu;
   }).map(item => {
     const recommendation = calculatePurchaseRecommendation(item.name);
     const neededQty = Math.ceil(item.minStock - item.currentStock);
@@ -127,11 +143,15 @@ export const generateDailyReport = async () => {
     };
   });
   
-  // Get items that need to be ordered (stock below 50% of min)
+  // Get items that need to be ordered (stock below 50% of min, only items used in menu)
   const itemsToOrder = inventory.filter(item => {
     const currentStock = parseFloat(item.currentStock) || 0;
     const minStock = parseFloat(item.minStock) || 0;
-    return currentStock <= (minStock * 0.5);
+    const isCriticallyLow = currentStock <= (minStock * 0.5);
+    const usedInMenu = isItemUsedInMenu(item.name);
+    
+    // Only include items that are critically low AND used in menu/dishes
+    return isCriticallyLow && usedInMenu;
   }).map(item => ({
     name: item.name,
     currentStock: item.currentStock,
