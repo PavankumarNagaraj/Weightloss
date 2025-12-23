@@ -19,6 +19,10 @@ export const uploadReceiptToCloudinary = async (file, purchaseOrderNumber) => {
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
     // Use public_id to organize files instead of folder (which is set in preset)
     formData.append('public_id', `${purchaseOrderNumber}_${Date.now()}`);
+    // Add compression and optimization
+    formData.append('quality', 'auto:good');
+    formData.append('fetch_format', 'auto');
+    formData.append('flags', 'lossy');
 
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
