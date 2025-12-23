@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, X, Trash2, Edit, Upload, Image as ImageIcon } from 'lucide-react';
 import { getPurchases, getPurchaseStats, addPurchase, updatePurchase, deletePurchase, getInventory } from '../../services/cafeService';
+import { uploadReceiptToCloudinary } from '../../services/cloudinaryUpload';
 
 const CafePurchases = ({ showToast }) => {
   const [purchases, setPurchases] = useState([]);
@@ -152,12 +153,12 @@ const CafePurchases = ({ showToast }) => {
     await loadInventory();
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        showToast('❌ Image size should be less than 5MB');
+      // Check file size (max 10MB for Cloudinary)
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('❌ Image size should be less than 10MB');
         return;
       }
       
@@ -169,17 +170,40 @@ const CafePurchases = ({ showToast }) => {
       
       setReceiptImage(file);
       
-      // Create preview
+      // Create local preview immediately
       const reader = new FileReader();
       reader.onloadend = () => {
         setReceiptPreview(reader.result);
-        setFormData({
-          ...formData,
-          receiptUrl: reader.result,
-          receiptFilename: file.name,
-        });
       };
       reader.readAsDataURL(file);
+      
+      // Upload to Cloudinary in background
+      try {
+        showToast('📤 Uploading receipt to cloud...');
+        const orderNumber = formData.orderNumber || `PO${Date.now().toString().slice(-6)}`;
+        const cloudinaryResult = await uploadReceiptToCloudinary(file, orderNumber);
+        
+        setFormData({
+          ...formData,
+          receiptUrl: cloudinaryResult.url,
+          receiptFilename: file.name,
+        });
+        
+        showToast('✅ Receipt uploaded successfully');
+      } catch (error) {
+        console.error('Upload error:', error);
+        showToast('⚠️ Upload failed, using local storage');
+        // Fallback to base64 if Cloudinary fails
+        const reader2 = new FileReader();
+        reader2.onloadend = () => {
+          setFormData({
+            ...formData,
+            receiptUrl: reader2.result,
+            receiptFilename: file.name,
+          });
+        };
+        reader2.readAsDataURL(file);
+      }
     }
   };
 
@@ -543,7 +567,7 @@ const CafePurchases = ({ showToast }) => {
                       <label htmlFor="receipt-upload" className="cursor-pointer">
                         <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                         <p className="text-sm text-gray-600 font-semibold">Click to upload receipt</p>
-                        <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</p>
+                        <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB • Stored in Cloudinary</p>
                       </label>
                     </div>
                   ) : (
