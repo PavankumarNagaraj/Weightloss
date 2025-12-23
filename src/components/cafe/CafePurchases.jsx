@@ -34,6 +34,13 @@ const CafePurchases = ({ showToast }) => {
   const [showMaterialDropdown, setShowMaterialDropdown] = useState(false);
   const [vendorNames, setVendorNames] = useState([]);
   const [showVendorDropdown, setShowVendorDropdown] = useState(false);
+  const [showQuickAddInventory, setShowQuickAddInventory] = useState(false);
+  const [quickAddData, setQuickAddData] = useState({
+    name: '',
+    minStock: '',
+    unit: 'gm',
+    category: 'Dry Store',
+  });
 
   useEffect(() => {
     loadPurchases();
@@ -113,6 +120,50 @@ const CafePurchases = ({ showToast }) => {
   const filteredInventory = inventory.filter(item =>
     item.name.toLowerCase().includes(materialSearchTerm.toLowerCase())
   );
+
+  const handleQuickAddInventory = () => {
+    setQuickAddData({
+      name: materialSearchTerm,
+      minStock: '',
+      unit: currentItem.unit || 'gm',
+      category: 'Dry Store',
+    });
+    setShowQuickAddInventory(true);
+    setShowMaterialDropdown(false);
+  };
+
+  const submitQuickAddInventory = async () => {
+    if (!quickAddData.name || !quickAddData.minStock) {
+      showToast('❌ Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await addInventoryItem({
+        name: quickAddData.name,
+        currentStock: 0,
+        minStock: parseFloat(quickAddData.minStock),
+        unit: quickAddData.unit,
+        category: quickAddData.category,
+      });
+      
+      showToast('✅ Item added to inventory');
+      await loadInventory();
+      
+      // Auto-select the newly added item
+      setCurrentItem({
+        ...currentItem,
+        materialName: quickAddData.name,
+        unit: quickAddData.unit,
+      });
+      setMaterialSearchTerm(quickAddData.name);
+      setShowQuickAddInventory(false);
+      setQuickAddData({ name: '', minStock: '', unit: 'gm', category: 'Dry Store' });
+    } catch (error) {
+      showToast('❌ Error adding item to inventory');
+      console.error('Error adding inventory item:', error);
+    }
+  };
 
   const addItemToPurchase = () => {
     if (currentItem.materialName && currentItem.quantity && currentItem.totalPrice) {
@@ -506,8 +557,17 @@ const CafePurchases = ({ showToast }) => {
                                 </button>
                               ))
                             ) : (
-                              <div className="px-3 py-2 text-sm text-gray-500">
-                                No materials found
+                              <div className="p-3">
+                                <div className="text-sm text-gray-500 mb-2">
+                                  "{materialSearchTerm}" not found in inventory
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={handleQuickAddInventory}
+                                  className="w-full px-3 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition text-sm"
+                                >
+                                  + Add to Inventory
+                                </button>
                               </div>
                             )}
                           </div>
@@ -787,6 +847,110 @@ const CafePurchases = ({ showToast }) => {
                     <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedPurchase.notes}</p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Add to Inventory Modal */}
+      {showQuickAddInventory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">Add to Inventory</h3>
+                <button 
+                  onClick={() => {
+                    setShowQuickAddInventory(false);
+                    setQuickAddData({ name: '', minStock: '', unit: 'gm', category: 'Dry Store' });
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Item Name
+                  </label>
+                  <input
+                    type="text"
+                    value={quickAddData.name}
+                    onChange={(e) => setQuickAddData({...quickAddData, name: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="e.g., Tomatoes"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Minimum Stock Level *
+                  </label>
+                  <input
+                    type="number"
+                    value={quickAddData.minStock}
+                    onChange={(e) => setQuickAddData({...quickAddData, minStock: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="e.g., 10"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Unit
+                  </label>
+                  <select
+                    value={quickAddData.unit}
+                    onChange={(e) => setQuickAddData({...quickAddData, unit: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="gm">gm</option>
+                    <option value="kg">kg</option>
+                    <option value="ml">ml</option>
+                    <option value="l">l</option>
+                    <option value="pcs">pcs</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={quickAddData.category}
+                    onChange={(e) => setQuickAddData({...quickAddData, category: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="Dry Store">🏪 Dry Store</option>
+                    <option value="Fresh Produce">🥬 Fresh Produce</option>
+                    <option value="Refrigerated">❄️ Refrigerated</option>
+                    <option value="Frozen">🧊 Frozen</option>
+                    <option value="Fruits">🍎 Fruits</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowQuickAddInventory(false);
+                      setQuickAddData({ name: '', minStock: '', unit: 'gm', category: 'Dry Store' });
+                    }}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={submitQuickAddInventory}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                  >
+                    Add & Continue
+                  </button>
+                </div>
               </div>
             </div>
           </div>
