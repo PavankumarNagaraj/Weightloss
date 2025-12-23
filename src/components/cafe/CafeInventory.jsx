@@ -18,12 +18,14 @@ const CafeInventory = ({ showToast }) => {
     category: 'Dry Store',
     expiryDate: '',
     lastUsedDate: null,
+    stockAdjustment: '',
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [inventorySearchTerm, setInventorySearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [existingMaterials, setExistingMaterials] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -124,16 +126,25 @@ const CafeInventory = ({ showToast }) => {
     e.preventDefault();
     
     if (editingItem) {
-      // Update existing item - update all fields
+      // Update existing item - update all fields including stock if adjusted
+      const newStock = formData.stockAdjustment !== '' 
+        ? parseFloat(formData.stockAdjustment) 
+        : editingItem.currentStock;
+      
       await updateInventoryItem(editingItem.id, {
         name: formData.name,
-        currentStock: editingItem.currentStock, // Keep current stock as is
+        currentStock: newStock,
         minStock: parseFloat(formData.minStock),
         expiryDate: formData.expiryDate || null,
         unit: formData.unit,
         category: formData.category,
       });
-      showToast(`✅ Updated ${formData.name}`);
+      
+      if (formData.stockAdjustment !== '') {
+        showToast(`✅ Updated ${formData.name} - Stock set to ${newStock}${formData.unit}`);
+      } else {
+        showToast(`✅ Updated ${formData.name}`);
+      }
     } else {
       // Check if item already exists
       const existingItem = inventory.find(item => item.name.toLowerCase() === formData.name.toLowerCase());
@@ -167,7 +178,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', expiryDate: '', lastUsedDate: null });
+    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', expiryDate: '', lastUsedDate: null, stockAdjustment: '' });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -562,17 +573,19 @@ const CafeInventory = ({ showToast }) => {
           )}
           <button
             onClick={handleBulkImport}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            className="flex items-center gap-2 px-3 sm:px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 text-sm sm:text-base"
           >
-            <Upload className="w-5 h-5" />
-            Bulk Import
+            <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Bulk Import</span>
+            <span className="sm:hidden">Import</span>
           </button>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            className="flex items-center gap-2 px-3 sm:px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 text-sm sm:text-base"
           >
-            <Plus className="w-5 h-5" />
-            Add Inventory
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Add Inventory</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
       </div>
@@ -629,17 +642,6 @@ const CafeInventory = ({ showToast }) => {
       })()}
 
       {/* Info Banner */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-        <div className="flex items-center gap-3">
-          <div className="text-2xl">ℹ️</div>
-          <div className="flex-1">
-            <p className="text-sm text-gray-700">
-              <span className="font-semibold">Smart Inventory:</span> Items <span className="opacity-40 font-semibold">grayed out</span> are not used in any active menu item. 
-              Low stock alerts only apply to items used in dishes.
-            </p>
-          </div>
-        </div>
-      </div>
 
       {lowStock.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4">
@@ -651,64 +653,61 @@ const CafeInventory = ({ showToast }) => {
         </div>
       )}
 
-      {/* Filters */}
+      {/* Search and Filters - Compact Dropdown Design */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-        {/* Usage Filter */}
-        <div className="flex items-center gap-2 flex-wrap mb-4 pb-4 border-b border-gray-200">
-          <span className="text-sm font-semibold text-gray-700">Usage Status:</span>
-          {[
-            { value: 'all', label: '📋 All Items', color: 'purple' },
-            { value: 'used', label: '✅ Used in Menu', color: 'green' },
-            { value: 'unused', label: '⚪ Unused', color: 'gray' }
-          ].map(filter => (
-            <button
-              key={filter.value}
-              onClick={() => setUsageFilter(filter.value)}
-              className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-                usageFilter === filter.value
-                  ? filter.color === 'purple' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg' :
-                    filter.color === 'green' ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg' :
-                    'bg-gray-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search inventory..."
+              value={inventorySearchTerm}
+              onChange={(e) => setInventorySearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+            />
+          </div>
+
+          {/* Category Filter Dropdown */}
+          <div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm font-medium bg-white"
             >
-              {filter.label}
-            </button>
-          ))}
-          <div className="flex-1"></div>
-          <button
-            onClick={() => setShowArchived(!showArchived)}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-              showArchived
-                ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {showArchived ? '📦 Showing Archived' : '📦 Show Archived'}
-          </button>
-        </div>
-        
-        {/* Category Filter */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-semibold text-gray-700">Filter by Category:</span>
-          {['All', ...categories].map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-                selectedCategory === cat
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              <option value="All">📋 All Categories</option>
+              <option value="Dry Store">🏪 Dry Store</option>
+              <option value="Fresh Produce">🥬 Fresh Produce</option>
+              <option value="Refrigerated">❄️ Refrigerated</option>
+              <option value="Frozen">🧊 Frozen</option>
+              <option value="Fruits">🍎 Fruits</option>
+            </select>
+          </div>
+
+          {/* Usage Status Dropdown */}
+          <div>
+            <select
+              value={usageFilter}
+              onChange={(e) => setUsageFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm font-medium bg-white"
             >
-              {cat === 'All' ? '📋 All' :
-               cat === 'Dry Store' ? '🏪 Dry Store' :
-               cat === 'Fresh Produce' ? '🥬 Fresh Produce' :
-               cat === 'Refrigerated' ? '❄️ Refrigerated' :
-               cat === 'Frozen' ? '🧊 Frozen' :
-               cat === 'Fruits' ? '🍎 Fruits' : cat}
-            </button>
-          ))}
+              <option value="all">📋 All Items</option>
+              <option value="used">✅ Used in Menu</option>
+              <option value="unused">⚪ Unused Items</option>
+            </select>
+          </div>
+
+          {/* Archived Toggle Dropdown */}
+          <div>
+            <select
+              value={showArchived ? 'archived' : 'active'}
+              onChange={(e) => setShowArchived(e.target.value === 'archived')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm font-medium bg-white"
+            >
+              <option value="active">📦 Active Items</option>
+              <option value="archived">📦 Archived Items</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -744,6 +743,11 @@ const CafeInventory = ({ showToast }) => {
             ) : (
               inventory
                 .filter(item => {
+                  // Search filter
+                  if (inventorySearchTerm && !item.name.toLowerCase().includes(inventorySearchTerm.toLowerCase())) {
+                    return false;
+                  }
+                  
                   // Category filter
                   if (selectedCategory !== 'All' && item.category !== selectedCategory) return false;
                   
@@ -916,6 +920,7 @@ const CafeInventory = ({ showToast }) => {
                               category: item.category || 'Dry Store',
                               expiryDate: item.expiryDate || '',
                               lastUsedDate: item.lastUsedDate || null,
+                              stockAdjustment: '',
                             });
                             setSearchTerm(item.name);
                             setShowModal(true);
@@ -1013,6 +1018,26 @@ const CafeInventory = ({ showToast }) => {
                       </div>
                     )}
                   </div>
+
+                  {/* Current Stock Update - Only for editing existing items */}
+                  {editingItem && (
+                    <div className="col-span-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Update Current Stock
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={formData.stockAdjustment}
+                        onChange={(e) => setFormData({...formData, stockAdjustment: e.target.value})}
+                        className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder={`Current: ${formData.currentStock}${formData.unit}`}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Leave empty to keep current stock ({formData.currentStock}{formData.unit})
+                      </p>
+                    </div>
+                  )}
 
                   {/* Min Level */}
                   <div className="col-span-4">

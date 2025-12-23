@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, X, Trash2 } from 'lucide-react';
-import { getPurchases, getPurchaseStats, addPurchase, getInventory } from '../../services/cafeService';
+import { Plus, Calendar, X, Trash2, Edit } from 'lucide-react';
+import { getPurchases, getPurchaseStats, addPurchase, updatePurchase, deletePurchase, getInventory } from '../../services/cafeService';
 
 const CafePurchases = ({ showToast }) => {
   const [purchases, setPurchases] = useState([]);
   const [stats, setStats] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState(null);
+  const [editingPurchase, setEditingPurchase] = useState(null);
+  const [purchaseToDelete, setPurchaseToDelete] = useState(null);
   const [inventory, setInventory] = useState([]);
   const [formData, setFormData] = useState({
     supplierName: '',
@@ -130,11 +133,43 @@ const CafePurchases = ({ showToast }) => {
       totalAmount: calculateTotal(),
     };
     
-    await addPurchase(purchaseData);
-    showToast('Purchase recorded successfully');
+    if (editingPurchase) {
+      await updatePurchase(editingPurchase.id, purchaseData);
+      showToast('✅ Purchase updated successfully');
+    } else {
+      await addPurchase(purchaseData);
+      showToast('✅ Purchase recorded successfully');
+    }
+    
     resetForm();
     await loadPurchases();
     await loadInventory();
+  };
+
+  const handleEdit = (purchase) => {
+    setEditingPurchase(purchase);
+    setFormData({
+      supplierName: purchase.supplierName || '',
+      items: purchase.items || [],
+      totalAmount: purchase.totalAmount || '',
+      notes: purchase.notes || '',
+    });
+    setShowModal(true);
+  };
+
+  const handleDeleteClick = (purchase) => {
+    setPurchaseToDelete(purchase);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (purchaseToDelete) {
+      await deletePurchase(purchaseToDelete.id);
+      showToast('🗑️ Purchase deleted successfully');
+      setShowDeleteModal(false);
+      setPurchaseToDelete(null);
+      await loadPurchases();
+    }
   };
 
   const resetForm = () => {
@@ -143,33 +178,35 @@ const CafePurchases = ({ showToast }) => {
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
     setShowModal(false);
+    setEditingPurchase(null);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 p-2 md:p-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Purchases</h2>
-          <p className="text-gray-600 font-semibold mt-1">Track raw material purchases</p>
+          <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Purchases</h2>
+          <p className="text-sm md:text-base text-gray-600 font-semibold mt-1">Track raw material purchases</p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+          className="flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl text-sm md:text-base w-full md:w-auto"
         >
-          <Plus className="w-5 h-5" />
-          Record Purchase
+          <Plus className="w-4 h-4 md:w-5 md:h-5" />
+          <span className="hidden sm:inline">Record Purchase</span>
+          <span className="sm:hidden">Add Purchase</span>
         </button>
       </div>
 
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent"></div>
             </div>
-            <div className="relative p-6">
-              <p className="text-sm font-semibold text-gray-600 mb-2">This Month</p>
-              <p className="text-4xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">{stats.totalPurchases}</p>
+            <div className="relative p-4 md:p-6">
+              <p className="text-xs md:text-sm font-semibold text-gray-600 mb-2">This Month</p>
+              <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">{stats.totalPurchases}</p>
               <p className="text-xs text-gray-500 mt-1">Total Purchases</p>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
@@ -179,9 +216,9 @@ const CafePurchases = ({ showToast }) => {
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent"></div>
             </div>
-            <div className="relative p-6">
-              <p className="text-sm font-semibold text-gray-600 mb-2">Total Spent</p>
-              <p className="text-4xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹{(stats.totalAmount || 0).toLocaleString()}</p>
+            <div className="relative p-4 md:p-6">
+              <p className="text-xs md:text-sm font-semibold text-gray-600 mb-2">Total Spent</p>
+              <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹{(stats.totalAmount || 0).toLocaleString()}</p>
               <p className="text-xs text-gray-500 mt-1">This Month</p>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
@@ -191,9 +228,9 @@ const CafePurchases = ({ showToast }) => {
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent"></div>
             </div>
-            <div className="relative p-6">
-              <p className="text-sm font-semibold text-gray-600 mb-2">Items Purchased</p>
-              <p className="text-4xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{stats.totalItems || 0}</p>
+            <div className="relative p-4 md:p-6">
+              <p className="text-xs md:text-sm font-semibold text-gray-600 mb-2">Items Purchased</p>
+              <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">{stats.totalItems || 0}</p>
               <p className="text-xs text-gray-500 mt-1">Unique Items</p>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
@@ -202,8 +239,8 @@ const CafePurchases = ({ showToast }) => {
       )}
 
       {/* Purchases Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+        <table className="w-full min-w-[800px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Order #</th>
@@ -211,12 +248,13 @@ const CafePurchases = ({ showToast }) => {
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Items & Supplier</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Amount</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Notes</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {purchases.length === 0 ? (
               <tr>
-                <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                   No purchases recorded yet. Start tracking your raw material purchases.
                 </td>
               </tr>
@@ -260,6 +298,24 @@ const CafePurchases = ({ showToast }) => {
                   <td className="px-6 py-4">
                     <span className="text-sm text-gray-600">{purchase.notes || '-'}</span>
                   </td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(purchase)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        title="Edit purchase"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(purchase)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                        title="Delete purchase"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))
             )}
@@ -273,7 +329,7 @@ const CafePurchases = ({ showToast }) => {
           <div className="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold">Record Purchase</h3>
+                <h3 className="text-2xl font-bold">{editingPurchase ? 'Edit Purchase' : 'Record Purchase'}</h3>
                 <button onClick={resetForm}>
                   <X className="w-6 h-6" />
                 </button>
@@ -431,10 +487,51 @@ const CafePurchases = ({ showToast }) => {
                     disabled={formData.items.length === 0}
                     className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-bold hover:from-purple-700 hover:to-indigo-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg"
                   >
-                    Record Purchase
+                    {editingPurchase ? 'Update Purchase' : 'Record Purchase'}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && purchaseToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-red-600">Delete Purchase</h3>
+                <button onClick={() => setShowDeleteModal(false)}>
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-700 mb-2">Are you sure you want to delete this purchase?</p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                  <p className="text-sm font-semibold text-gray-900">Order #{purchaseToDelete.orderNumber}</p>
+                  <p className="text-sm text-gray-600">Amount: ₹{purchaseToDelete.totalAmount}</p>
+                  <p className="text-sm text-gray-600">{purchaseToDelete.items?.length || 0} items</p>
+                </div>
+                <p className="text-sm text-red-600 mt-3 font-semibold">⚠️ This action cannot be undone.</p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition"
+                >
+                  Delete Purchase
+                </button>
+              </div>
             </div>
           </div>
         </div>

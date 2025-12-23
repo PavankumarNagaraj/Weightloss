@@ -188,21 +188,21 @@ const CafeDashboard = ({ showToast }) => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 p-2 md:p-0">
       {/* Header with Email Button */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Dashboard
           </h2>
-          <p className="text-gray-600 font-semibold mt-1">Overview of your cafe operations</p>
+          <p className="text-sm md:text-base text-gray-600 font-semibold mt-1">Overview of your cafe operations</p>
         </div>
         <button
           onClick={handleSendDailyReport}
           disabled={sendingEmail}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-pink-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50"
+          className="flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:from-purple-700 hover:to-pink-700 transition shadow-lg hover:shadow-xl text-sm md:text-base w-full sm:w-auto disabled:opacity-50"
         >
-          <Mail className="w-5 h-5" />
+          <Mail className="w-4 h-4 md:w-5 md:h-5" />
           {sendingEmail ? 'Sending...' : 'Email Report'}
         </button>
       </div>
@@ -211,28 +211,28 @@ const CafeDashboard = ({ showToast }) => {
 
       {/* Current Balance - Prominent Display */}
       {balance && (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 border-4 border-white shadow-2xl">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 border-2 md:border-4 border-white shadow-2xl">
           <div className="absolute inset-0 bg-black/10"></div>
-          <div className="relative p-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl">
-                  <Wallet className="w-10 h-10 text-white" />
+          <div className="relative p-4 md:p-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="p-3 md:p-4 bg-white/20 backdrop-blur-sm rounded-xl md:rounded-2xl">
+                  <Wallet className="w-6 h-6 md:w-10 md:h-10 text-white" />
                 </div>
                 <div>
-                  <p className="text-white/80 text-sm font-semibold mb-1">Current Balance</p>
-                  <p className="text-5xl font-black text-white">
+                  <p className="text-white/80 text-xs md:text-sm font-semibold mb-1">Current Balance</p>
+                  <p className="text-3xl md:text-5xl font-black text-white">
                     ₹{balance.currentBalance.toLocaleString()}
                   </p>
                   <p className="text-white/60 text-xs mt-2">
-                    Total Income: ₹{balance.totalIncome.toLocaleString()} | Total Costs: ₹{balance.totalCosts.toLocaleString()}
+                    Income: ₹{balance.totalIncome.toLocaleString()} | Costs: ₹{balance.totalCosts.toLocaleString()}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
+              <div className="w-full md:w-auto md:text-right">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 md:p-4">
                   <p className="text-white/80 text-xs mb-2">Breakdown</p>
-                  <div className="space-y-1 text-sm">
+                  <div className="space-y-1 text-xs md:text-sm">
                     <div className="flex items-center justify-between gap-4">
                       <span className="text-white/70">Revenue:</span>
                       <span className="text-white font-bold">₹{balance.breakdown.revenue.toLocaleString()}</span>

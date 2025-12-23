@@ -343,6 +343,50 @@ export const addPurchase = async (purchaseData) => {
   }
 };
 
+export const updatePurchase = async (purchaseId, purchaseData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_purchases')
+      .update({
+        supplier_name: purchaseData.supplierName,
+        items: purchaseData.items || [],
+        total_amount: purchaseData.totalAmount,
+        notes: purchaseData.notes,
+      })
+      .eq('id', purchaseId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error updating purchase:', error);
+    throw error;
+  }
+};
+
+export const deletePurchase = async (purchaseId) => {
+  try {
+    const { error } = await supabase
+      .from('cafe_purchases')
+      .delete()
+      .eq('id', purchaseId);
+
+    if (error) throw error;
+    
+    // Also delete associated expense entry
+    await supabase
+      .from('cafe_expenses')
+      .delete()
+      .eq('purchase_id', purchaseId);
+      
+    return true;
+  } catch (error) {
+    console.error('Error deleting purchase:', error);
+    throw error;
+  }
+};
+
 export const getPurchaseStats = async (startDate, endDate) => {
   try {
     let query = supabase

@@ -142,39 +142,40 @@ const CafeExpenses = ({ showToast }) => {
   }, {});
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 p-2 md:p-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-black bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
             Expenses
           </h2>
-          <p className="text-gray-600 font-semibold mt-1">Track all business expenses</p>
+          <p className="text-sm md:text-base text-gray-600 font-semibold mt-1">Track all business expenses</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl font-bold hover:from-red-700 hover:to-orange-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+          className="flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl font-bold hover:from-red-700 hover:to-orange-700 transition shadow-lg hover:shadow-xl text-sm md:text-base w-full md:w-auto"
         >
-          <Plus className="w-5 h-5" />
-          Add Expense
+          <Plus className="w-4 h-4 md:w-5 md:h-5" />
+          <span className="hidden sm:inline">Add Expense</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {/* Today's Expenses */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-50 to-orange-50 border-2 border-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent"></div>
             </div>
-            <div className="relative p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-red-500 rounded-xl shadow-lg">
-                  <Wallet className="w-6 h-6 text-white" />
+            <div className="relative p-4 md:p-6">
+              <div className="flex items-center gap-2 md:gap-3 mb-2">
+                <div className="p-2 md:p-3 bg-red-500 rounded-xl shadow-lg">
+                  <Wallet className="w-4 h-4 md:w-6 md:h-6 text-white" />
                 </div>
-                <p className="text-sm font-semibold text-gray-600">Today's Expenses</p>
+                <p className="text-xs md:text-sm font-semibold text-gray-600">Today's Expenses</p>
               </div>
-              <p className="text-4xl font-black bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+              <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
                 ₹{stats.todayExpenses.toLocaleString()}
               </p>
               <p className="text-xs text-gray-500 mt-1">Today</p>
@@ -187,14 +188,14 @@ const CafeExpenses = ({ showToast }) => {
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent"></div>
             </div>
-            <div className="relative p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-orange-500 rounded-xl shadow-lg">
-                  <Calendar className="w-6 h-6 text-white" />
+            <div className="relative p-4 md:p-6">
+              <div className="flex items-center gap-2 md:gap-3 mb-2">
+                <div className="p-2 md:p-3 bg-orange-500 rounded-xl shadow-lg">
+                  <Calendar className="w-4 h-4 md:w-6 md:h-6 text-white" />
                 </div>
-                <p className="text-sm font-semibold text-gray-600">This Month</p>
+                <p className="text-xs md:text-sm font-semibold text-gray-600">This Month</p>
               </div>
-              <p className="text-4xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+              <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
                 ₹{stats.thisMonthExpenses.toLocaleString()}
               </p>
               <p className="text-xs text-gray-500 mt-1">Current Month</p>
@@ -207,14 +208,14 @@ const CafeExpenses = ({ showToast }) => {
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent"></div>
             </div>
-            <div className="relative p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-purple-500 rounded-xl shadow-lg">
-                  <TrendingDown className="w-6 h-6 text-white" />
+            <div className="relative p-4 md:p-6">
+              <div className="flex items-center gap-2 md:gap-3 mb-2">
+                <div className="p-2 md:p-3 bg-purple-500 rounded-xl shadow-lg">
+                  <TrendingDown className="w-4 h-4 md:w-6 md:h-6 text-white" />
                 </div>
-                <p className="text-sm font-semibold text-gray-600">Total Expenses</p>
+                <p className="text-xs md:text-sm font-semibold text-gray-600">Total Expenses</p>
               </div>
-              <p className="text-4xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 ₹{stats.totalExpenses.toLocaleString()}
               </p>
               <p className="text-xs text-gray-500 mt-1">All Time</p>
