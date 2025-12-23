@@ -761,10 +761,11 @@ export const getCurrentBalance = async () => {
 
     const purchasesTotal = purchases.reduce((sum, p) => sum + parseFloat(p.total_amount || 0), 0);
 
-    // Get total expenses
+    // Get total expenses (excluding purchase expenses to avoid double-counting)
     const { data: expenses, error: expensesError } = await supabase
       .from('cafe_expenses')
-      .select('amount');
+      .select('amount, purchase_id')
+      .is('purchase_id', null); // Only get expenses NOT linked to purchases
 
     if (expensesError) throw expensesError;
 

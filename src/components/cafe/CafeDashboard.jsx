@@ -247,7 +247,7 @@ const CafeDashboard = ({ showToast }) => {
                       <span className="text-white font-bold">₹{balance.breakdown.purchases.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-white/70">Expenses:</span>
+                      <span className="text-white/70">Other Expenses:</span>
                       <span className="text-white font-bold">₹{balance.breakdown.expenses.toLocaleString()}</span>
                     </div>
                   </div>
