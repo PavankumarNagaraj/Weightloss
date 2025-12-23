@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash, Download, Search, Check, Mail } from 'lucide-react';
+import { Plus, AlertTriangle, Edit, Trash2, X, Upload, Trash, Download, Search, Check, Mail, TrendingDown } from 'lucide-react';
 import { getInventory, addInventoryItem, updateInventoryStock, updateInventoryItem, deleteInventoryItem, getLowStockItems, getMenuItems } from '../../services/cafeService';
 import { importBulkInventory } from '../../utils/bulkInventoryImport';
 import { inventoryTemplate } from '../../utils/inventoryTemplate';
 import { sendShoppingListEmail, getEmailSettings } from '../../services/emailService';
+import { getLowestCostVendor, getVendorPricesForItem } from '../../services/vendorPriceService';
 
 const CafeInventory = ({ showToast }) => {
   const [inventory, setInventory] = useState([]);
@@ -46,6 +47,8 @@ const CafeInventory = ({ showToast }) => {
   const [emailRecipient, setEmailRecipient] = useState('');
   const [emailName, setEmailName] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [vendorData, setVendorData] = useState({});
+  const [loadingVendors, setLoadingVendors] = useState(false);
 
   const categories = ['Dry Store', 'Fresh Produce', 'Refrigerated', 'Frozen', 'Fruits'];
 
@@ -108,6 +111,34 @@ const CafeInventory = ({ showToast }) => {
       usedIngredients.has(item.name.toLowerCase())
     );
     setLowStock(lowStockItems);
+    
+    // Load vendor data for low stock items
+    loadVendorData(lowStockItems);
+  };
+
+  const loadVendorData = async (items) => {
+    setLoadingVendors(true);
+    const vendors = {};
+    
+    for (const item of items) {
+      try {
+        const lowestVendor = await getLowestCostVendor(item.name);
+        const allVendors = await getVendorPricesForItem(item.name);
+        
+        if (lowestVendor) {
+          vendors[item.name] = {
+            lowestCostVendor: lowestVendor,
+            allVendors: allVendors,
+            vendorCount: allVendors.length,
+          };
+        }
+      } catch (error) {
+        console.error(`Error loading vendor data for ${item.name}:`, error);
+      }
+    }
+    
+    setVendorData(vendors);
+    setLoadingVendors(false);
   };
 
   const loadExistingMaterials = async () => {
@@ -724,11 +755,12 @@ const CafeInventory = ({ showToast }) => {
                   className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-96">Material Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-64">Material Name</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Category</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Current Stock</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Min Stock</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-20">Unit</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-48">💰 Best Vendor</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-28">Status</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Actions</th>
             </tr>
@@ -736,7 +768,7 @@ const CafeInventory = ({ showToast }) => {
           <tbody className="divide-y divide-gray-200">
             {inventory.length === 0 ? (
               <tr>
-                <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
+                <td colSpan="9" className="px-6 py-12 text-center text-gray-500">
                   No inventory items yet. Add items to track stock levels.
                 </td>
               </tr>
@@ -894,6 +926,35 @@ const CafeInventory = ({ showToast }) => {
                     </td>
                     <td className="px-4 py-2">
                       <span className="text-gray-600">{item.unit}</span>
+                    </td>
+                    <td className="px-4 py-2">
+                      {/* Vendor Information */}
+                      {isLowStock && isUsedInMenu ? (
+                        vendorData[item.name] ? (
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1">
+                              <TrendingDown className="w-3 h-3 text-green-600" />
+                              <span className="text-sm font-semibold text-green-700">
+                                {vendorData[item.name].lowestCostVendor.vendorName}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              ₹{vendorData[item.name].lowestCostVendor.lastPrice.toFixed(2)}/{item.unit}
+                            </div>
+                            {vendorData[item.name].vendorCount > 1 && (
+                              <div className="text-xs text-blue-600">
+                                +{vendorData[item.name].vendorCount - 1} more vendor{vendorData[item.name].vendorCount > 2 ? 's' : ''}
+                              </div>
+                            )}
+                          </div>
+                        ) : loadingVendors ? (
+                          <span className="text-xs text-gray-400">Loading...</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">No vendor data</span>
+                        )
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-4 py-2">
                       {isLowStock ? (
