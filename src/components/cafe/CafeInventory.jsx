@@ -112,15 +112,16 @@ const CafeInventory = ({ showToast }) => {
     );
     setLowStock(lowStockItems);
     
-    // Load vendor data for low stock items
-    loadVendorData(lowStockItems);
+    // Load vendor data for ALL items
+    loadVendorData(mappedItems);
   };
 
-  const loadVendorData = async (items) => {
+  const loadVendorData = async (allItems) => {
     setLoadingVendors(true);
     const vendors = {};
     
-    for (const item of items) {
+    // Load vendor data for ALL items, not just low stock
+    for (const item of allItems) {
       try {
         const lowestVendor = await getLowestCostVendor(item.name);
         const allVendors = await getVendorPricesForItem(item.name);
@@ -928,32 +929,32 @@ const CafeInventory = ({ showToast }) => {
                       <span className="text-gray-600">{item.unit}</span>
                     </td>
                     <td className="px-4 py-2">
-                      {/* Vendor Information */}
-                      {isLowStock && isUsedInMenu ? (
-                        vendorData[item.name] ? (
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-1">
-                              <TrendingDown className="w-3 h-3 text-green-600" />
-                              <span className="text-sm font-semibold text-green-700">
-                                {vendorData[item.name].lowestCostVendor.vendorName}
-                              </span>
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              ₹{vendorData[item.name].lowestCostVendor.lastPrice.toFixed(2)}/{item.unit}
-                            </div>
-                            {vendorData[item.name].vendorCount > 1 && (
-                              <div className="text-xs text-blue-600">
-                                +{vendorData[item.name].vendorCount - 1} more vendor{vendorData[item.name].vendorCount > 2 ? 's' : ''}
-                              </div>
-                            )}
+                      {/* Vendor Information - Show for ALL items */}
+                      {vendorData[item.name] ? (
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1">
+                            <TrendingDown className={`w-3 h-3 ${isLowStock ? 'text-green-600' : 'text-gray-500'}`} />
+                            <span className={`text-sm font-semibold ${isLowStock ? 'text-green-700' : 'text-gray-700'}`}>
+                              {vendorData[item.name].lowestCostVendor.vendorName}
+                            </span>
                           </div>
-                        ) : loadingVendors ? (
-                          <span className="text-xs text-gray-400">Loading...</span>
-                        ) : (
-                          <span className="text-xs text-gray-400">No vendor data</span>
-                        )
+                          <div className="text-xs text-gray-600">
+                            ₹{vendorData[item.name].lowestCostVendor.lastPrice.toFixed(2)}/{item.unit}
+                          </div>
+                          {vendorData[item.name].vendorCount > 1 ? (
+                            <div className="text-xs text-blue-600">
+                              +{vendorData[item.name].vendorCount - 1} more vendor{vendorData[item.name].vendorCount > 2 ? 's' : ''}
+                            </div>
+                          ) : (
+                            <div className="text-xs text-gray-500">
+                              Only vendor
+                            </div>
+                          )}
+                        </div>
+                      ) : loadingVendors ? (
+                        <span className="text-xs text-gray-400">Loading...</span>
                       ) : (
-                        <span className="text-xs text-gray-400">-</span>
+                        <span className="text-xs text-gray-400">No history</span>
                       )}
                     </td>
                     <td className="px-4 py-2">
