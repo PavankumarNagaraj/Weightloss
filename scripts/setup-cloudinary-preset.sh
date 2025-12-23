@@ -7,9 +7,9 @@ echo "🔧 Setting up Cloudinary upload preset..."
 echo ""
 
 # Cloudinary credentials
-CLOUD_NAME="dvgngavs8"
-API_KEY="457168446943358"
-API_SECRET="B_ptx960d-IpDlAbAVY5MtDd8SE"
+CLOUD_NAME="pavankumar"
+API_KEY="643778841175299"
+API_SECRET="tf-_SNKTnaFd2tvtTsKhq6ZBzXU"
 
 echo "Cloud Name: $CLOUD_NAME"
 echo "API Key: $API_KEY"
