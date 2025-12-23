@@ -1,6 +1,7 @@
 // Email Service using Brevo SMTP
 // Handles daily reports and notifications
 import { getOrders, getInventory, getExpenses, getPurchases, getMenuItems } from './cafeService';
+import { getVendorPricesForItem, getLowestCostVendor } from './vendorPriceService';
 
 const BREVO_CONFIG = {
   host: 'smtp-relay.brevo.com',
@@ -113,7 +114,7 @@ export const generateDailyReport = async () => {
   };
 
   // Get low stock items with purchase recommendations (only items used in menu)
-  const lowStockItems = inventory.filter(item => {
+  const lowStockItemsPromises = inventory.filter(item => {
     const currentStock = parseFloat(item.currentStock) || 0;
     const minStock = parseFloat(item.minStock) || 0;
     const isLowStock = currentStock <= minStock;
@@ -121,9 +122,13 @@ export const generateDailyReport = async () => {
     
     // Only include items that are low stock AND used in menu/dishes
     return isLowStock && usedInMenu;
-  }).map(item => {
+  }).map(async (item) => {
     const recommendation = calculatePurchaseRecommendation(item.name);
     const neededQty = Math.ceil(item.minStock - item.currentStock);
+    
+    // Get vendor price comparison
+    const lowestCostVendor = await getLowestCostVendor(item.name);
+    const allVendors = await getVendorPricesForItem(item.name);
     
     return {
       name: item.name,
@@ -140,8 +145,28 @@ export const generateDailyReport = async () => {
         avgPricePerUnit: (item.pricePerUnit || 0).toFixed(2),
         purchaseCount: 0,
       },
+      // Vendor comparison data
+      lowestCostVendor: lowestCostVendor ? {
+        name: lowestCostVendor.vendorName,
+        price: lowestCostVendor.lastPrice,
+        avgPrice: lowestCostVendor.avgPricePerUnit,
+        lastPurchaseDate: lowestCostVendor.lastPurchaseDate,
+        estimatedCost: neededQty * lowestCostVendor.lastPrice,
+      } : null,
+      vendorOptions: allVendors.map(v => ({
+        name: v.vendorName,
+        price: v.lastPrice,
+        avgPrice: v.avgPricePerUnit,
+        purchaseCount: v.purchaseCount,
+      })),
+      vendorCount: allVendors.length,
+      potentialSavings: allVendors.length > 1 
+        ? ((allVendors[allVendors.length - 1].lastPrice - allVendors[0].lastPrice) * neededQty).toFixed(2)
+        : 0,
     };
   });
+  
+  const lowStockItems = await Promise.all(lowStockItemsPromises);
   
   // Get items that need to be ordered (stock below 50% of min, only items used in menu)
   const itemsToOrder = inventory.filter(item => {
