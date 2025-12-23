@@ -343,7 +343,17 @@ const CafeExpenses = ({ showToast }) => {
                                 const purchases = await getPurchases();
                                 const purchase = purchases.find(p => p.id === expense.purchaseId);
                                 if (purchase) {
-                                  setSelectedPurchase(purchase);
+                                  // Map snake_case to camelCase for modal display
+                                  const mappedPurchase = {
+                                    ...purchase,
+                                    orderNumber: purchase.order_number ?? purchase.orderNumber,
+                                    supplierName: purchase.supplier_name ?? purchase.supplierName,
+                                    totalAmount: purchase.total_amount ?? purchase.totalAmount,
+                                    createdAt: purchase.created_at ?? purchase.createdAt,
+                                    receiptUrl: purchase.receipt_url ?? purchase.receiptUrl,
+                                    receiptFilename: purchase.receipt_filename ?? purchase.receiptFilename,
+                                  };
+                                  setSelectedPurchase(mappedPurchase);
                                   setShowPurchaseDetailModal(true);
                                 } else {
                                   showToast('❌ Purchase details not found');
@@ -566,13 +576,25 @@ const CafeExpenses = ({ showToast }) => {
                   </div>
                 </div>
 
-                {/* Total */}
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border-2 border-purple-200">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-gray-700">Total Amount</span>
-                    <span className="text-2xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                      ₹{selectedPurchase.totalAmount?.toLocaleString()}
-                    </span>
+                {/* Total & Expense Comparison */}
+                <div className="space-y-3">
+                  <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border-2 border-purple-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-bold text-gray-700">Purchase Total</span>
+                      <span className="text-2xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                        ₹{(selectedPurchase.totalAmount || selectedPurchase.total_amount)?.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Show linked expense amount for comparison */}
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg border-2 border-blue-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-semibold text-gray-700">Linked Expense Amount</span>
+                      <span className="text-xl font-black bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                        ₹{expenses.find(e => e.purchaseId === selectedPurchase.id)?.amount?.toLocaleString() || 'N/A'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
