@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, X, Trash2, Edit } from 'lucide-react';
+import { Plus, Calendar, X, Trash2, Edit, Upload, Image as ImageIcon } from 'lucide-react';
 import { getPurchases, getPurchaseStats, addPurchase, updatePurchase, deletePurchase, getInventory } from '../../services/cafeService';
 
 const CafePurchases = ({ showToast }) => {
@@ -12,11 +12,15 @@ const CafePurchases = ({ showToast }) => {
   const [editingPurchase, setEditingPurchase] = useState(null);
   const [purchaseToDelete, setPurchaseToDelete] = useState(null);
   const [inventory, setInventory] = useState([]);
+  const [receiptImage, setReceiptImage] = useState(null);
+  const [receiptPreview, setReceiptPreview] = useState(null);
   const [formData, setFormData] = useState({
     supplierName: '',
     items: [],
     totalAmount: '',
     notes: '',
+    receiptUrl: null,
+    receiptFilename: null,
   });
   const [currentItem, setCurrentItem] = useState({
     materialName: '',
@@ -46,6 +50,8 @@ const CafePurchases = ({ showToast }) => {
       supplierName: purchase.supplier_name ?? purchase.supplierName,
       totalAmount: purchase.total_amount ?? purchase.totalAmount,
       createdAt: purchase.created_at ?? purchase.createdAt,
+      receiptUrl: purchase.receipt_url ?? purchase.receiptUrl,
+      receiptFilename: purchase.receipt_filename ?? purchase.receiptFilename,
     }));
     setPurchases(mappedPurchases);
     
@@ -146,6 +152,47 @@ const CafePurchases = ({ showToast }) => {
     await loadInventory();
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('❌ Image size should be less than 5MB');
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        showToast('❌ Please upload an image file');
+        return;
+      }
+      
+      setReceiptImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setReceiptPreview(reader.result);
+        setFormData({
+          ...formData,
+          receiptUrl: reader.result,
+          receiptFilename: file.name,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setReceiptImage(null);
+    setReceiptPreview(null);
+    setFormData({
+      ...formData,
+      receiptUrl: null,
+      receiptFilename: null,
+    });
+  };
+
   const handleEdit = (purchase) => {
     setEditingPurchase(purchase);
     setFormData({
@@ -153,7 +200,10 @@ const CafePurchases = ({ showToast }) => {
       items: purchase.items || [],
       totalAmount: purchase.totalAmount || '',
       notes: purchase.notes || '',
+      receiptUrl: purchase.receiptUrl || null,
+      receiptFilename: purchase.receiptFilename || null,
     });
+    setReceiptPreview(purchase.receiptUrl || null);
     setShowModal(true);
   };
 
@@ -173,10 +223,12 @@ const CafePurchases = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ supplierName: '', items: [], totalAmount: '', notes: '' });
+    setFormData({ supplierName: '', items: [], totalAmount: '', notes: '', receiptUrl: null, receiptFilename: null });
     setCurrentItem({ materialName: '', quantity: '', unit: 'gm', totalPrice: '' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
+    setReceiptImage(null);
+    setReceiptPreview(null);
     setShowModal(false);
     setEditingPurchase(null);
   };
@@ -474,6 +526,45 @@ const CafePurchases = ({ showToast }) => {
                   />
                 </div>
 
+                {/* Receipt Image Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Receipt/Invoice Image (Optional)
+                  </label>
+                  {!receiptPreview ? (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id="receipt-upload"
+                      />
+                      <label htmlFor="receipt-upload" className="cursor-pointer">
+                        <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600 font-semibold">Click to upload receipt</p>
+                        <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</p>
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="relative border-2 border-purple-200 rounded-lg p-4">
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      <img
+                        src={receiptPreview}
+                        alt="Receipt preview"
+                        className="max-h-48 mx-auto rounded-lg"
+                      />
+                      <p className="text-xs text-gray-500 text-center mt-2">{formData.receiptFilename}</p>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
@@ -599,6 +690,24 @@ const CafePurchases = ({ showToast }) => {
                     </span>
                   </div>
                 </div>
+
+                {/* Receipt Image */}
+                {selectedPurchase.receiptUrl && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Receipt/Invoice</h4>
+                    <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
+                      <img
+                        src={selectedPurchase.receiptUrl}
+                        alt="Receipt"
+                        className="max-h-96 mx-auto rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition"
+                        onClick={() => window.open(selectedPurchase.receiptUrl, '_blank')}
+                      />
+                      <p className="text-xs text-gray-500 text-center mt-2">
+                        {selectedPurchase.receiptFilename || 'Receipt Image'} • Click to view full size
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Notes */}
                 {selectedPurchase.notes && (

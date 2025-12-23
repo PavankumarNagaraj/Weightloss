@@ -275,23 +275,26 @@ export const addPurchase = async (purchaseData) => {
         notes: purchaseData.notes,
         date: purchaseDateOnly,
         status: 'completed',
+        receipt_url: purchaseData.receiptUrl || null,
+        receipt_filename: purchaseData.receiptFilename || null,
       }])
       .select()
       .single();
 
     if (purchaseError) throw purchaseError;
 
-    // Create expense entry
+    // Create expense entry with exact same amount
     const { error: expenseError } = await supabase
       .from('cafe_expenses')
       .insert([{
         category: 'Inventory Purchase',
         description: `Purchase from ${purchaseData.supplierName} - ${purchaseData.items?.length || 0} items`,
-        amount: purchaseData.totalAmount,
+        amount: newPurchase.total_amount, // Use the saved purchase amount to ensure sync
         date: purchaseDateOnly,
         purchase_id: newPurchase.id,
         order_number: newPurchase.order_number,
         notes: purchaseData.notes || '',
+        payment_method: 'Cash', // Default payment method
       }]);
 
     if (expenseError) throw expenseError;
@@ -352,12 +355,21 @@ export const updatePurchase = async (purchaseId, purchaseData) => {
         items: purchaseData.items || [],
         total_amount: purchaseData.totalAmount,
         notes: purchaseData.notes,
+        receipt_url: purchaseData.receiptUrl,
+        receipt_filename: purchaseData.receiptFilename,
       })
       .eq('id', purchaseId)
       .select()
       .single();
 
     if (error) throw error;
+    
+    // Update associated expense amount to match
+    await supabase
+      .from('cafe_expenses')
+      .update({ amount: purchaseData.totalAmount })
+      .eq('purchase_id', purchaseId);
+    
     return data;
   } catch (error) {
     console.error('Error updating purchase:', error);
