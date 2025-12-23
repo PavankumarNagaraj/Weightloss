@@ -3,8 +3,8 @@
  * Handles receipt image uploads to Cloudinary
  */
 
-const CLOUDINARY_UPLOAD_PRESET = 'cafe_receipts'; // You'll need to create this preset in Cloudinary
-const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'your-cloud-name';
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'cafe_receipts';
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dvgngavs8';
 
 /**
  * Upload receipt image to Cloudinary
