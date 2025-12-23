@@ -4,7 +4,8 @@ import { getInventory, addInventoryItem, updateInventoryStock, updateInventoryIt
 import { importBulkInventory } from '../../utils/bulkInventoryImport';
 import { inventoryTemplate } from '../../utils/inventoryTemplate';
 import { sendShoppingListEmail, getEmailSettings } from '../../services/emailService';
-import { getLowestCostVendor, getVendorPricesForItem } from '../../services/vendorPriceService';
+import { getLowestCostVendor, getVendorPricesForItem, clearPurchasesCache } from '../../services/vendorPriceService';
+import { getPurchases } from '../../services/cafeService';
 
 const CafeInventory = ({ showToast }) => {
   const [inventory, setInventory] = useState([]);
@@ -112,34 +113,60 @@ const CafeInventory = ({ showToast }) => {
     );
     setLowStock(lowStockItems);
     
-    // Load vendor data for ALL items
-    loadVendorData(mappedItems);
+    // Load vendor data for ALL items in background (non-blocking)
+    loadVendorData(mappedItems).catch(err => {
+      console.error('Error loading vendor data:', err);
+      setLoadingVendors(false);
+    });
   };
 
   const loadVendorData = async (allItems) => {
     setLoadingVendors(true);
-    const vendors = {};
     
-    // Load vendor data for ALL items, not just low stock
-    for (const item of allItems) {
-      try {
-        const lowestVendor = await getLowestCostVendor(item.name);
-        const allVendors = await getVendorPricesForItem(item.name);
-        
-        if (lowestVendor) {
-          vendors[item.name] = {
-            lowestCostVendor: lowestVendor,
-            allVendors: allVendors,
-            vendorCount: allVendors.length,
-          };
+    try {
+      // Fetch purchases once for all items (uses cache)
+      const purchases = await getPurchases();
+      
+      // Load vendor data in parallel, passing purchases to avoid re-fetching
+      const vendorPromises = allItems.map(async (item) => {
+        try {
+          const allVendors = await getVendorPricesForItem(item.name, purchases);
+          const lowestVendor = allVendors.length > 0 ? allVendors[0] : null;
+          
+          if (lowestVendor) {
+            return {
+              itemName: item.name,
+              data: {
+                lowestCostVendor: lowestVendor,
+                allVendors: allVendors,
+                vendorCount: allVendors.length,
+              }
+            };
+          }
+          return null;
+        } catch (error) {
+          console.error(`Error loading vendor data for ${item.name}:`, error);
+          return null;
         }
-      } catch (error) {
-        console.error(`Error loading vendor data for ${item.name}:`, error);
-      }
+      });
+      
+      // Wait for all vendor data to load in parallel
+      const results = await Promise.all(vendorPromises);
+      
+      // Convert array to object
+      const vendors = {};
+      results.forEach(result => {
+        if (result) {
+          vendors[result.itemName] = result.data;
+        }
+      });
+      
+      setVendorData(vendors);
+    } catch (error) {
+      console.error('Error loading vendor data:', error);
+    } finally {
+      setLoadingVendors(false);
     }
-    
-    setVendorData(vendors);
-    setLoadingVendors(false);
   };
 
   const loadExistingMaterials = async () => {

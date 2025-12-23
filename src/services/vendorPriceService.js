@@ -5,14 +5,44 @@ import { getPurchases } from './cafeService';
  * Analyzes purchase history to recommend lowest cost vendors
  */
 
+// Cache for purchases to avoid multiple fetches
+let purchasesCache = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 60000; // 1 minute
+
+/**
+ * Get purchases with caching
+ */
+const getCachedPurchases = async () => {
+  const now = Date.now();
+  if (purchasesCache && cacheTimestamp && (now - cacheTimestamp) < CACHE_DURATION) {
+    return purchasesCache;
+  }
+  
+  purchasesCache = await getPurchases();
+  cacheTimestamp = now;
+  return purchasesCache;
+};
+
+/**
+ * Clear the purchases cache
+ */
+export const clearPurchasesCache = () => {
+  purchasesCache = null;
+  cacheTimestamp = null;
+};
+
 /**
  * Get all vendors who have supplied a specific item
  * @param {string} itemName - Name of the inventory item
+ * @param {Array} purchases - Optional pre-fetched purchases array
  * @returns {Array} Array of vendor price data
  */
-export const getVendorPricesForItem = async (itemName) => {
+export const getVendorPricesForItem = async (itemName, purchases = null) => {
   try {
-    const purchases = await getPurchases();
+    if (!purchases) {
+      purchases = await getCachedPurchases();
+    }
     const vendorPrices = {};
 
     // Analyze all purchases for this item
