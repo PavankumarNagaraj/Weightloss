@@ -1866,3 +1866,397 @@ export const clearAllCafeData = async (password) => {
     throw error;
   }
 };
+
+// ==================== CUSTOMER MANAGEMENT ====================
+
+export const getCustomers = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_customers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting customers:', error);
+    return [];
+  }
+};
+
+export const getCustomerById = async (customerId) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_customers')
+      .select('*')
+      .eq('id', customerId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error getting customer:', error);
+    return null;
+  }
+};
+
+export const addCustomer = async (customerData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_customers')
+      .insert([{
+        name: customerData.name,
+        phone: customerData.phone,
+        email: customerData.email || null,
+        address: customerData.address || null,
+        notes: customerData.notes || null,
+        customer_type: customerData.customerType || 'regular',
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error adding customer:', error);
+    throw error;
+  }
+};
+
+export const updateCustomer = async (customerId, customerData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_customers')
+      .update({
+        name: customerData.name,
+        phone: customerData.phone,
+        email: customerData.email,
+        address: customerData.address,
+        notes: customerData.notes,
+        customer_type: customerData.customerType,
+      })
+      .eq('id', customerId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error updating customer:', error);
+    throw error;
+  }
+};
+
+export const deleteCustomer = async (customerId) => {
+  try {
+    const { error } = await supabase
+      .from('cafe_customers')
+      .delete()
+      .eq('id', customerId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting customer:', error);
+    throw error;
+  }
+};
+
+// ==================== SUBSCRIPTION MANAGEMENT ====================
+
+export const getSubscriptions = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_subscriptions')
+      .select(`
+        *,
+        customer:cafe_customers(*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting subscriptions:', error);
+    return [];
+  }
+};
+
+export const getActiveSubscriptions = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_subscriptions')
+      .select(`
+        *,
+        customer:cafe_customers(*)
+      `)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting active subscriptions:', error);
+    return [];
+  }
+};
+
+export const getSubscriptionById = async (subscriptionId) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_subscriptions')
+      .select(`
+        *,
+        customer:cafe_customers(*)
+      `)
+      .eq('id', subscriptionId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error getting subscription:', error);
+    return null;
+  }
+};
+
+export const addSubscription = async (subscriptionData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_subscriptions')
+      .insert([{
+        customer_id: subscriptionData.customerId,
+        plan_type: subscriptionData.planType,
+        meal_types: subscriptionData.mealTypes || [],
+        delivery_days: subscriptionData.deliveryDays || [],
+        start_date: subscriptionData.startDate,
+        end_date: subscriptionData.endDate,
+        monthly_amount: subscriptionData.monthlyAmount,
+        status: subscriptionData.status || 'active',
+        delivery_time: subscriptionData.deliveryTime || null,
+        special_instructions: subscriptionData.specialInstructions || null,
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error adding subscription:', error);
+    throw error;
+  }
+};
+
+export const updateSubscription = async (subscriptionId, subscriptionData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_subscriptions')
+      .update({
+        plan_type: subscriptionData.planType,
+        meal_types: subscriptionData.mealTypes,
+        delivery_days: subscriptionData.deliveryDays,
+        start_date: subscriptionData.startDate,
+        end_date: subscriptionData.endDate,
+        monthly_amount: subscriptionData.monthlyAmount,
+        status: subscriptionData.status,
+        delivery_time: subscriptionData.deliveryTime,
+        special_instructions: subscriptionData.specialInstructions,
+      })
+      .eq('id', subscriptionId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error updating subscription:', error);
+    throw error;
+  }
+};
+
+export const deleteSubscription = async (subscriptionId) => {
+  try {
+    const { error } = await supabase
+      .from('cafe_subscriptions')
+      .delete()
+      .eq('id', subscriptionId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting subscription:', error);
+    throw error;
+  }
+};
+
+// ==================== SUBSCRIPTION BILLING ====================
+
+export const getSubscriptionPayments = async (subscriptionId) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_subscription_payments')
+      .select('*')
+      .eq('subscription_id', subscriptionId)
+      .order('payment_date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting subscription payments:', error);
+    return [];
+  }
+};
+
+export const addSubscriptionPayment = async (paymentData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_subscription_payments')
+      .insert([{
+        subscription_id: paymentData.subscriptionId,
+        amount: paymentData.amount,
+        payment_date: paymentData.paymentDate || new Date().toISOString(),
+        payment_method: paymentData.paymentMethod || 'cash',
+        status: paymentData.status || 'paid',
+        notes: paymentData.notes || null,
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error adding subscription payment:', error);
+    throw error;
+  }
+};
+
+// ==================== DELIVERY TRACKING ====================
+
+export const updateOrderDeliveryStatus = async (orderId, deliveryData) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_orders')
+      .update({
+        delivery_status: deliveryData.deliveryStatus,
+        delivery_person: deliveryData.deliveryPerson || null,
+        delivery_time: deliveryData.deliveryTime || null,
+        delivery_notes: deliveryData.deliveryNotes || null,
+      })
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error updating delivery status:', error);
+    throw error;
+  }
+};
+
+export const getDeliveryOrders = async (date) => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_orders')
+      .select('*')
+      .eq('order_type', 'delivery')
+      .gte('created_at', date)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting delivery orders:', error);
+    return [];
+  }
+};
+
+// ==================== AUTO-GENERATE SUBSCRIPTION ORDERS ====================
+
+export const generateSubscriptionOrders = async (date) => {
+  try {
+    const targetDate = new Date(date);
+    const dayOfWeek = targetDate.toLocaleDateString('en-US', { weekday: 'long' });
+    
+    // Get active subscriptions for this day
+    const { data: subscriptions, error: subError } = await supabase
+      .from('cafe_subscriptions')
+      .select(`
+        *,
+        customer:cafe_customers(*)
+      `)
+      .eq('status', 'active')
+      .lte('start_date', date)
+      .gte('end_date', date);
+
+    if (subError) throw subError;
+
+    // Get weekly plan for this date
+    const weekStart = getWeekStart(targetDate);
+    const weekKey = weekStart.toISOString().split('T')[0];
+    const { data: weeklyPlan, error: planError } = await supabase
+      .from('cafe_weekly_plans')
+      .select('*')
+      .eq('week_start', weekKey)
+      .single();
+
+    if (planError && planError.code !== 'PGRST116') throw planError;
+
+    const generatedOrders = [];
+
+    for (const subscription of subscriptions || []) {
+      // Check if this day is in delivery days
+      if (!subscription.delivery_days?.includes(dayOfWeek)) continue;
+
+      // Generate orders for each meal type
+      for (const mealType of subscription.meal_types || []) {
+        const meal = weeklyPlan?.plan_data?.[dayOfWeek]?.[mealType];
+        
+        if (meal) {
+          // Create order
+          const orderData = {
+            order_type: 'delivery',
+            customer_type: 'subscription',
+            items: [{
+              id: meal.id,
+              name: meal.name,
+              price: meal.price || 0,
+              quantity: 1,
+            }],
+            total: meal.price || 0,
+            payment_method: 'subscription',
+            status: 'pending',
+            customer_name: subscription.customer?.name || 'Subscription Customer',
+            customer_phone: subscription.customer?.phone || '',
+            delivery_address: subscription.customer?.address || '',
+            subscription_id: subscription.id,
+            delivery_status: 'pending',
+            notes: `Subscription Order - ${mealType}`,
+          };
+
+          const { data: order, error: orderError } = await supabase
+            .from('cafe_orders')
+            .insert([orderData])
+            .select()
+            .single();
+
+          if (!orderError) {
+            generatedOrders.push(order);
+          }
+        }
+      }
+    }
+
+    return generatedOrders;
+  } catch (error) {
+    console.error('Error generating subscription orders:', error);
+    throw error;
+  }
+};
+
+function getWeekStart(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(d.setDate(diff));
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings, Menu, X, Calculator, ChefHat, Trash, Lightbulb, Users } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings, Menu, X, Calculator, ChefHat, Trash, Lightbulb, Users, CreditCard, Truck } from 'lucide-react';
 import CafeOrders from './cafe/CafeOrders';
 import CafeMenu from './cafe/CafeMenu';
 import CafeInventory from './cafe/CafeInventory';
@@ -19,6 +19,9 @@ import CafeRecipes from './cafe/CafeRecipes';
 import CafeWaste from './cafe/CafeWaste';
 import CafeSuggestions from './cafe/CafeSuggestions';
 import CafeCustomers from './cafe/CafeCustomers';
+import CafeSubscriptionManagement from './cafe/CafeSubscriptionManagement';
+import CafeSubscriptionBilling from './cafe/CafeSubscriptionBilling';
+import CafeDeliveryTracking from './cafe/CafeDeliveryTracking';
 
 const CafeManagement = () => {
   const location = useLocation();
@@ -53,6 +56,9 @@ const CafeManagement = () => {
   const navItems = [
     { path: '/cafe/orders', label: 'Orders', icon: ShoppingCart },
     { path: '/cafe/customers', label: 'Customers', icon: Users },
+    { path: '/cafe/subscriptions', label: 'Subscriptions', icon: Calendar },
+    { path: '/cafe/billing', label: 'Billing', icon: CreditCard },
+    { path: '/cafe/delivery', label: 'Delivery', icon: Truck },
     { path: '/cafe/menu', label: 'Menu', icon: ShoppingBag },
     { path: '/cafe/inventory', label: 'Inventory', icon: Package },
     { path: '/cafe/purchases', label: 'Purchases', icon: DollarSign },
@@ -159,6 +165,9 @@ const CafeManagement = () => {
               <Route index element={<CafeOrders showToast={handleToast} />} />
               <Route path="/orders" element={<CafeOrders showToast={handleToast} />} />
               <Route path="/customers" element={<CafeCustomers showToast={handleToast} />} />
+              <Route path="/subscriptions" element={<CafeSubscriptionManagement showToast={handleToast} />} />
+              <Route path="/billing" element={<CafeSubscriptionBilling showToast={handleToast} />} />
+              <Route path="/delivery" element={<CafeDeliveryTracking showToast={handleToast} />} />
               <Route path="/menu" element={<CafeMenu showToast={handleToast} />} />
               <Route path="/inventory" element={<CafeInventory showToast={handleToast} />} />
               <Route path="/purchases" element={<CafePurchases showToast={handleToast} />} />

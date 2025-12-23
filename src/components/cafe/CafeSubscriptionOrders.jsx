@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Edit2, Save, X, Plus, Copy, Trash2, Printer } from 'lucide-react';
-import { getMenuItems, getWeeklyPlan, saveWeeklyPlan, deleteWeeklyPlan } from '../../services/cafeService';
+import { Calendar, Edit2, Save, X, Plus, Copy, Trash2, Printer, Zap } from 'lucide-react';
+import { getMenuItems, getWeeklyPlan, saveWeeklyPlan, deleteWeeklyPlan, generateSubscriptionOrders } from '../../services/cafeService';
 
 const CafeSubscriptionOrders = ({ showToast }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -203,6 +203,24 @@ const CafeSubscriptionOrders = ({ showToast }) => {
     window.print();
   };
 
+  const handleGenerateOrders = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (window.confirm('Generate subscription orders for today? This will create orders for all active subscriptions.')) {
+      try {
+        const result = await generateSubscriptionOrders(today);
+        if (result.success) {
+          showToast(`✅ Generated ${result.ordersCreated} orders successfully!`);
+        } else {
+          showToast('⚠️ No orders generated. Check if subscriptions are active and meals are planned.');
+        }
+      } catch (error) {
+        showToast('❌ Error generating orders');
+        console.error(error);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <style>{`
@@ -257,6 +275,14 @@ const CafeSubscriptionOrders = ({ showToast }) => {
           </div>
           
           <div className="flex flex-wrap items-center gap-1 sm:gap-2 w-full sm:w-auto">
+            <button
+              onClick={handleGenerateOrders}
+              className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg text-xs sm:text-sm font-bold hover:from-yellow-500 hover:to-orange-600 transition flex items-center gap-1 sm:gap-2 print:hidden shadow-lg"
+            >
+              <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Generate Orders</span>
+              <span className="sm:hidden">Generate</span>
+            </button>
             <button
               onClick={handlePrint}
               className="px-2 sm:px-3 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg text-xs sm:text-sm font-semibold hover:bg-white/30 transition flex items-center gap-1 sm:gap-2 print:hidden"
