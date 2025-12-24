@@ -20,8 +20,7 @@ import CafeRecipes from './cafe/CafeRecipes';
 import CafeWaste from './cafe/CafeWaste';
 import CafeSuggestions from './cafe/CafeSuggestions';
 import CafeCustomers from './cafe/CafeCustomers';
-import CafeSubscriptionManagement from './cafe/CafeSubscriptionManagement';
-import CafeSubscriptionBilling from './cafe/CafeSubscriptionBilling';
+import CafeSubscriptions from './cafe/CafeSubscriptions';
 import CafeDeliveryTracking from './cafe/CafeDeliveryTracking';
 
 const CafeManagement = () => {
@@ -78,7 +77,6 @@ const CafeManagement = () => {
     { path: '/cafe/orders', label: 'Orders', icon: ShoppingCart, alwaysShow: true },
     { path: '/cafe/customers', label: 'Customers', icon: Users, requiresMode: ['dineIn', 'pickup', 'delivery'] },
     { path: '/cafe/subscriptions', label: 'Subscriptions', icon: Calendar, requiresMode: ['delivery'] },
-    { path: '/cafe/billing', label: 'Billing', icon: CreditCard, requiresMode: ['delivery'] },
     { path: '/cafe/delivery', label: 'Delivery', icon: Truck, requiresMode: ['delivery'] },
     { path: '/cafe/menu', label: 'Menu', icon: ShoppingBag, alwaysShow: true },
     { path: '/cafe/inventory', label: 'Inventory', icon: Package, alwaysShow: true },
@@ -193,8 +191,7 @@ const CafeManagement = () => {
               <Route index element={<CafeOrders showToast={handleToast} />} />
               <Route path="/orders" element={<CafeOrders showToast={handleToast} />} />
               <Route path="/customers" element={<CafeCustomers showToast={handleToast} />} />
-              <Route path="/subscriptions" element={<CafeSubscriptionManagement showToast={handleToast} />} />
-              <Route path="/billing" element={<CafeSubscriptionBilling showToast={handleToast} />} />
+              <Route path="/subscriptions" element={<CafeSubscriptions showToast={handleToast} />} />
               <Route path="/delivery" element={<CafeDeliveryTracking showToast={handleToast} />} />
               <Route path="/menu" element={<CafeMenu showToast={handleToast} />} />
               <Route path="/inventory" element={<CafeInventory showToast={handleToast} />} />
