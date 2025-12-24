@@ -1414,6 +1414,9 @@ export const getSettings = async () => {
         recipient_email: '',
         recipient_name: '',
         auto_send_enabled: true,
+        operation_mode_dine_in: true,
+        operation_mode_pickup: true,
+        operation_mode_delivery: true,
       };
     }
     
@@ -1425,6 +1428,9 @@ export const getSettings = async () => {
       recipient_email: '',
       recipient_name: '',
       auto_send_enabled: true,
+      operation_mode_dine_in: true,
+      operation_mode_pickup: true,
+      operation_mode_delivery: true,
     };
   }
 };
@@ -1439,6 +1445,9 @@ export const saveSettings = async (settingsData) => {
         recipient_email: settingsData.recipientEmail,
         recipient_name: settingsData.recipientName,
         auto_send_enabled: settingsData.autoSendEnabled,
+        operation_mode_dine_in: settingsData.operationModeDineIn !== undefined ? settingsData.operationModeDineIn : true,
+        operation_mode_pickup: settingsData.operationModePickup !== undefined ? settingsData.operationModePickup : true,
+        operation_mode_delivery: settingsData.operationModeDelivery !== undefined ? settingsData.operationModeDelivery : true,
         last_email_sent: settingsData.lastEmailSent || null,
         updated_at: new Date().toISOString(),
       }, {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, ShoppingCart, Package, DollarSign, BarChart3, Calendar, CheckCircle, TrendingUp, Wallet, TrendingDown, BarChart2, FileText, Settings, Menu, X, Calculator, ChefHat, Trash, Lightbulb, Users, CreditCard, Truck } from 'lucide-react';
+import { getSettings } from '../services/cafeService';
 import CafeOrders from './cafe/CafeOrders';
 import CafeMenu from './cafe/CafeMenu';
 import CafeInventory from './cafe/CafeInventory';
@@ -29,14 +30,33 @@ const CafeManagement = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [operationModes, setOperationModes] = useState({
+    dineIn: true,
+    pickup: true,
+    delivery: true,
+  });
 
   useEffect(() => {
     // Check if user is already authenticated
     const authStatus = sessionStorage.getItem('cafe_authenticated');
     if (authStatus === 'true') {
       setIsAuthenticated(true);
+      loadOperationModes();
     }
   }, []);
+
+  const loadOperationModes = async () => {
+    try {
+      const settings = await getSettings();
+      setOperationModes({
+        dineIn: settings.operation_mode_dine_in !== false,
+        pickup: settings.operation_mode_pickup !== false,
+        delivery: settings.operation_mode_delivery !== false,
+      });
+    } catch (error) {
+      console.error('Error loading operation modes:', error);
+    }
+  };
 
   const handleLogin = () => {
     setIsAuthenticated(true);
@@ -53,28 +73,36 @@ const CafeManagement = () => {
     return <CafeLogin onLogin={handleLogin} />;
   }
 
-  const navItems = [
-    { path: '/cafe/orders', label: 'Orders', icon: ShoppingCart },
-    { path: '/cafe/customers', label: 'Customers', icon: Users },
-    { path: '/cafe/subscriptions', label: 'Subscriptions', icon: Calendar },
-    { path: '/cafe/billing', label: 'Billing', icon: CreditCard },
-    { path: '/cafe/delivery', label: 'Delivery', icon: Truck },
-    { path: '/cafe/menu', label: 'Menu', icon: ShoppingBag },
-    { path: '/cafe/inventory', label: 'Inventory', icon: Package },
-    { path: '/cafe/purchases', label: 'Purchases', icon: DollarSign },
-    { path: '/cafe/expenses', label: 'Expenses', icon: Wallet },
-    { path: '/cafe/investments', label: 'Investments', icon: TrendingUp },
-    { path: '/cafe/profit-loss', label: 'P&L', icon: TrendingDown },
-    { path: '/cafe/recipes', label: 'Recipes', icon: ChefHat },
-    { path: '/cafe/waste', label: 'Waste Tracking', icon: Trash },
-    { path: '/cafe/cost-analysis', label: 'Cost Analysis', icon: Calculator },
-    { path: '/cafe/suggestions', label: 'Suggestions', icon: Lightbulb },
-    { path: '/cafe/analytics', label: 'Analytics', icon: BarChart2 },
-    { path: '/cafe/reports', label: 'Reports', icon: FileText },
-    { path: '/cafe/subscription-orders', label: 'Subscriptions', icon: Calendar },
-    { path: '/cafe/dashboard', label: 'Dashboard', icon: BarChart3 },
-    { path: '/cafe/settings', label: 'Settings', icon: Settings },
+  const allNavItems = [
+    { path: '/cafe/dashboard', label: 'Dashboard', icon: BarChart3, alwaysShow: true },
+    { path: '/cafe/orders', label: 'Orders', icon: ShoppingCart, alwaysShow: true },
+    { path: '/cafe/customers', label: 'Customers', icon: Users, requiresMode: ['dineIn', 'pickup', 'delivery'] },
+    { path: '/cafe/subscriptions', label: 'Subscriptions', icon: Calendar, requiresMode: ['delivery'] },
+    { path: '/cafe/billing', label: 'Billing', icon: CreditCard, requiresMode: ['delivery'] },
+    { path: '/cafe/delivery', label: 'Delivery', icon: Truck, requiresMode: ['delivery'] },
+    { path: '/cafe/menu', label: 'Menu', icon: ShoppingBag, alwaysShow: true },
+    { path: '/cafe/inventory', label: 'Inventory', icon: Package, alwaysShow: true },
+    { path: '/cafe/purchases', label: 'Purchases', icon: DollarSign, alwaysShow: true },
+    { path: '/cafe/expenses', label: 'Expenses', icon: Wallet, alwaysShow: true },
+    { path: '/cafe/investments', label: 'Investments', icon: TrendingUp, alwaysShow: true },
+    { path: '/cafe/profit-loss', label: 'P&L', icon: TrendingDown, alwaysShow: true },
+    { path: '/cafe/recipes', label: 'Recipes', icon: ChefHat, alwaysShow: true },
+    { path: '/cafe/waste', label: 'Waste Tracking', icon: Trash, alwaysShow: true },
+    { path: '/cafe/cost-analysis', label: 'Cost Analysis', icon: Calculator, alwaysShow: true },
+    { path: '/cafe/suggestions', label: 'Suggestions', icon: Lightbulb, alwaysShow: true },
+    { path: '/cafe/analytics', label: 'Analytics', icon: BarChart2, alwaysShow: true },
+    { path: '/cafe/reports', label: 'Reports', icon: FileText, alwaysShow: true },
+    { path: '/cafe/settings', label: 'Settings', icon: Settings, alwaysShow: true },
   ];
+
+  // Filter navigation items based on operation modes
+  const navItems = allNavItems.filter(item => {
+    if (item.alwaysShow) return true;
+    if (!item.requiresMode) return true;
+    
+    // Check if any of the required modes is enabled
+    return item.requiresMode.some(mode => operationModes[mode]);
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

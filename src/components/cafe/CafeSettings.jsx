@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Mail, Clock, Save, Bell, Database, Trash2, AlertTriangle } from 'lucide-react';
+import { Settings, Mail, Clock, Save, Bell, Database, Trash2, AlertTriangle, Store, ShoppingBag, Truck } from 'lucide-react';
 import { getSettings, saveSettings, clearAllCafeData } from '../../services/cafeService';
 
 const CafeSettings = ({ showToast }) => {
@@ -11,6 +11,11 @@ const CafeSettings = ({ showToast }) => {
   const [showClearModal, setShowClearModal] = useState(false);
   const [clearPassword, setClearPassword] = useState('');
   const [isClearing, setIsClearing] = useState(false);
+  const [operationModes, setOperationModes] = useState({
+    dineIn: true,
+    pickup: true,
+    delivery: true,
+  });
 
   useEffect(() => {
     loadSettings();
@@ -22,6 +27,11 @@ const CafeSettings = ({ showToast }) => {
     setRecipientEmail(settings.recipient_email || '');
     setRecipientName(settings.recipient_name || '');
     setAutoSendEnabled(settings.auto_send_enabled !== false);
+    setOperationModes({
+      dineIn: settings.operation_mode_dine_in !== false,
+      pickup: settings.operation_mode_pickup !== false,
+      delivery: settings.operation_mode_delivery !== false,
+    });
   };
 
   const handleSaveSettings = async () => {
@@ -52,6 +62,9 @@ const CafeSettings = ({ showToast }) => {
         recipientEmail,
         recipientName,
         autoSendEnabled,
+        operationModeDineIn: operationModes.dineIn,
+        operationModePickup: operationModes.pickup,
+        operationModeDelivery: operationModes.delivery,
       };
 
       await saveSettings(settingsData);
@@ -166,6 +179,83 @@ const CafeSettings = ({ showToast }) => {
                   className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition outline-none"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Operation Mode Section */}
+          <div className="border-t-2 border-gray-100 pt-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Store className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Operation Modes</h3>
+            </div>
+
+            <div className="space-y-4 ml-11">
+              <p className="text-sm text-gray-600 mb-4">
+                Select which operation modes your cafe supports. This will show/hide relevant features and tabs.
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                  <input
+                    type="checkbox"
+                    id="dineIn"
+                    checked={operationModes.dineIn}
+                    onChange={(e) => setOperationModes({...operationModes, dineIn: e.target.checked})}
+                    className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <Store className="w-5 h-5 text-green-600" />
+                  <div className="flex-1">
+                    <label htmlFor="dineIn" className="text-sm font-semibold text-gray-900 cursor-pointer">
+                      Dine-In Service
+                    </label>
+                    <p className="text-xs text-gray-500">Customers eat at your cafe</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                  <input
+                    type="checkbox"
+                    id="pickup"
+                    checked={operationModes.pickup}
+                    onChange={(e) => setOperationModes({...operationModes, pickup: e.target.checked})}
+                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <ShoppingBag className="w-5 h-5 text-blue-600" />
+                  <div className="flex-1">
+                    <label htmlFor="pickup" className="text-sm font-semibold text-gray-900 cursor-pointer">
+                      Pickup / Takeaway
+                    </label>
+                    <p className="text-xs text-gray-500">Customers pick up orders</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                  <input
+                    type="checkbox"
+                    id="delivery"
+                    checked={operationModes.delivery}
+                    onChange={(e) => setOperationModes({...operationModes, delivery: e.target.checked})}
+                    className="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                  />
+                  <Truck className="w-5 h-5 text-orange-600" />
+                  <div className="flex-1">
+                    <label htmlFor="delivery" className="text-sm font-semibold text-gray-900 cursor-pointer">
+                      Delivery Service
+                    </label>
+                    <p className="text-xs text-gray-500">Deliver orders to customers</p>
+                  </div>
+                </div>
+              </div>
+
+              {!operationModes.dineIn && !operationModes.pickup && !operationModes.delivery && (
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3 mt-4">
+                  <p className="text-sm text-yellow-800 font-semibold">
+                    ⚠️ Please select at least one operation mode
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
