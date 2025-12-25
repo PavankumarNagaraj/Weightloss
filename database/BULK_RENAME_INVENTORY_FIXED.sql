@@ -270,7 +270,18 @@ INSERT INTO cafe_inventory (name, current_stock, min_stock, unit, category)
 SELECT 'Soy Chunks', 0, 200, 'gm', 'Dry Store'
 WHERE NOT EXISTS (SELECT 1 FROM cafe_inventory WHERE name = 'Soy Chunks');
 
+-- Now update nutrition data from nutrition_reference table for all standardized items
+UPDATE cafe_inventory ci
+SET 
+  calories_per_100g = nr.calories,
+  protein_per_100g = nr.protein,
+  carbs_per_100g = nr.carbs,
+  fat_per_100g = nr.fat,
+  fiber_per_100g = nr.fiber
+FROM nutrition_reference nr
+WHERE ci.name = nr.ingredient_name;
+
 -- Verify the updates
-SELECT name, current_stock, unit, category 
+SELECT name, current_stock, unit, category, calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g, fiber_per_100g
 FROM cafe_inventory 
 ORDER BY category, name;
