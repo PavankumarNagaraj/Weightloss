@@ -5,7 +5,7 @@ dotenv.config();
 // Brevo SMTP Configuration
 const BREVO_CONFIG = {
   apiKey: process.env.BREVO_API_KEY || 'yTcSL0hbzBF1Prqk',
-  senderEmail: process.env.BREVO_SENDER_EMAIL || 'pavan@afterburn.fit',
+  senderEmail: process.env.BREVO_SENDER_EMAIL || '9de95e001@smtp-brevo.com',
   senderName: 'Afterburn Cafe',
 };
 
