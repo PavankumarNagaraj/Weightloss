@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, ChevronDown, ChevronUp, Mail } from 'lucide-react';
 import { getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, getInventory, addInventoryItem } from '../../services/cafeService';
 
 const CafeMenu = ({ showToast }) => {
@@ -781,17 +781,30 @@ const CafeMenu = ({ showToast }) => {
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">{selectedItemForChart.name}</h3>
-                <p className="text-sm text-gray-600">Calorie Breakdown by Ingredient</p>
+                <p className="text-sm text-gray-600">Nutrition Analysis by <span className="font-bold text-orange-600">Afterburn</span></p>
               </div>
-              <button
-                onClick={() => {
-                  setShowCalorieChart(false);
-                  setSelectedItemForChart(null);
-                }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const subject = `Nutrition Analysis: ${selectedItemForChart.name} - Afterburn`;
+                    const body = `Check out the nutrition breakdown for ${selectedItemForChart.name}!\n\nTotal Calories: ${calculateCalories(selectedItemForChart.rawMaterials).total} kcal\n\nView full details in the Afterburn Cafe Menu.`;
+                    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                  }}
+                  className="p-2 hover:bg-orange-50 rounded-lg transition text-orange-600"
+                  title="Email this nutrition chart"
+                >
+                  <Mail className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCalorieChart(false);
+                    setSelectedItemForChart(null);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             
             <div className="p-6">
@@ -904,7 +917,7 @@ const CafeMenu = ({ showToast }) => {
                       <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
                         <h4 className="font-semibold text-gray-700 text-sm mb-3">Ingredient Breakdown</h4>
                         <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                      {breakdown.breakdown.map((ingredient, index) => {
+                      {breakdown.breakdown.sort((a, b) => parseFloat(b.calories) - parseFloat(a.calories)).map((ingredient, index) => {
                         const calories = parseFloat(ingredient.calories) || 0;
                         const percentage = totalCalories > 0 ? (calories / totalCalories * 100).toFixed(1) : 0;
                         const barWidth = maxCalories > 0 ? (calories / maxCalories * 100).toFixed(1) : 0;
@@ -927,7 +940,7 @@ const CafeMenu = ({ showToast }) => {
                                 <span className="text-gray-500">({percentage}%)</span>
                               </div>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                            <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
                               <div 
                                 className={`${colorClass} h-full rounded-full transition-all duration-500`}
                                 style={{ width: `${barWidth}%` }}
