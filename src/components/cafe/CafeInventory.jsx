@@ -57,6 +57,7 @@ const CafeInventory = ({ showToast }) => {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [vendorData, setVendorData] = useState({});
   const [loadingVendors, setLoadingVendors] = useState(false);
+  const [vendorsLoaded, setVendorsLoaded] = useState(false);
 
   const categories = ['Dry Store', 'Fresh Produce', 'Refrigerated', 'Frozen', 'Fruits'];
 
@@ -74,14 +75,14 @@ const CafeInventory = ({ showToast }) => {
   };
 
   useEffect(() => {
-    loadInventory();
+    loadInventory(true);
     loadExistingMaterials();
     loadMenuItems();
     
     // Reload inventory when window gains focus (switching tabs)
     const handleFocus = () => {
       console.log('🔄 Reloading inventory on focus');
-      loadInventory();
+      loadInventory(false);
     };
     
     window.addEventListener('focus', handleFocus);
@@ -143,7 +144,7 @@ const CafeInventory = ({ showToast }) => {
     }
   };
 
-  const loadInventory = async () => {
+  const loadInventory = async (loadVendors = false) => {
     const items = await getInventory();
     // Map snake_case to camelCase for compatibility
     const mappedItems = items.map(item => ({
@@ -184,11 +185,14 @@ const CafeInventory = ({ showToast }) => {
     );
     setLowStock(lowStockItems);
     
-    // Load vendor data for ALL items in background (non-blocking)
-    loadVendorData(mappedItems).catch(err => {
-      console.error('Error loading vendor data:', err);
-      setLoadingVendors(false);
-    });
+    // Load vendor data for ALL items in background (non-blocking) - only on initial load
+    if (loadVendors && !vendorsLoaded) {
+      setVendorsLoaded(true);
+      loadVendorData(mappedItems).catch(err => {
+        console.error('Error loading vendor data:', err);
+        setLoadingVendors(false);
+      });
+    }
   };
 
   const loadVendorData = async (allItems) => {
@@ -1308,6 +1312,11 @@ const CafeInventory = ({ showToast }) => {
                               expiryDate: item.expiryDate || '',
                               lastUsedDate: item.lastUsedDate || null,
                               stockAdjustment: '',
+                              caloriesPer100g: item.caloriesPer100g || '',
+                              proteinPer100g: item.proteinPer100g || '',
+                              carbsPer100g: item.carbsPer100g || '',
+                              fatPer100g: item.fatPer100g || '',
+                              fiberPer100g: item.fiberPer100g || '',
                             });
                             setSearchTerm(item.name);
                             setShowModal(true);
@@ -1349,9 +1358,8 @@ const CafeInventory = ({ showToast }) => {
                 {formData.currentStock > 0 && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-sm font-semibold text-blue-900">
-                      Current Stock: {formData.currentStock} {formData.unit}
-                    </p>
-                    <p className="text-xs text-blue-600 mt-1">
+                      Current Stock: {formData.currentStock} {formData.unit}<b> / </b>
+
                       Minimum Stock: {formData.minStock} {formData.unit}
                     </p>
                   </div>
@@ -1442,7 +1450,7 @@ const CafeInventory = ({ showToast }) => {
                         placeholder={`Current: ${formData.currentStock}${formData.unit}`}
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        Leave empty to keep current stock ({formData.currentStock}{formData.unit})
+                        Empty to keep current stock ({formData.currentStock}{formData.unit})
                       </p>
                     </div>
                   )}
@@ -1488,38 +1496,41 @@ const CafeInventory = ({ showToast }) => {
                 </div>
 
 
-                {/* Expiry Date (Optional) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Expiry Date (Optional)
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.expiryDate}
-                    onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    min={new Date().toISOString().split('T')[0]}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">For perishable items - get alerts before expiry</p>
-                </div>
+                {/* Expiry Date and Type on same line */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Expiry Date (Optional) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Expiry Date (Optional)
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.expiryDate}
+                      onChange={(e) => setFormData({...formData, expiryDate: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">For perishable items - get alerts before expiry</p>
+                  </div>
 
-                {/* Type (Storage Category) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type <span className="text-orange-600">*</span>
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-semibold"
-                    required
-                  >
-                    <option value="Dry Store">🏪 Dry Store</option>
-                    <option value="Fresh Produce">🥬 Fresh Produce</option>
-                    <option value="Refrigerated">❄️ Refrigerated</option>
-                    <option value="Frozen">🧊 Frozen</option>
-                    <option value="Fruits">🍎 Fruits</option>
-                  </select>
+                  {/* Type (Storage Category) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Type <span className="text-orange-600">*</span>
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-semibold"
+                      required
+                    >
+                      <option value="Dry Store">🏪 Dry Store</option>
+                      <option value="Fresh Produce">🥬 Fresh Produce</option>
+                      <option value="Refrigerated">❄️ Refrigerated</option>
+                      <option value="Frozen">🧊 Frozen</option>
+                      <option value="Fruits">🍎 Fruits</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* Nutritional Information Section */}
@@ -1605,10 +1616,6 @@ const CafeInventory = ({ showToast }) => {
                       />
                     </div>
                   </div>
-                  
-                  <p className="text-xs text-gray-500 mt-3">
-                    💡 <strong>Tip:</strong> Add nutritional data for automatic macro calculation in menu dishes. See reference data in database/ADD_NUTRITION_MACROS.sql
-                  </p>
                 </div>
 
                 {/* Info message for new items */}
