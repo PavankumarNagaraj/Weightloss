@@ -377,14 +377,16 @@ const CafeMenu = ({ showToast }) => {
               <th className="px-3 md:px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Dish</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Dish Name</th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Raw Materials</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Price</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-32">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Calories</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Customer Price</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Trainer Price</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-24">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {filteredItems.length === 0 ? (
               <tr>
-                <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
                   No menu items found
                 </td>
               </tr>
@@ -416,43 +418,49 @@ const CafeMenu = ({ showToast }) => {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      <div className="text-sm font-semibold text-gray-900">₹{item.customerPrice || 0}</div>
-                      {item.trainerPrice !== undefined && item.trainerPrice !== null && (
-                        <div className="text-xs text-gray-500">Trainer: ₹{item.trainerPrice}</div>
-                      )}
-                      {item.calories && (
-                        <div>
-                          <button
-                            onClick={() => setExpandedCalories(prev => ({...prev, [item.id]: !prev[item.id]}))}
-                            className="text-xs text-orange-600 font-semibold hover:text-orange-700 flex items-center gap-1"
-                          >
-                            🔥 {item.calories} cal
-                            {item.rawMaterials && item.rawMaterials.length > 0 && (
-                              expandedCalories[item.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                            )}
-                          </button>
-                          {expandedCalories[item.id] && item.rawMaterials && item.rawMaterials.length > 0 && (
-                            <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs">
-                              <div className="font-semibold text-orange-800 mb-1">Breakdown:</div>
-                              {(() => {
-                                const breakdown = calculateCalories(item.rawMaterials);
-                                return (
-                                  <div className="space-y-0.5">
-                                    {breakdown.breakdown.map((ing, idx) => (
-                                      <div key={idx} className="flex justify-between text-orange-700">
-                                        <span>{ing.name} ({ing.quantity}{ing.unit})</span>
-                                        <span className="font-semibold">{ing.calories} cal</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                );
-                              })()}
-                            </div>
+                    {item.calories ? (
+                      <div>
+                        <button
+                          onClick={() => setExpandedCalories(prev => ({...prev, [item.id]: !prev[item.id]}))}
+                          className="text-sm text-orange-600 font-semibold hover:text-orange-700 flex items-center gap-1"
+                        >
+                          🔥 {item.calories}
+                          {item.rawMaterials && item.rawMaterials.length > 0 && (
+                            expandedCalories[item.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
                           )}
-                        </div>
-                      )}
-                    </div>
+                        </button>
+                        {expandedCalories[item.id] && item.rawMaterials && item.rawMaterials.length > 0 && (
+                          <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs">
+                            <div className="font-semibold text-orange-800 mb-1">Breakdown:</div>
+                            {(() => {
+                              const breakdown = calculateCalories(item.rawMaterials);
+                              return (
+                                <div className="space-y-0.5">
+                                  {breakdown.breakdown.map((ing, idx) => (
+                                    <div key={idx} className="flex justify-between text-orange-700">
+                                      <span>{ing.name} ({ing.quantity}{ing.unit})</span>
+                                      <span className="font-semibold">{ing.calories} cal</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-semibold text-gray-900">₹{item.customerPrice || 0}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {item.trainerPrice !== undefined && item.trainerPrice !== null ? (
+                      <div className="text-sm font-semibold text-gray-900">₹{item.trainerPrice}</div>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
@@ -627,7 +635,7 @@ const CafeMenu = ({ showToast }) => {
                       <div className="col-span-1">Unit</div>
                       <div className="col-span-3">Cooking Method</div>
                       <div className="col-span-2">Extra Price (₹/unit)</div>
-                      <div className="col-span-2">Action</div>
+                      <div className="col-span-1">Action</div>
                     </div>
                     <div className="grid grid-cols-12 gap-2">
                       {/* Searchable Material Dropdown */}
@@ -676,12 +684,12 @@ const CafeMenu = ({ showToast }) => {
                         placeholder="Qty"
                         value={currentMaterial.quantity}
                         onChange={(e) => setCurrentMaterial({...currentMaterial, quantity: e.target.value})}
-                        className="col-span-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        className="col-span-1 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                       />
                       <select
                         value={currentMaterial.unit}
                         onChange={(e) => setCurrentMaterial({...currentMaterial, unit: e.target.value})}
-                        className="col-span-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        className="col-span-1 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                         disabled={currentMaterial.name && inventoryItems.find(item => item.name === currentMaterial.name)}
                       >
                         <option value="gm">gm</option>
@@ -706,13 +714,13 @@ const CafeMenu = ({ showToast }) => {
                           const value = e.target.value;
                           setCurrentMaterial({...currentMaterial, extraPrice: value === '' ? 0 : parseFloat(value) || 0});
                         }}
-                        className="col-span-2 px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        className="col-span-2 px-2 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                         title="Price per unit when customer adds extra"
                       />
                       <button
                         type="button"
                         onClick={addRawMaterial}
-                        className="col-span-2 px-3 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition text-sm"
+                        className="col-span-1 px-2 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition text-sm"
                       >
                         Add
                       </button>
