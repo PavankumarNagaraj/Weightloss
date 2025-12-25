@@ -981,7 +981,7 @@ const CafeMenu = ({ showToast }) => {
                         
                         return (
                           <div key={index} className="space-y-0.5">
-                            <div className="flex items-center justify-between text-[10px]">
+                            <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center gap-1.5">
                                 <div className={`w-2 h-2 rounded ${colorClass}`}></div>
                                 <span className="font-semibold text-gray-700">
@@ -1039,37 +1039,37 @@ const CafeMenu = ({ showToast }) => {
                           <table className="w-full">
                             <thead>
                               <tr className="border-b-2 border-gray-300">
-                                <th className="text-left py-1 px-2 text-[10px] font-semibold text-gray-600 uppercase">Nutrient</th>
-                                <th className="text-right py-1 px-2 text-[10px] font-semibold text-gray-600 uppercase">Amount</th>
-                                <th className="text-right py-1 px-2 text-[10px] font-semibold text-gray-600 uppercase">% of Total</th>
+                                <th className="text-left px-2 text-xs font-semibold text-gray-600 uppercase">Nutrient</th>
+                                <th className="text-right px-2 text-xs font-semibold text-gray-600 uppercase">Amount</th>
+                                <th className="text-right px-2 text-xs font-semibold text-gray-600 uppercase">% of Total</th>
                               </tr>
                             </thead>
                             <tbody>
                               {donutSegments.map((segment, index) => (
                                 <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
-                                  <td className="py-1.5 px-2">
+                                  <td className="px-2">
                                     <div className="flex items-center gap-1.5">
                                       <div 
                                         className="w-3 h-3 rounded"
                                         style={{ backgroundColor: segment.color }}
                                       ></div>
-                                      <span className="font-semibold text-gray-700 text-[11px]">
+                                      <span className="font-semibold text-gray-700 text-sm">
                                         {segment.emoji} {segment.name}
                                       </span>
                                     </div>
                                   </td>
-                                  <td className="py-1.5 px-2 text-right">
-                                    <span className="font-bold text-gray-900 text-[11px]">{segment.value}g</span>
+                                  <td className="px-2 text-right">
+                                    <span className="font-bold text-gray-900 text-sm">{segment.value}g</span>
                                   </td>
-                                  <td className="py-1.5 px-2 text-right">
-                                    <span className="text-gray-600 text-[11px]">{segment.percentage}%</span>
+                                  <td className="px-2 text-right">
+                                    <span className="text-gray-600 text-sm">{segment.percentage}%</span>
                                   </td>
                                 </tr>
                               ))}
                               <tr className="bg-gray-100 font-bold">
-                                <td className="py-1.5 px-2 text-[11px] text-gray-900">Total</td>
-                                <td className="py-1.5 px-2 text-right text-[11px] text-gray-900">{totalMacros.toFixed(1)}g</td>
-                                <td className="py-1.5 px-2 text-right text-[11px] text-gray-900">100%</td>
+                                <td className="px-2 text-sm text-gray-900">Total</td>
+                                <td className="px-2 text-right text-sm text-gray-900">{totalMacros.toFixed(1)}g</td>
+                                <td className="px-2 text-right text-sm text-gray-900">100%</td>
                               </tr>
                             </tbody>
                           </table>
