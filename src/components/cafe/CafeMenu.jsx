@@ -16,6 +16,7 @@ const CafeMenu = ({ showToast }) => {
     description: '',
     isVeg: true,
     rawMaterials: [],
+    calories: '',
   });
   const [currentMaterial, setCurrentMaterial] = useState({ name: '', quantity: '', unit: 'gm', extraPrice: 0 });
   const [inventoryItems, setInventoryItems] = useState([]);
@@ -42,6 +43,7 @@ const CafeMenu = ({ showToast }) => {
       isVeg: item.is_veg ?? item.isVeg,
       rawMaterials: item.raw_materials ?? item.rawMaterials,
       isActive: item.is_active ?? item.isActive,
+      calories: item.calories ?? item.calories,
     }));
     setMenuItems(mappedItems);
   };
@@ -77,7 +79,7 @@ const CafeMenu = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [] });
+    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '' });
     setCurrentMaterial({ name: '', quantity: '', unit: 'gm' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
@@ -255,6 +257,9 @@ const CafeMenu = ({ showToast }) => {
                       {item.trainerPrice !== undefined && item.trainerPrice !== null && (
                         <div className="text-xs text-gray-500">Trainer: ₹{item.trainerPrice}</div>
                       )}
+                      {item.calories && (
+                        <div className="text-xs text-orange-600 font-semibold">🔥 {item.calories} cal</div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -333,27 +338,41 @@ const CafeMenu = ({ showToast }) => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={formData.isVeg === true}
-                        onChange={() => setFormData({...formData, isVeg: true})}
-                        className="w-4 h-4 text-green-600"
-                      />
-                      <span className="text-sm font-medium text-gray-700">🟢 Vegetarian</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={formData.isVeg === false}
-                        onChange={() => setFormData({...formData, isVeg: false})}
-                        className="w-4 h-4 text-red-600"
-                      />
-                      <span className="text-sm font-medium text-gray-700">🔴 Non-Vegetarian</span>
-                    </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          checked={formData.isVeg === true}
+                          onChange={() => setFormData({...formData, isVeg: true})}
+                          className="w-4 h-4 text-green-600"
+                        />
+                        <span className="text-sm font-medium text-gray-700">🟢 Veg</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          checked={formData.isVeg === false}
+                          onChange={() => setFormData({...formData, isVeg: false})}
+                          className="w-4 h-4 text-red-600"
+                        />
+                        <span className="text-sm font-medium text-gray-700">🔴 Non-Veg</span>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Calories per Serving (Optional)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={formData.calories}
+                      onChange={(e) => setFormData({...formData, calories: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="e.g., 450"
+                    />
                   </div>
                 </div>
 

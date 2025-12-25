@@ -21,6 +21,7 @@ const CafeInventory = ({ showToast }) => {
     expiryDate: '',
     lastUsedDate: null,
     stockAdjustment: '',
+    caloriesPer100g: '',
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -197,6 +198,7 @@ const CafeInventory = ({ showToast }) => {
         expiryDate: formData.expiryDate || null,
         unit: formData.unit,
         category: formData.category,
+        caloriesPer100g: formData.caloriesPer100g ? parseFloat(formData.caloriesPer100g) : null,
       });
       
       if (formData.stockAdjustment !== '') {
@@ -221,6 +223,7 @@ const CafeInventory = ({ showToast }) => {
         unit: formData.unit,
         category: formData.category || 'Dry Store',
         pricePerUnit: 0,
+        caloriesPer100g: formData.caloriesPer100g ? parseFloat(formData.caloriesPer100g) : null,
       };
       await addInventoryItem(newItem);
       
@@ -237,7 +240,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', expiryDate: '', lastUsedDate: null, stockAdjustment: '' });
+    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', expiryDate: '', lastUsedDate: null, stockAdjustment: '', caloriesPer100g: '' });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -255,6 +258,7 @@ const CafeInventory = ({ showToast }) => {
         category: existingItem.category,
         expiryDate: existingItem.expiryDate || existingItem.expiry_date || '',
         lastUsedDate: existingItem.lastUsedDate || existingItem.last_used_date || null,
+        caloriesPer100g: existingItem.caloriesPer100g || existingItem.calories_per_100g || '',
       });
     } else {
       setFormData({
@@ -1201,6 +1205,22 @@ const CafeInventory = ({ showToast }) => {
                     <option value="Frozen">🧊 Frozen</option>
                     <option value="Fruits">🍎 Fruits</option>
                   </select>
+                </div>
+
+                {/* Calories per 100g (Optional) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Calories per 100g/ml (Optional)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={formData.caloriesPer100g}
+                    onChange={(e) => setFormData({...formData, caloriesPer100g: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="e.g., 130 for rice"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">For nutritional information - helps calculate dish calories</p>
                 </div>
 
                 {/* Info message for new items */}

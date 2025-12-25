@@ -45,6 +45,7 @@ export const addMenuItem = async (itemData) => {
         description: itemData.description,
         is_veg: itemData.isVeg,
         raw_materials: itemData.rawMaterials || [],
+        calories: itemData.calories ? parseFloat(itemData.calories) : null,
         is_active: true,
       }])
       .select()
@@ -68,6 +69,7 @@ export const updateMenuItem = async (itemId, updates) => {
       description: updates.description,
       is_veg: updates.isVeg,
       raw_materials: updates.rawMaterials,
+      calories: updates.calories ? parseFloat(updates.calories) : null,
     };
 
     const { data, error } = await supabase
@@ -142,6 +144,7 @@ export const addInventoryItem = async (itemData) => {
         unit: itemData.unit,
         category: itemData.category,
         price_per_unit: itemData.pricePerUnit || 0,
+        calories_per_100g: itemData.caloriesPer100g || null,
       }])
       .select()
       .single();
@@ -191,16 +194,28 @@ export const updateInventoryStock = async (itemId, quantity, type = 'add') => {
 
 export const updateInventoryItem = async (itemId, updates) => {
   try {
+    const updateData = {
+      name: updates.name,
+      current_stock: updates.currentStock,
+      min_stock: updates.minStock,
+      unit: updates.unit,
+      category: updates.category,
+      price_per_unit: updates.pricePerUnit,
+    };
+    
+    // Only include calories if provided
+    if (updates.caloriesPer100g !== undefined) {
+      updateData.calories_per_100g = updates.caloriesPer100g;
+    }
+    
+    // Only include expiry date if provided
+    if (updates.expiryDate !== undefined) {
+      updateData.expiry_date = updates.expiryDate;
+    }
+    
     const { data, error } = await supabase
       .from('cafe_inventory')
-      .update({
-        name: updates.name,
-        current_stock: updates.currentStock,
-        min_stock: updates.minStock,
-        unit: updates.unit,
-        category: updates.category,
-        price_per_unit: updates.pricePerUnit,
-      })
+      .update(updateData)
       .eq('id', itemId)
       .select()
       .single();
