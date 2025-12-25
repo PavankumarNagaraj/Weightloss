@@ -88,6 +88,61 @@ const CafeInventory = ({ showToast }) => {
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
+  // Auto-update nutrition data for items without it (background process)
+  const autoUpdateNutrition = async (items) => {
+    // Find items without nutrition data
+    const itemsNeedingUpdate = items.filter(item => 
+      !item.caloriesPer100g && !item.proteinPer100g && !item.carbsPer100g
+    );
+    
+    if (itemsNeedingUpdate.length === 0) return;
+    
+    console.log(`🔄 Auto-updating nutrition for ${itemsNeedingUpdate.length} items...`);
+    let updatedCount = 0;
+    
+    for (const item of itemsNeedingUpdate) {
+      try {
+        const searchTerms = getSmartSearchTerms(item.name);
+        let match = null;
+        
+        for (const term of searchTerms) {
+          const nutritionData = await searchNutritionReference(term);
+          if (nutritionData && nutritionData.length > 0) {
+            match = nutritionData.find(n => 
+              n.ingredient_name.toLowerCase() === term.toLowerCase()
+            ) || nutritionData[0];
+            break;
+          }
+        }
+        
+        if (match) {
+          await updateInventoryItem(item.id, {
+            name: item.name,
+            currentStock: item.currentStock || item.current_stock,
+            minStock: item.minStock || item.min_stock,
+            unit: item.unit,
+            category: item.category,
+            expiryDate: item.expiryDate || item.expiry_date || null,
+            caloriesPer100g: match.calories,
+            proteinPer100g: match.protein,
+            carbsPer100g: match.carbs,
+            fatPer100g: match.fat,
+            fiberPer100g: match.fiber,
+          });
+          updatedCount++;
+        }
+      } catch (error) {
+        console.error(`Error auto-updating ${item.name}:`, error);
+      }
+    }
+    
+    if (updatedCount > 0) {
+      console.log(`✅ Auto-updated nutrition for ${updatedCount} items`);
+      // Reload to show updated data
+      setTimeout(() => loadInventory(), 1000);
+    }
+  };
+
   const loadInventory = async () => {
     const items = await getInventory();
     // Map snake_case to camelCase for compatibility
@@ -106,6 +161,10 @@ const CafeInventory = ({ showToast }) => {
       fiberPer100g: item.fiber_per_100g ?? item.fiberPer100g,
     }));
     setInventory(mappedItems);
+    
+    // Auto-update nutrition data for items without it (runs in background)
+    autoUpdateNutrition(mappedItems);
+    
     // Get low stock items and filter by menu usage
     const allLowStockItems = await getLowStockItems();
     const menuItemsList = await getMenuItems();
