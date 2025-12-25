@@ -789,7 +789,7 @@ const CafeMenu = ({ showToast }) => {
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">{selectedItemForChart.name}</h3>
-                <p className="text-sm text-gray-600">Nutrition Analysis by <span className="font-bold text-orange-600">Afterburn</span></p>
+                <p className="text-sm text-gray-600">Nutrition Analysis by <span className="font-bold text-orange-700">Afterburn</span> by Sutra Fitness</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -959,20 +959,20 @@ const CafeMenu = ({ showToast }) => {
                 };
                 
                 return (
-                  <div className="space-y-6">
-                    {/* Top Row: Total Calories (Left) + Ingredient Breakdown (Right) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Left: Total Calories */}
-                      <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-6 text-center flex flex-col justify-center">
-                        <div className="text-sm text-gray-600 font-semibold">Total Calories</div>
-                        <div className="text-5xl font-bold text-orange-600 mt-2">🔥 {totalCalories}</div>
-                        <div className="text-xs text-gray-500 mt-2">kcal per serving</div>
+                  <div className="space-y-4">
+                    {/* Top Row: Total Calories (30%) + Ingredient Breakdown (70%) */}
+                    <div className="flex gap-3">
+                      {/* Left: Total Calories - 30% */}
+                      <div className="w-[30%] bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-4 text-center flex flex-col justify-center">
+                        <div className="text-xs text-gray-600 font-semibold">Total Calories</div>
+                        <div className="text-4xl font-bold text-orange-600 mt-1">🔥 {totalCalories}</div>
+                        <div className="text-xs text-gray-500 mt-1">kcal per serving</div>
                       </div>
                       
-                      {/* Right: Ingredient Breakdown Bar Chart */}
-                      <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-700 text-sm mb-3">Ingredient Breakdown</h4>
-                        <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                      {/* Right: Ingredient Breakdown Bar Chart - 70% */}
+                      <div className="w-[70%] bg-white border-2 border-gray-200 rounded-lg p-3">
+                        <h4 className="font-semibold text-gray-700 text-xs mb-2">Ingredient Breakdown</h4>
+                        <div className="space-y-1.5 max-h-64 overflow-y-auto pr-2">
                       {breakdown.breakdown.sort((a, b) => parseFloat(b.calories) - parseFloat(a.calories)).map((ingredient, index) => {
                         const calories = parseFloat(ingredient.calories) || 0;
                         const percentage = totalCalories > 0 ? (calories / totalCalories * 100).toFixed(1) : 0;
@@ -980,10 +980,10 @@ const CafeMenu = ({ showToast }) => {
                         const colorClass = colors[index % colors.length];
                         
                         return (
-                          <div key={index} className="space-y-1">
-                            <div className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-3 h-3 rounded ${colorClass}`}></div>
+                          <div key={index} className="space-y-0.5">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <div className="flex items-center gap-1.5">
+                                <div className={`w-2 h-2 rounded ${colorClass}`}></div>
                                 <span className="font-semibold text-gray-700">
                                   {ingredient.name}
                                 </span>
@@ -991,7 +991,7 @@ const CafeMenu = ({ showToast }) => {
                                   ({ingredient.quantity}{ingredient.unit})
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5">
                                 <span className="font-bold text-gray-900">{calories} cal</span>
                                 <span className="text-gray-500">({percentage}%)</span>
                               </div>
@@ -1010,13 +1010,13 @@ const CafeMenu = ({ showToast }) => {
                       </div>
                     </div>
                     
-                    {/* Bottom Row: Macro Nutrients Donut Chart + Table */}
-                    <div className="border-t pt-6">
-                      <h4 className="font-semibold text-gray-700 text-sm mb-4">Macro Nutrients Distribution</h4>
-                      <div className="flex flex-col md:flex-row gap-6 items-start">
-                        {/* Donut Chart */}
-                        <div className="flex-shrink-0 mx-auto md:mx-0">
-                          <svg width="200" height="200" viewBox="0 0 200 200" className="transform -rotate-90">
+                    {/* Bottom Row: Macro Nutrients Donut Chart (30%) + Table (70%) */}
+                    <div className="border-t pt-4">
+                      <h4 className="font-semibold text-gray-700 text-xs mb-3">Macro Nutrients Distribution</h4>
+                      <div className="flex gap-3 items-start">
+                        {/* Donut Chart - 30% */}
+                        <div className="w-[30%] flex-shrink-0">
+                          <svg width="160" height="160" viewBox="0 0 200 200" className="transform -rotate-90 mx-auto">
                             {donutSegments.map((segment, index) => (
                               <path
                                 key={index}
@@ -1028,48 +1028,48 @@ const CafeMenu = ({ showToast }) => {
                             {/* Center circle for donut hole */}
                             <circle cx="100" cy="100" r="60" fill="white" />
                           </svg>
-                          <div className="text-center -mt-32">
-                            <div className="text-2xl font-bold text-gray-900">{totalMacros.toFixed(1)}g</div>
-                            <div className="text-xs text-gray-500">Total Macros</div>
+                          <div className="text-center -mt-28">
+                            <div className="text-xl font-bold text-gray-900">{totalMacros.toFixed(1)}g</div>
+                            <div className="text-[10px] text-gray-500">Total Macros</div>
                           </div>
                         </div>
                         
-                        {/* Macro Table */}
-                        <div className="flex-1 w-full">
+                        {/* Macro Table - 70% */}
+                        <div className="w-[70%]">
                           <table className="w-full">
                             <thead>
                               <tr className="border-b-2 border-gray-300">
-                                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 uppercase">Nutrient</th>
-                                <th className="text-right py-2 px-3 text-xs font-semibold text-gray-600 uppercase">Amount</th>
-                                <th className="text-right py-2 px-3 text-xs font-semibold text-gray-600 uppercase">% of Total</th>
+                                <th className="text-left py-1 px-2 text-[10px] font-semibold text-gray-600 uppercase">Nutrient</th>
+                                <th className="text-right py-1 px-2 text-[10px] font-semibold text-gray-600 uppercase">Amount</th>
+                                <th className="text-right py-1 px-2 text-[10px] font-semibold text-gray-600 uppercase">% of Total</th>
                               </tr>
                             </thead>
                             <tbody>
                               {donutSegments.map((segment, index) => (
                                 <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
-                                  <td className="py-3 px-3">
-                                    <div className="flex items-center gap-2">
+                                  <td className="py-1.5 px-2">
+                                    <div className="flex items-center gap-1.5">
                                       <div 
-                                        className="w-4 h-4 rounded"
+                                        className="w-3 h-3 rounded"
                                         style={{ backgroundColor: segment.color }}
                                       ></div>
-                                      <span className="font-semibold text-gray-700 text-sm">
+                                      <span className="font-semibold text-gray-700 text-[11px]">
                                         {segment.emoji} {segment.name}
                                       </span>
                                     </div>
                                   </td>
-                                  <td className="py-3 px-3 text-right">
-                                    <span className="font-bold text-gray-900 text-sm">{segment.value}g</span>
+                                  <td className="py-1.5 px-2 text-right">
+                                    <span className="font-bold text-gray-900 text-[11px]">{segment.value}g</span>
                                   </td>
-                                  <td className="py-3 px-3 text-right">
-                                    <span className="text-gray-600 text-sm">{segment.percentage}%</span>
+                                  <td className="py-1.5 px-2 text-right">
+                                    <span className="text-gray-600 text-[11px]">{segment.percentage}%</span>
                                   </td>
                                 </tr>
                               ))}
                               <tr className="bg-gray-100 font-bold">
-                                <td className="py-3 px-3 text-sm text-gray-900">Total</td>
-                                <td className="py-3 px-3 text-right text-sm text-gray-900">{totalMacros.toFixed(1)}g</td>
-                                <td className="py-3 px-3 text-right text-sm text-gray-900">100%</td>
+                                <td className="py-1.5 px-2 text-[11px] text-gray-900">Total</td>
+                                <td className="py-1.5 px-2 text-right text-[11px] text-gray-900">{totalMacros.toFixed(1)}g</td>
+                                <td className="py-1.5 px-2 text-right text-[11px] text-gray-900">100%</td>
                               </tr>
                             </tbody>
                           </table>
