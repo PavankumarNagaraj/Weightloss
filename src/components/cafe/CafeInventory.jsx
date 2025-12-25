@@ -99,6 +99,11 @@ const CafeInventory = ({ showToast }) => {
       expiryDate: item.expiry_date ?? item.expiryDate ?? null,
       lastUsedDate: item.last_used_date ?? item.lastUsedDate ?? null,
       isArchived: item.is_archived ?? item.isArchived ?? false,
+      caloriesPer100g: item.calories_per_100g ?? item.caloriesPer100g,
+      proteinPer100g: item.protein_per_100g ?? item.proteinPer100g,
+      carbsPer100g: item.carbs_per_100g ?? item.carbsPer100g,
+      fatPer100g: item.fat_per_100g ?? item.fatPer100g,
+      fiberPer100g: item.fiber_per_100g ?? item.fiberPer100g,
     }));
     setInventory(mappedItems);
     // Get low stock items and filter by menu usage
