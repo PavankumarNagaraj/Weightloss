@@ -164,10 +164,12 @@ const CafeMenu = ({ showToast }) => {
   useEffect(() => {
     if (formData.rawMaterials.length > 0) {
       const { total, breakdown } = calculateCalories(formData.rawMaterials);
-      setCalculatedCalories(total);
+      setCalculatedCalories(parseFloat(total) || 0);
       setCalorieBreakdown(breakdown);
-      // Auto-update the calories field
-      setFormData(prev => ({ ...prev, calories: total }));
+      // Only auto-update if there's actual calorie data
+      if (parseFloat(total) > 0) {
+        setFormData(prev => ({ ...prev, calories: total }));
+      }
     } else {
       setCalculatedCalories(0);
       setCalorieBreakdown([]);
@@ -454,7 +456,7 @@ const CafeMenu = ({ showToast }) => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Calories per Serving {formData.rawMaterials.length > 0 ? '(Auto-calculated)' : '(Optional)'}
+                      Calories per Serving {calculatedCalories > 0 ? '(Auto-calculated - editable)' : '(Optional)'}
                     </label>
                     <div className="relative">
                       <input
@@ -462,29 +464,49 @@ const CafeMenu = ({ showToast }) => {
                         step="0.1"
                         value={formData.calories}
                         onChange={(e) => setFormData({...formData, calories: e.target.value})}
-                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${formData.rawMaterials.length > 0 ? 'bg-green-50 font-semibold text-green-700' : ''}`}
-                        placeholder="e.g., 450"
-                        readOnly={formData.rawMaterials.length > 0}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${calculatedCalories > 0 ? 'bg-green-50 font-semibold text-green-700' : ''}`}
+                        placeholder="e.g., 450 or add ingredients for auto-calc"
                       />
-                      {formData.rawMaterials.length > 0 && calculatedCalories > 0 && (
-                        <div className="absolute right-3 top-2.5 text-green-600 font-bold">
+                      {calculatedCalories > 0 && (
+                        <div className="absolute right-3 top-2.5 text-green-600 font-bold text-xs">
                           🔥 Auto
                         </div>
                       )}
                     </div>
+                    {formData.rawMaterials.length > 0 && calculatedCalories === 0 && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        ⚠️ Add calorie data to inventory items to enable auto-calculation
+                      </p>
+                    )}
                     {calorieBreakdown.length > 0 && (
                       <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                         <div className="text-xs font-semibold text-orange-800 mb-2">📊 Calorie Breakdown:</div>
                         <div className="space-y-1">
                           {calorieBreakdown.map((item, idx) => (
                             <div key={idx} className="text-xs text-orange-700 flex justify-between">
-                              <span>{item.name} ({item.quantity}{item.unit})</span>
+                              <span>{item.name} ({item.quantity}{item.unit}) @ {item.caloriesPer100g}/100g</span>
                               <span className="font-semibold">{item.calories} cal</span>
                             </div>
                           ))}
                           <div className="pt-1 mt-1 border-t border-orange-300 flex justify-between font-bold text-orange-900">
                             <span>Total:</span>
                             <span>{calculatedCalories} cal</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {formData.rawMaterials.length > 0 && calorieBreakdown.length === 0 && (
+                      <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="text-xs text-amber-800">
+                          💡 <strong>Tip:</strong> Add calorie data (per 100g) to these inventory items:
+                          <div className="mt-1 space-y-0.5">
+                            {formData.rawMaterials.map((m, idx) => {
+                              const invItem = inventoryItems.find(i => i.name.toLowerCase() === m.name.toLowerCase());
+                              if (!invItem || !invItem.caloriesPer100g) {
+                                return <div key={idx} className="text-xs">• {m.name}</div>;
+                              }
+                              return null;
+                            })}
                           </div>
                         </div>
                       </div>
