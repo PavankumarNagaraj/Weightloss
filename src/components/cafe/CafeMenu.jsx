@@ -37,8 +37,13 @@ const CafeMenu = ({ showToast }) => {
     steamed: { weightLoss: 0.10, calorieAdd: 0, name: '♨️ Steamed', description: '-10% water loss' },
     baked: { weightLoss: 0.18, calorieAdd: 0, name: '🍞 Baked', description: '-18% water loss' },
     fried: { weightLoss: 0.10, calorieAdd: 0.30, name: '🍳 Fried', description: '-10% water, +30% oil calories' },
+    sauteed: { weightLoss: 0.12, calorieAdd: 0.15, name: '🥘 Sautéed', description: '-12% water, +15% oil calories' },
     microwave: { weightLoss: 0.08, calorieAdd: 0, name: '📡 Microwave', description: '-8% water loss' },
     soaked: { weightLoss: -0.50, calorieAdd: 0, name: '💦 Soaked', description: '+50% water absorption' },
+    'boiled-sauteed': { weightLoss: 0.25, calorieAdd: 0.15, name: '💧+🥘 Boiled then Sautéed', description: '-25% water, +15% oil' },
+    'steamed-sauteed': { weightLoss: 0.20, calorieAdd: 0.15, name: '♨️+🥘 Steamed then Sautéed', description: '-20% water, +15% oil' },
+    'boiled-fried': { weightLoss: 0.22, calorieAdd: 0.30, name: '💧+🍳 Boiled then Fried', description: '-22% water, +30% oil' },
+    'soaked-boiled': { weightLoss: -0.40, calorieAdd: 0, name: '💦+💧 Soaked then Boiled', description: '+40% water (net)' },
   };
 
   useEffect(() => {
@@ -106,7 +111,7 @@ const CafeMenu = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '', cookingMethod: 'grilled' });
+    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '', cookingMethod: 'sauteed' });
     setCurrentMaterial({ name: '', quantity: '', unit: 'gm' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
