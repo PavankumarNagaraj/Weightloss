@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, X, ChevronDown, ChevronUp, Mail } from 'lucide-react';
-import { getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, getInventory, addInventoryItem } from '../../services/cafeService';
+import { getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, getInventory, addInventoryItem, getSettings } from '../../services/cafeService';
 
 const CafeMenu = ({ showToast }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -29,6 +29,7 @@ const CafeMenu = ({ showToast }) => {
   const [macroBreakdown, setMacroBreakdown] = useState([]);
   const [showCalorieChart, setShowCalorieChart] = useState(false);
   const [selectedItemForChart, setSelectedItemForChart] = useState(null);
+  const [recipientEmail, setRecipientEmail] = useState('');
 
   // Cooking method adjustment factors
   const COOKING_ADJUSTMENTS = {
@@ -51,7 +52,13 @@ const CafeMenu = ({ showToast }) => {
   useEffect(() => {
     loadMenu();
     loadInventory();
+    loadRecipientEmail();
   }, []);
+
+  const loadRecipientEmail = async () => {
+    const settings = await getSettings();
+    setRecipientEmail(settings.recipient_email || '');
+  };
 
   const loadInventory = async () => {
     const items = await getInventory();
@@ -786,9 +793,13 @@ const CafeMenu = ({ showToast }) => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
+                    if (!recipientEmail) {
+                      showToast('⚠️ Please configure recipient email in Settings first');
+                      return;
+                    }
                     const subject = `Nutrition Analysis: ${selectedItemForChart.name} - Afterburn`;
                     const body = `Check out the nutrition breakdown for ${selectedItemForChart.name}!\n\nTotal Calories: ${calculateCalories(selectedItemForChart.rawMaterials).total} kcal\n\nView full details in the Afterburn Cafe Menu.`;
-                    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                    window.location.href = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                   }}
                   className="p-2 hover:bg-orange-50 rounded-lg transition text-orange-600"
                   title="Email this nutrition chart"
