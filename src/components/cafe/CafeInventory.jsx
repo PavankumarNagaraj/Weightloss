@@ -559,9 +559,10 @@ const CafeInventory = ({ showToast }) => {
     showToast(message);
   };
 
-  const filteredMaterials = existingMaterials.filter(material =>
-    material.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Remove this - we only want nutrition database suggestions, not existing inventory names
+  // const filteredMaterials = existingMaterials.filter(material =>
+  //   material.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   const handleDelete = (id) => {
     setItemToDelete(id);
@@ -1396,39 +1397,17 @@ const CafeInventory = ({ showToast }) => {
                           </div>
                         )}
                         
-                        {/* Existing Inventory Items */}
-                        {filteredMaterials.length > 0 && (
-                          <div>
-                            <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
-                              <p className="text-xs font-bold text-gray-600">📦 YOUR INVENTORY ({filteredMaterials.length})</p>
-                            </div>
-                            {filteredMaterials.map((material, index) => (
-                              <button
-                                key={`inventory-${index}`}
-                                type="button"
-                                onClick={() => handleMaterialSelect(material)}
-                                className="w-full px-4 py-2 text-left hover:bg-orange-50 transition border-b border-gray-100 last:border-0"
-                              >
-                                <span className="font-semibold text-gray-900">{material}</span>
-                                {inventory.find(item => item.name === material) && (
-                                  <span className="text-xs text-gray-500 ml-2">
-                                    (Stock: {inventory.find(item => item.name === material).currentStock}
-                                    {inventory.find(item => item.name === material).unit})
-                                  </span>
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                        {/* Removed "Your Inventory" section - only show nutrition database suggestions */}
                         
                         {/* No Results */}
-                        {nutritionSuggestions.length === 0 && filteredMaterials.length === 0 && (
+                        {nutritionSuggestions.length === 0 && (
                           <button
                             type="button"
                             onClick={() => setShowDropdown(false)}
                             className="w-full px-4 py-3 text-left bg-orange-50 hover:bg-orange-100 transition"
                           >
                             <p className="font-semibold text-orange-600">✓ Add new: "{searchTerm}"</p>
+                            <p className="text-xs text-gray-600 mt-1">Not found in nutrition database - add manually</p>
                           </button>
                         )}
                       </div>

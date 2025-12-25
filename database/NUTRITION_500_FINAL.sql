@@ -194,11 +194,8 @@ INSERT INTO nutrition_reference (ingredient_name, category, calories, protein, c
 ('Green Chili', 'Spice', 40, 2, 9, 0.2, 1.5, 'gm', 'Hari Mirch'),
 ('Turmeric Powder', 'Spice', 312, 9.7, 67, 3.2, 22.7, 'gm', 'Haldi'),
 ('Cumin Seeds', 'Spice', 375, 18, 44, 22, 11, 'gm', 'Jeera'),
-('Coriander Powder', 'Spice', 298, 12, 55, 18, 42, 'gm', 'Dhania Powder');
--- Adding 377 more ingredients to reach 500 total
--- Append this to NUTRITION_REFERENCE_TABLE.sql
-
-,('Lemon', 'Fruit', 29, 1.1, 9, 0.3, 2.8, 'gm', 'Nimbu'),
+('Coriander Powder', 'Spice', 298, 12, 55, 18, 42, 'gm', 'Dhania Powder'),
+('Lemon', 'Fruit', 29, 1.1, 9, 0.3, 2.8, 'gm', 'Nimbu'),
 ('Kiwi', 'Fruit', 61, 1.1, 15, 0.5, 3, 'gm', 'Kiwi'),
 ('Peach', 'Fruit', 39, 0.9, 10, 0.3, 1.5, 'gm', 'Peach'),
 ('Plum', 'Fruit', 46, 0.7, 11, 0.3, 1.4, 'gm', 'Plum'),
@@ -451,9 +448,7 @@ INSERT INTO nutrition_reference (ingredient_name, category, calories, protein, c
 ('Bone Broth Powder', 'Condiment', 360, 80, 4, 2, 0, 'gm', 'Bone Broth'),
 ('Miso Paste', 'Condiment', 199, 12, 26, 6, 5.4, 'gm', 'Miso'),
 ('Tempeh Starter', 'Condiment', 193, 19, 9, 11, 0, 'gm', 'Tempeh Starter'),
-('Kombucha', 'Condiment', 30, 0, 7, 0, 0, 'ml', 'Kombucha');
-
-COMMENT ON TABLE nutrition_reference IS 'Complete 500 ingredient nutrition database - all values per 100g';
+('Kombucha', 'Condiment', 30, 0, 7, 0, 0, 'ml', 'Kombucha')
 ,('Chicken Stock', 'Condiment', 4, 0.4, 0.4, 0.1, 0, 'ml', 'Chicken Stock'),
 ('Beef Stock', 'Condiment', 4, 0.5, 0.4, 0.1, 0, 'ml', 'Beef Stock'),
 ('Vegetable Stock', 'Condiment', 2, 0.2, 0.4, 0, 0, 'ml', 'Vegetable Stock'),
@@ -571,14 +566,13 @@ COMMENT ON TABLE nutrition_reference IS 'Complete 500 ingredient nutrition datab
 ('Bloody Mary', 'Beverage', 120, 1, 10, 0.2, 0.5, 'ml', 'Bloody Mary'),
 ('Irish Coffee', 'Beverage', 100, 1, 10, 4, 0, 'ml', 'Irish Coffee'),
 ('Baileys', 'Beverage', 327, 3, 25, 13, 0, 'ml', 'Baileys'),
-('Kahlua', 'Beverage', 308, 0, 53, 0.4, 0, 'ml', 'Kahlua');
-,('Limoncello', 'Beverage', 255, 0, 32, 0, 0, 'ml', 'Limoncello'),
+('Kahlua', 'Beverage', 308, 0, 53, 0.4, 0, 'ml', 'Kahlua'),('Limoncello', 'Beverage', 255, 0, 32, 0, 0, 'ml', 'Limoncello'),
 ('Amaretto', 'Beverage', 280, 0, 28, 0, 0, 'ml', 'Amaretto'),
 ('Frangelico', 'Beverage', 290, 0, 30, 0, 0, 'ml', 'Frangelico'),
 ('Grand Marnier', 'Beverage', 250, 0, 25, 0, 0, 'ml', 'Grand Marnier'),
 ('Cointreau', 'Beverage', 250, 0, 25, 0, 0, 'ml', 'Cointreau'),
 ('Campari', 'Beverage', 120, 0, 12, 0, 0, 'ml', 'Campari'),
-('Aperol', 'Beverage', 110, 0, 11, 0, 0, 'ml', 'Aperol'),;
-,('Absinthe', 'Beverage', 348, 0, 0, 0, 0, 'ml', 'Absinthe');
-,('Fernet', 'Beverage', 175, 0, 18, 0, 0, 'ml', 'Fernet');
+('Aperol', 'Beverage', 110, 0, 11, 0, 0, 'ml', 'Aperol')
+,('Absinthe', 'Beverage', 348, 0, 0, 0, 0, 'ml', 'Absinthe')
+,('Fernet', 'Beverage', 175, 0, 18, 0, 0, 'ml', 'Fernet'),
 ('Chartreuse', 'Beverage', 320, 0, 32, 0, 0, 'ml', 'Chartreuse');
