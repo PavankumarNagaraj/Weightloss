@@ -359,35 +359,118 @@ const CafeInventory = ({ showToast }) => {
     }
   };
 
+  // Smart name mapping for common variations
+  const getSmartSearchTerms = (itemName) => {
+    const name = itemName.toLowerCase().trim();
+    const searchTerms = [name]; // Start with original name
+    
+    // Common mappings for your inventory
+    const mappings = {
+      'chicken': ['Chicken Breast (cooked)', 'Chicken'],
+      'eggs': ['Eggs (whole)', 'Egg'],
+      'egg': ['Eggs (whole)', 'Egg'],
+      'milk': ['Milk (whole)', 'Milk'],
+      'butter': ['Butter'],
+      'paneer': ['Paneer'],
+      'oats': ['Oats'],
+      'rice': ['Rice (white, cooked)', 'Basmati Rice', 'Rice'],
+      'basmati': ['Basmati Rice'],
+      'brown rice': ['Rice (brown, cooked)', 'Brown Rice'],
+      'quinoa': ['Quinoa'],
+      'spinach': ['Spinach'],
+      'broccoli': ['Broccoli'],
+      'carrots': ['Carrot'],
+      'carrot': ['Carrot'],
+      'cucumber': ['Cucumber'],
+      'tomato': ['Tomato'],
+      'tomatoes': ['Tomato'],
+      'onions': ['Onion'],
+      'onion': ['Onion'],
+      'garlic': ['Garlic'],
+      'ginger': ['Ginger'],
+      'apples': ['Apple'],
+      'apple': ['Apple'],
+      'bananas': ['Banana'],
+      'banana': ['Banana'],
+      'grapes': ['Grape'],
+      'lemons': ['Lemon'],
+      'lemon': ['Lemon'],
+      'strawberries': ['Strawberry'],
+      'watermelon': ['Watermelon'],
+      'pineapple': ['Pineapple'],
+      'pomegranate': ['Pomegranate'],
+      'chickpeas': ['Kabuli Chana', 'Chickpea'],
+      'chana dal': ['Chana Dal'],
+      'rajma': ['Rajma'],
+      'beans': ['Green Peas', 'Bean'],
+      'peas': ['Green Peas', 'Pea'],
+      'cauliflower': ['Cauliflower'],
+      'capsicum': ['Bell Pepper'],
+      'beetroot': ['Beetroot'],
+      'sweet potato': ['Sweet Potato'],
+      'almonds': ['Almond'],
+      'almond': ['Almond'],
+      'cashew': ['Cashew'],
+      'peanuts': ['Peanut'],
+      'walnuts': ['Walnut'],
+      'walnut': ['Walnut'],
+      'wallnut': ['Walnut'],
+      'honey': ['Honey'],
+      'olive oil': ['Olive Oil'],
+      'ghee': ['Ghee'],
+    };
+    
+    // Check if we have a mapping for this item
+    for (const [key, values] of Object.entries(mappings)) {
+      if (name.includes(key) || key.includes(name)) {
+        searchTerms.push(...values);
+        break;
+      }
+    }
+    
+    return [...new Set(searchTerms)]; // Remove duplicates
+  };
+
   // Bulk update existing inventory items with nutrition data
   const handleBulkNutritionUpdate = async () => {
-    if (!confirm('Update all inventory items with nutrition data from the reference database? This will overwrite existing nutrition values.')) {
+    if (!confirm('🏋️ Smart Nutrition Update\n\nThis will:\n✅ Match your items intelligently (e.g., "Chicken" → "Chicken Breast")\n✅ Preserve all current stock values\n✅ Only update nutrition data\n\nContinue?')) {
       return;
     }
 
     let updatedCount = 0;
     let notFoundCount = 0;
+    const notFoundItems = [];
 
-    showToast('🔄 Starting bulk nutrition update...');
+    showToast('🔄 Starting smart nutrition update...');
 
     for (const item of inventory) {
       try {
-        // Search for nutrition data
-        const nutritionData = await searchNutritionReference(item.name);
+        // Get smart search terms for this item
+        const searchTerms = getSmartSearchTerms(item.name);
+        let match = null;
         
-        if (nutritionData && nutritionData.length > 0) {
-          // Find exact match or closest match
-          const match = nutritionData.find(n => 
-            n.ingredient_name.toLowerCase() === item.name.toLowerCase()
-          ) || nutritionData[0];
-
-          // Update item with nutrition data
+        // Try each search term until we find a match
+        for (const term of searchTerms) {
+          const nutritionData = await searchNutritionReference(term);
+          
+          if (nutritionData && nutritionData.length > 0) {
+            // Find exact match or use first result
+            match = nutritionData.find(n => 
+              n.ingredient_name.toLowerCase() === term.toLowerCase()
+            ) || nutritionData[0];
+            break;
+          }
+        }
+        
+        if (match) {
+          // Update item with nutrition data - PRESERVING current stock
           await updateInventoryItem(item.id, {
-            name: item.name,
-            currentStock: item.currentStock || item.current_stock,
-            minStock: item.minStock || item.min_stock,
+            name: item.name, // Keep original name
+            currentStock: item.currentStock || item.current_stock, // Preserve stock
+            minStock: item.minStock || item.min_stock, // Preserve min stock
             unit: item.unit,
             category: item.category,
+            expiryDate: item.expiryDate || item.expiry_date || null,
             caloriesPer100g: match.calories,
             proteinPer100g: match.protein,
             carbsPer100g: match.carbs,
@@ -398,15 +481,23 @@ const CafeInventory = ({ showToast }) => {
           updatedCount++;
         } else {
           notFoundCount++;
+          notFoundItems.push(item.name);
         }
       } catch (error) {
         console.error(`Error updating ${item.name}:`, error);
         notFoundCount++;
+        notFoundItems.push(item.name);
       }
     }
 
     await loadInventory();
-    showToast(`✅ Updated ${updatedCount} items. ${notFoundCount} items not found in nutrition database.`);
+    
+    let message = `✅ Updated ${updatedCount} items with nutrition data!\n`;
+    if (notFoundCount > 0) {
+      message += `⚠️ ${notFoundCount} items not found (likely non-food items)`;
+      console.log('Items not found:', notFoundItems);
+    }
+    showToast(message);
   };
 
   const filteredMaterials = existingMaterials.filter(material =>
