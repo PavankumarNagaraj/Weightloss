@@ -129,7 +129,7 @@ const CafeMenu = ({ showToast }) => {
     item.name.toLowerCase().includes(materialSearchTerm.toLowerCase())
   );
 
-  // Calculate calories from ingredients
+  // Calculate calories and macros from ingredients
   const calculateCalories = (materials) => {
     let totalCalories = 0;
     const breakdown = [];
@@ -166,12 +166,69 @@ const CafeMenu = ({ showToast }) => {
     return { total: totalCalories.toFixed(1), breakdown };
   };
 
-  // Recalculate calories whenever raw materials change
+  // Calculate all macronutrients from ingredients
+  const calculateMacros = (materials) => {
+    let totals = { protein: 0, carbs: 0, fat: 0, fiber: 0 };
+    const breakdown = [];
+
+    materials.forEach(material => {
+      const inventoryItem = inventoryItems.find(item => 
+        item.name.toLowerCase() === material.name.toLowerCase()
+      );
+      
+      if (inventoryItem) {
+        const quantity = parseFloat(material.quantity) || 0;
+        let quantityInGrams = quantity;
+        if (material.unit === 'ml') {
+          quantityInGrams = quantity;
+        } else if (material.unit === 'pcs') {
+          quantityInGrams = quantity * 100;
+        }
+        
+        const protein = inventoryItem.proteinPer100g ? (inventoryItem.proteinPer100g * quantityInGrams) / 100 : 0;
+        const carbs = inventoryItem.carbsPer100g ? (inventoryItem.carbsPer100g * quantityInGrams) / 100 : 0;
+        const fat = inventoryItem.fatPer100g ? (inventoryItem.fatPer100g * quantityInGrams) / 100 : 0;
+        const fiber = inventoryItem.fiberPer100g ? (inventoryItem.fiberPer100g * quantityInGrams) / 100 : 0;
+        
+        totals.protein += protein;
+        totals.carbs += carbs;
+        totals.fat += fat;
+        totals.fiber += fiber;
+        
+        breakdown.push({
+          name: material.name,
+          quantity: material.quantity,
+          unit: material.unit,
+          protein: protein.toFixed(1),
+          carbs: carbs.toFixed(1),
+          fat: fat.toFixed(1),
+          fiber: fiber.toFixed(1)
+        });
+      }
+    });
+
+    return { 
+      totals: {
+        protein: totals.protein.toFixed(1),
+        carbs: totals.carbs.toFixed(1),
+        fat: totals.fat.toFixed(1),
+        fiber: totals.fiber.toFixed(1)
+      }, 
+      breakdown 
+    };
+  };
+
+  // Recalculate calories and macros whenever raw materials change
   useEffect(() => {
     if (formData.rawMaterials.length > 0) {
       const { total, breakdown } = calculateCalories(formData.rawMaterials);
       setCalculatedCalories(parseFloat(total) || 0);
       setCalorieBreakdown(breakdown);
+      
+      const macros = calculateMacros(formData.rawMaterials);
+      setCalculatedMacros(macros.totals);
+      setMacroBreakdown(macros.breakdown);
+      
       // Only auto-update if there's actual calorie data
       if (parseFloat(total) > 0) {
         setFormData(prev => ({ ...prev, calories: total }));
@@ -179,6 +236,8 @@ const CafeMenu = ({ showToast }) => {
     } else {
       setCalculatedCalories(0);
       setCalorieBreakdown([]);
+      setCalculatedMacros({ protein: 0, carbs: 0, fat: 0, fiber: 0 });
+      setMacroBreakdown([]);
     }
   }, [formData.rawMaterials, inventoryItems]);
 
@@ -411,7 +470,7 @@ const CafeMenu = ({ showToast }) => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Customer Price (₹)</label>
                     <input
@@ -433,9 +492,6 @@ const CafeMenu = ({ showToast }) => {
                       placeholder="e.g., 0 (free)"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                     <div className="flex gap-4">
@@ -459,63 +515,65 @@ const CafeMenu = ({ showToast }) => {
                       </label>
                     </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Calories per Serving {calculatedCalories > 0 ? '(Auto-calculated - editable)' : '(Optional)'}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        step="0.1"
-                        value={formData.calories}
-                        onChange={(e) => setFormData({...formData, calories: e.target.value})}
-                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${calculatedCalories > 0 ? 'bg-green-50 font-semibold text-green-700' : ''}`}
-                        placeholder="e.g., 450 or add ingredients for auto-calc"
-                      />
-                      {calculatedCalories > 0 && (
-                        <div className="absolute right-3 top-2.5 text-green-600 font-bold text-xs">
-                          🔥 Auto
-                        </div>
-                      )}
+                </div>
+
+                {/* Macro Nutrients Section - Paragraph Format */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Macro Nutrients per Serving {calculatedCalories > 0 ? '(Auto-calculated - editable)' : '(Optional)'}
+                  </label>
+                  <div className="p-4 bg-gradient-to-r from-green-50 to-orange-50 border border-gray-300 rounded-lg">
+                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-700">🔥 Calories:</span>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.calories}
+                          onChange={(e) => setFormData({...formData, calories: e.target.value})}
+                          className={`w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 text-center ${calculatedCalories > 0 ? 'bg-green-100 font-bold text-green-700' : ''}`}
+                          placeholder="450"
+                        />
+                        <span className="text-gray-600">kcal</span>
+                      </div>
+                      <span className="text-gray-400">|</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-700">💪 Protein:</span>
+                        <span className={`px-2 py-1 rounded ${calculatedMacros.protein > 0 ? 'bg-blue-100 font-bold text-blue-700' : 'text-gray-500'}`}>
+                          {calculatedMacros.protein > 0 ? calculatedMacros.protein : '0'}g
+                        </span>
+                      </div>
+                      <span className="text-gray-400">|</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-700">🍚 Carbs:</span>
+                        <span className={`px-2 py-1 rounded ${calculatedMacros.carbs > 0 ? 'bg-yellow-100 font-bold text-yellow-700' : 'text-gray-500'}`}>
+                          {calculatedMacros.carbs > 0 ? calculatedMacros.carbs : '0'}g
+                        </span>
+                      </div>
+                      <span className="text-gray-400">|</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-700">🥑 Fat:</span>
+                        <span className={`px-2 py-1 rounded ${calculatedMacros.fat > 0 ? 'bg-orange-100 font-bold text-orange-700' : 'text-gray-500'}`}>
+                          {calculatedMacros.fat > 0 ? calculatedMacros.fat : '0'}g
+                        </span>
+                      </div>
+                      <span className="text-gray-400">|</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-700">🌾 Fiber:</span>
+                        <span className={`px-2 py-1 rounded ${calculatedMacros.fiber > 0 ? 'bg-green-100 font-bold text-green-700' : 'text-gray-500'}`}>
+                          {calculatedMacros.fiber > 0 ? calculatedMacros.fiber : '0'}g
+                        </span>
+                      </div>
                     </div>
+                    {calculatedCalories > 0 && (
+                      <div className="mt-2 text-xs text-green-700 font-semibold">
+                        ✅ Auto-calculated from ingredients
+                      </div>
+                    )}
                     {formData.rawMaterials.length > 0 && calculatedCalories === 0 && (
-                      <p className="text-xs text-amber-600 mt-1">
-                        ⚠️ Add calorie data to inventory items to enable auto-calculation
+                      <p className="text-xs text-amber-600 mt-2">
+                        ⚠️ Add nutrition data to inventory items to enable auto-calculation
                       </p>
-                    )}
-                    {calorieBreakdown.length > 0 && (
-                      <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                        <div className="text-xs font-semibold text-orange-800 mb-2">📊 Calorie Breakdown:</div>
-                        <div className="space-y-1">
-                          {calorieBreakdown.map((item, idx) => (
-                            <div key={idx} className="text-xs text-orange-700 flex justify-between">
-                              <span>{item.name} ({item.quantity}{item.unit}) @ {item.caloriesPer100g}/100g</span>
-                              <span className="font-semibold">{item.calories} cal</span>
-                            </div>
-                          ))}
-                          <div className="pt-1 mt-1 border-t border-orange-300 flex justify-between font-bold text-orange-900">
-                            <span>Total:</span>
-                            <span>{calculatedCalories} cal</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {formData.rawMaterials.length > 0 && calorieBreakdown.length === 0 && (
-                      <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <div className="text-xs text-amber-800">
-                          💡 <strong>Tip:</strong> Add calorie data (per 100g) to these inventory items:
-                          <div className="mt-1 space-y-0.5">
-                            {formData.rawMaterials.map((m, idx) => {
-                              const invItem = inventoryItems.find(i => i.name.toLowerCase() === m.name.toLowerCase());
-                              if (!invItem || !invItem.caloriesPer100g) {
-                                return <div key={idx} className="text-xs">• {m.name}</div>;
-                              }
-                              return null;
-                            })}
-                          </div>
-                        </div>
-                      </div>
                     )}
                   </div>
                 </div>
