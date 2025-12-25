@@ -345,13 +345,63 @@ const CafeInventory = ({ showToast }) => {
         minStock: existingItem.minStock,
         unit: existingItem.unit,
         category: existingItem.category || 'Dry Store',
-        caloriesPer100g: existingItem.caloriesPer100g || existingItem.calories_per_100g || '',
-        proteinPer100g: existingItem.proteinPer100g || existingItem.protein_per_100g || '',
-        carbsPer100g: existingItem.carbsPer100g || existingItem.carbs_per_100g || '',
-        fatPer100g: existingItem.fatPer100g || existingItem.fat_per_100g || '',
-        fiberPer100g: existingItem.fiberPer100g || existingItem.fiber_per_100g || '',
+        caloriesPer100g: existingItem.caloriesPer100g ?? existingItem.calories_per_100g ?? '',
+        proteinPer100g: existingItem.proteinPer100g ?? existingItem.protein_per_100g ?? '',
+        carbsPer100g: existingItem.carbsPer100g ?? existingItem.carbs_per_100g ?? '',
+        fatPer100g: existingItem.fatPer100g ?? existingItem.fat_per_100g ?? '',
+        fiberPer100g: existingItem.fiberPer100g ?? existingItem.fiber_per_100g ?? '',
       });
     }
+  };
+
+  // Bulk update existing inventory items with nutrition data
+  const handleBulkNutritionUpdate = async () => {
+    if (!confirm('Update all inventory items with nutrition data from the reference database? This will overwrite existing nutrition values.')) {
+      return;
+    }
+
+    let updatedCount = 0;
+    let notFoundCount = 0;
+
+    showToast('🔄 Starting bulk nutrition update...');
+
+    for (const item of inventory) {
+      try {
+        // Search for nutrition data
+        const nutritionData = await searchNutritionReference(item.name);
+        
+        if (nutritionData && nutritionData.length > 0) {
+          // Find exact match or closest match
+          const match = nutritionData.find(n => 
+            n.ingredient_name.toLowerCase() === item.name.toLowerCase()
+          ) || nutritionData[0];
+
+          // Update item with nutrition data
+          await updateInventoryItem(item.id, {
+            name: item.name,
+            currentStock: item.currentStock || item.current_stock,
+            minStock: item.minStock || item.min_stock,
+            unit: item.unit,
+            category: item.category,
+            caloriesPer100g: match.calories,
+            proteinPer100g: match.protein,
+            carbsPer100g: match.carbs,
+            fatPer100g: match.fat,
+            fiberPer100g: match.fiber,
+          });
+
+          updatedCount++;
+        } else {
+          notFoundCount++;
+        }
+      } catch (error) {
+        console.error(`Error updating ${item.name}:`, error);
+        notFoundCount++;
+      }
+    }
+
+    await loadInventory();
+    showToast(`✅ Updated ${updatedCount} items. ${notFoundCount} items not found in nutrition database.`);
   };
 
   const filteredMaterials = existingMaterials.filter(material =>
@@ -707,6 +757,15 @@ const CafeInventory = ({ showToast }) => {
             <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
             <span className="hidden sm:inline">Bulk Import</span>
             <span className="sm:hidden">Import</span>
+          </button>
+          <button
+            onClick={handleBulkNutritionUpdate}
+            className="flex items-center gap-2 px-3 sm:px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl font-bold hover:from-orange-700 hover:to-red-700 transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 text-sm sm:text-base"
+            title="Auto-populate nutrition data for all existing inventory items"
+          >
+            <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">🏋️ Update Nutrition</span>
+            <span className="sm:hidden">Nutrition</span>
           </button>
           <button
             onClick={() => setShowModal(true)}
@@ -1319,7 +1378,7 @@ const CafeInventory = ({ showToast }) => {
                 {/* Nutritional Information Section */}
                 <div className="col-span-full border-t-2 border-gray-200 pt-4">
                   <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    🏋️ Nutritional Information (per 100g/ml)
+                    Macro Nutritions (per 100g/ml)
                     <span className="text-xs font-normal text-gray-500">- All fields optional but recommended for gym cafe</span>
                   </h3>
                   
