@@ -814,7 +814,7 @@ const CafeMenu = ({ showToast }) => {
                           calories: ing.calories
                         }));
                       
-                      const response = await fetch('http://localhost:5000/api/email/nutrition-chart', {
+                      const response = await fetch('http://localhost:5001/api/email/nutrition-chart', {
                         method: 'POST',
                         headers: {
                           'Content-Type': 'application/json',
