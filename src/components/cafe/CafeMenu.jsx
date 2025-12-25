@@ -27,6 +27,8 @@ const CafeMenu = ({ showToast }) => {
   const [expandedCalories, setExpandedCalories] = useState({});
   const [calculatedMacros, setCalculatedMacros] = useState({ protein: 0, carbs: 0, fat: 0, fiber: 0 });
   const [macroBreakdown, setMacroBreakdown] = useState([]);
+  const [showCalorieChart, setShowCalorieChart] = useState(false);
+  const [selectedItemForChart, setSelectedItemForChart] = useState(null);
 
   // Cooking method adjustment factors
   const COOKING_ADJUSTMENTS = {
@@ -419,35 +421,15 @@ const CafeMenu = ({ showToast }) => {
                   </td>
                   <td className="px-6 py-4">
                     {item.calories ? (
-                      <div>
-                        <button
-                          onClick={() => setExpandedCalories(prev => ({...prev, [item.id]: !prev[item.id]}))}
-                          className="text-sm text-orange-600 font-semibold hover:text-orange-700 flex items-center gap-1"
-                        >
-                          🔥 {item.calories}
-                          {item.rawMaterials && item.rawMaterials.length > 0 && (
-                            expandedCalories[item.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
-                          )}
-                        </button>
-                        {expandedCalories[item.id] && item.rawMaterials && item.rawMaterials.length > 0 && (
-                          <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs">
-                            <div className="font-semibold text-orange-800 mb-1">Breakdown:</div>
-                            {(() => {
-                              const breakdown = calculateCalories(item.rawMaterials);
-                              return (
-                                <div className="space-y-0.5">
-                                  {breakdown.breakdown.map((ing, idx) => (
-                                    <div key={idx} className="flex justify-between text-orange-700">
-                                      <span>{ing.name} ({ing.quantity}{ing.unit})</span>
-                                      <span className="font-semibold">{ing.calories} cal</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        )}
-                      </div>
+                      <button
+                        onClick={() => {
+                          setSelectedItemForChart(item);
+                          setShowCalorieChart(true);
+                        }}
+                        className="text-sm text-orange-600 font-semibold hover:text-orange-700 underline decoration-dotted hover:decoration-solid transition"
+                      >
+                        🔥 {item.calories}
+                      </button>
                     ) : (
                       <span className="text-xs text-gray-400">-</span>
                     )}
@@ -787,6 +769,142 @@ const CafeMenu = ({ showToast }) => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Calorie Chart Modal */}
+      {showCalorieChart && selectedItemForChart && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">{selectedItemForChart.name}</h3>
+                <p className="text-sm text-gray-600">Calorie Breakdown by Ingredient</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCalorieChart(false);
+                  setSelectedItemForChart(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {(() => {
+                const breakdown = calculateCalories(selectedItemForChart.rawMaterials);
+                const totalCalories = parseFloat(breakdown.total) || 0;
+                const maxCalories = Math.max(...breakdown.breakdown.map(b => parseFloat(b.calories) || 0));
+                
+                // Generate colors for each ingredient
+                const colors = [
+                  'bg-orange-500',
+                  'bg-blue-500',
+                  'bg-green-500',
+                  'bg-purple-500',
+                  'bg-pink-500',
+                  'bg-yellow-500',
+                  'bg-indigo-500',
+                  'bg-red-500',
+                  'bg-teal-500',
+                  'bg-cyan-500'
+                ];
+                
+                return (
+                  <div className="space-y-6">
+                    {/* Total Calories */}
+                    <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-4 text-center">
+                      <div className="text-sm text-gray-600 font-semibold">Total Calories</div>
+                      <div className="text-4xl font-bold text-orange-600 mt-1">🔥 {totalCalories}</div>
+                      <div className="text-xs text-gray-500 mt-1">kcal per serving</div>
+                    </div>
+                    
+                    {/* Bar Chart */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-700 text-sm">Ingredient Breakdown</h4>
+                      {breakdown.breakdown.map((ingredient, index) => {
+                        const calories = parseFloat(ingredient.calories) || 0;
+                        const percentage = totalCalories > 0 ? (calories / totalCalories * 100).toFixed(1) : 0;
+                        const barWidth = maxCalories > 0 ? (calories / maxCalories * 100).toFixed(1) : 0;
+                        const colorClass = colors[index % colors.length];
+                        
+                        return (
+                          <div key={index} className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded ${colorClass}`}></div>
+                                <span className="font-semibold text-gray-700">
+                                  {ingredient.name}
+                                </span>
+                                <span className="text-gray-500">
+                                  ({ingredient.quantity}{ingredient.unit})
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-gray-900">{calories} cal</span>
+                                <span className="text-gray-500">({percentage}%)</span>
+                              </div>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+                              <div 
+                                className={`${colorClass} h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2`}
+                                style={{ width: `${barWidth}%` }}
+                              >
+                                {barWidth > 15 && (
+                                  <span className="text-xs font-semibold text-white">{percentage}%</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Legend */}
+                    <div className="border-t pt-4">
+                      <h4 className="font-semibold text-gray-700 text-sm mb-3">Legend</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {breakdown.breakdown.map((ingredient, index) => {
+                          const calories = parseFloat(ingredient.calories) || 0;
+                          const percentage = totalCalories > 0 ? (calories / totalCalories * 100).toFixed(1) : 0;
+                          const colorClass = colors[index % colors.length];
+                          
+                          return (
+                            <div key={index} className="flex items-center gap-2 text-xs">
+                              <div className={`w-4 h-4 rounded ${colorClass}`}></div>
+                              <span className="font-semibold text-gray-700">{ingredient.name}</span>
+                              <span className="text-gray-500">- {percentage}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Cooking Methods Info */}
+                    {selectedItemForChart.rawMaterials.some(m => m.cookingMethod) && (
+                      <div className="border-t pt-4">
+                        <h4 className="font-semibold text-gray-700 text-sm mb-3">Cooking Methods Applied</h4>
+                        <div className="space-y-2">
+                          {selectedItemForChart.rawMaterials.map((material, index) => {
+                            const method = material.cookingMethod || 'raw';
+                            const adjustment = COOKING_ADJUSTMENTS[method];
+                            return (
+                              <div key={index} className="flex items-center justify-between text-xs bg-gray-50 rounded p-2">
+                                <span className="font-semibold text-gray-700">{material.name}</span>
+                                <span className="text-gray-600">{adjustment?.name || '🥗 Raw'}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
