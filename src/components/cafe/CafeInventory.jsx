@@ -490,17 +490,19 @@ const CafeInventory = ({ showToast }) => {
     return [...new Set(searchTerms)]; // Remove duplicates
   };
 
-  // Bulk update existing inventory items with nutrition data
+  // Bulk rename and update existing inventory items to match nutrition database
   const handleBulkNutritionUpdate = async () => {
-    if (!confirm('🏋️ Smart Nutrition Update\n\nThis will:\n✅ Match your items intelligently (e.g., "Chicken" → "Chicken Breast")\n✅ Preserve all current stock values\n✅ Only update nutrition data\n\nContinue?')) {
+    if (!confirm('🏋️ Smart Rename & Nutrition Update\n\nThis will:\n✅ Rename items to match nutrition database (e.g., "Chicken" → "Chicken Breast (cooked)")\n✅ Update nutrition data automatically\n✅ Preserve all current stock values\n\nContinue?')) {
       return;
     }
 
     let updatedCount = 0;
+    let renamedCount = 0;
     let notFoundCount = 0;
     const notFoundItems = [];
+    const renamedItems = [];
 
-    showToast('🔄 Starting smart nutrition update...');
+    showToast('🔄 Starting smart rename & nutrition update...');
 
     for (const item of inventory) {
       try {
@@ -522,9 +524,12 @@ const CafeInventory = ({ showToast }) => {
         }
         
         if (match) {
-          // Update item with nutrition data - PRESERVING current stock
+          const oldName = item.name;
+          const newName = match.ingredient_name;
+          
+          // Update item with standardized name AND nutrition data
           await updateInventoryItem(item.id, {
-            name: item.name, // Keep original name
+            name: newName, // Update to standardized database name
             currentStock: item.currentStock || item.current_stock, // Preserve stock
             minStock: item.minStock || item.min_stock, // Preserve min stock
             unit: item.unit,
@@ -538,6 +543,10 @@ const CafeInventory = ({ showToast }) => {
           });
 
           updatedCount++;
+          if (oldName !== newName) {
+            renamedCount++;
+            renamedItems.push({ old: oldName, new: newName });
+          }
         } else {
           notFoundCount++;
           notFoundItems.push(item.name);
@@ -551,7 +560,11 @@ const CafeInventory = ({ showToast }) => {
 
     await loadInventory();
     
-    let message = `✅ Updated ${updatedCount} items with nutrition data!\n`;
+    let message = `✅ Updated ${updatedCount} items!\n`;
+    if (renamedCount > 0) {
+      message += `📝 Renamed ${renamedCount} items to standard names\n`;
+      console.log('Renamed items:', renamedItems);
+    }
     if (notFoundCount > 0) {
       message += `⚠️ ${notFoundCount} items not found (likely non-food items)`;
       console.log('Items not found:', notFoundItems);
