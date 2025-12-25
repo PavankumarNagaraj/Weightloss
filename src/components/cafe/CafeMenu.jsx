@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, X } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, getInventory, addInventoryItem } from '../../services/cafeService';
 
 const CafeMenu = ({ showToast }) => {
@@ -22,6 +22,9 @@ const CafeMenu = ({ showToast }) => {
   const [inventoryItems, setInventoryItems] = useState([]);
   const [materialSearchTerm, setMaterialSearchTerm] = useState('');
   const [showMaterialDropdown, setShowMaterialDropdown] = useState(false);
+  const [calculatedCalories, setCalculatedCalories] = useState(0);
+  const [calorieBreakdown, setCalorieBreakdown] = useState([]);
+  const [expandedCalories, setExpandedCalories] = useState({});
 
   useEffect(() => {
     loadMenu();
@@ -30,7 +33,12 @@ const CafeMenu = ({ showToast }) => {
 
   const loadInventory = async () => {
     const items = await getInventory();
-    setInventoryItems(items);
+    // Map snake_case to camelCase for inventory items
+    const mappedItems = items.map(item => ({
+      ...item,
+      caloriesPer100g: item.calories_per_100g ?? item.caloriesPer100g,
+    }));
+    setInventoryItems(mappedItems);
   };
 
   const loadMenu = async () => {
@@ -85,6 +93,8 @@ const CafeMenu = ({ showToast }) => {
     setShowMaterialDropdown(false);
     setEditingItem(null);
     setShowModal(false);
+    setCalculatedCalories(0);
+    setCalorieBreakdown([]);
   };
 
   const handleMaterialSelect = (material) => {
@@ -112,6 +122,57 @@ const CafeMenu = ({ showToast }) => {
   const filteredInventory = inventoryItems.filter(item =>
     item.name.toLowerCase().includes(materialSearchTerm.toLowerCase())
   );
+
+  // Calculate calories from ingredients
+  const calculateCalories = (materials) => {
+    let totalCalories = 0;
+    const breakdown = [];
+
+    materials.forEach(material => {
+      const inventoryItem = inventoryItems.find(item => 
+        item.name.toLowerCase() === material.name.toLowerCase()
+      );
+      
+      if (inventoryItem && inventoryItem.caloriesPer100g) {
+        const quantity = parseFloat(material.quantity) || 0;
+        // Convert quantity to grams if needed
+        let quantityInGrams = quantity;
+        if (material.unit === 'ml') {
+          quantityInGrams = quantity; // Assume 1ml = 1g for simplicity
+        } else if (material.unit === 'pcs') {
+          quantityInGrams = quantity * 100; // Assume 1 piece = 100g (can be adjusted)
+        }
+        
+        // Calculate calories: (caloriesPer100g * quantity) / 100
+        const calories = (inventoryItem.caloriesPer100g * quantityInGrams) / 100;
+        totalCalories += calories;
+        
+        breakdown.push({
+          name: material.name,
+          quantity: material.quantity,
+          unit: material.unit,
+          caloriesPer100g: inventoryItem.caloriesPer100g,
+          calories: calories.toFixed(1)
+        });
+      }
+    });
+
+    return { total: totalCalories.toFixed(1), breakdown };
+  };
+
+  // Recalculate calories whenever raw materials change
+  useEffect(() => {
+    if (formData.rawMaterials.length > 0) {
+      const { total, breakdown } = calculateCalories(formData.rawMaterials);
+      setCalculatedCalories(total);
+      setCalorieBreakdown(breakdown);
+      // Auto-update the calories field
+      setFormData(prev => ({ ...prev, calories: total }));
+    } else {
+      setCalculatedCalories(0);
+      setCalorieBreakdown([]);
+    }
+  }, [formData.rawMaterials, inventoryItems]);
 
   const addRawMaterial = async () => {
     if (currentMaterial.name && currentMaterial.quantity) {
@@ -258,7 +319,35 @@ const CafeMenu = ({ showToast }) => {
                         <div className="text-xs text-gray-500">Trainer: ₹{item.trainerPrice}</div>
                       )}
                       {item.calories && (
-                        <div className="text-xs text-orange-600 font-semibold">🔥 {item.calories} cal</div>
+                        <div>
+                          <button
+                            onClick={() => setExpandedCalories(prev => ({...prev, [item.id]: !prev[item.id]}))}
+                            className="text-xs text-orange-600 font-semibold hover:text-orange-700 flex items-center gap-1"
+                          >
+                            🔥 {item.calories} cal
+                            {item.rawMaterials && item.rawMaterials.length > 0 && (
+                              expandedCalories[item.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                            )}
+                          </button>
+                          {expandedCalories[item.id] && item.rawMaterials && item.rawMaterials.length > 0 && (
+                            <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs">
+                              <div className="font-semibold text-orange-800 mb-1">Breakdown:</div>
+                              {(() => {
+                                const breakdown = calculateCalories(item.rawMaterials);
+                                return (
+                                  <div className="space-y-0.5">
+                                    {breakdown.breakdown.map((ing, idx) => (
+                                      <div key={idx} className="flex justify-between text-orange-700">
+                                        <span>{ing.name} ({ing.quantity}{ing.unit})</span>
+                                        <span className="font-semibold">{ing.calories} cal</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   </td>
@@ -364,15 +453,42 @@ const CafeMenu = ({ showToast }) => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Calories per Serving (Optional)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={formData.calories}
-                      onChange={(e) => setFormData({...formData, calories: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="e.g., 450"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Calories per Serving {formData.rawMaterials.length > 0 ? '(Auto-calculated)' : '(Optional)'}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.calories}
+                        onChange={(e) => setFormData({...formData, calories: e.target.value})}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${formData.rawMaterials.length > 0 ? 'bg-green-50 font-semibold text-green-700' : ''}`}
+                        placeholder="e.g., 450"
+                        readOnly={formData.rawMaterials.length > 0}
+                      />
+                      {formData.rawMaterials.length > 0 && calculatedCalories > 0 && (
+                        <div className="absolute right-3 top-2.5 text-green-600 font-bold">
+                          🔥 Auto
+                        </div>
+                      )}
+                    </div>
+                    {calorieBreakdown.length > 0 && (
+                      <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div className="text-xs font-semibold text-orange-800 mb-2">📊 Calorie Breakdown:</div>
+                        <div className="space-y-1">
+                          {calorieBreakdown.map((item, idx) => (
+                            <div key={idx} className="text-xs text-orange-700 flex justify-between">
+                              <span>{item.name} ({item.quantity}{item.unit})</span>
+                              <span className="font-semibold">{item.calories} cal</span>
+                            </div>
+                          ))}
+                          <div className="pt-1 mt-1 border-t border-orange-300 flex justify-between font-bold text-orange-900">
+                            <span>Total:</span>
+                            <span>{calculatedCalories} cal</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
