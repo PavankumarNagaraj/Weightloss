@@ -33,6 +33,7 @@ const CafeMenu = ({ showToast }) => {
 
   // Cooking method adjustment factors
   const COOKING_ADJUSTMENTS = {
+    none: { weightLoss: 0, calorieAdd: 0, name: '✅ None (Already Cooked)', description: 'No adjustments - use as-is' },
     raw: { weightLoss: 0, calorieAdd: 0, name: '🥗 Raw/Fresh', description: 'No cooking' },
     grilled: { weightLoss: 0.20, calorieAdd: 0, name: '🔥 Grilled', description: '-20% water loss' },
     boiled: { weightLoss: 0.15, calorieAdd: 0, name: '💧 Boiled', description: '-15% water loss' },
