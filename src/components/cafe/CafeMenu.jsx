@@ -800,6 +800,14 @@ const CafeMenu = ({ showToast }) => {
                 const totalCalories = parseFloat(breakdown.total) || 0;
                 const maxCalories = Math.max(...breakdown.breakdown.map(b => parseFloat(b.calories) || 0));
                 
+                // Calculate macros
+                const macros = calculateMacros(selectedItemForChart.rawMaterials);
+                const protein = parseFloat(macros.totals.protein) || 0;
+                const carbs = parseFloat(macros.totals.carbs) || 0;
+                const fat = parseFloat(macros.totals.fat) || 0;
+                const fiber = parseFloat(macros.totals.fiber) || 0;
+                const totalMacros = protein + carbs + fat + fiber;
+                
                 // Generate colors for each ingredient
                 const colors = [
                   'bg-orange-500',
@@ -814,6 +822,73 @@ const CafeMenu = ({ showToast }) => {
                   'bg-cyan-500'
                 ];
                 
+                // Macro colors
+                const macroColors = {
+                  protein: { bg: '#3B82F6', light: '#DBEAFE' }, // blue
+                  carbs: { bg: '#F59E0B', light: '#FEF3C7' }, // yellow/amber
+                  fat: { bg: '#EF4444', light: '#FEE2E2' }, // red
+                  fiber: { bg: '#10B981', light: '#D1FAE5' } // green
+                };
+                
+                // Calculate donut chart segments
+                const createDonutSegments = () => {
+                  if (totalMacros === 0) return [];
+                  
+                  const segments = [];
+                  let currentAngle = 0;
+                  
+                  const macroData = [
+                    { name: 'Protein', value: protein, color: macroColors.protein.bg, emoji: '💪' },
+                    { name: 'Carbs', value: carbs, color: macroColors.carbs.bg, emoji: '🍚' },
+                    { name: 'Fat', value: fat, color: macroColors.fat.bg, emoji: '🥑' },
+                    { name: 'Fiber', value: fiber, color: macroColors.fiber.bg, emoji: '🌾' }
+                  ];
+                  
+                  macroData.forEach(macro => {
+                    if (macro.value > 0) {
+                      const percentage = (macro.value / totalMacros) * 100;
+                      const angle = (percentage / 100) * 360;
+                      segments.push({
+                        ...macro,
+                        percentage: percentage.toFixed(1),
+                        startAngle: currentAngle,
+                        endAngle: currentAngle + angle
+                      });
+                      currentAngle += angle;
+                    }
+                  });
+                  
+                  return segments;
+                };
+                
+                const donutSegments = createDonutSegments();
+                
+                // Create SVG path for donut segment
+                const createArc = (startAngle, endAngle, innerRadius, outerRadius) => {
+                  const start = polarToCartesian(100, 100, outerRadius, endAngle);
+                  const end = polarToCartesian(100, 100, outerRadius, startAngle);
+                  const innerStart = polarToCartesian(100, 100, innerRadius, endAngle);
+                  const innerEnd = polarToCartesian(100, 100, innerRadius, startAngle);
+                  
+                  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+                  
+                  return [
+                    "M", start.x, start.y,
+                    "A", outerRadius, outerRadius, 0, largeArcFlag, 0, end.x, end.y,
+                    "L", innerEnd.x, innerEnd.y,
+                    "A", innerRadius, innerRadius, 0, largeArcFlag, 1, innerStart.x, innerStart.y,
+                    "Z"
+                  ].join(" ");
+                };
+                
+                const polarToCartesian = (centerX, centerY, radius, angleInDegrees) => {
+                  const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+                  return {
+                    x: centerX + (radius * Math.cos(angleInRadians)),
+                    y: centerY + (radius * Math.sin(angleInRadians))
+                  };
+                };
+                
                 return (
                   <div className="space-y-6">
                     {/* Total Calories */}
@@ -821,6 +896,73 @@ const CafeMenu = ({ showToast }) => {
                       <div className="text-sm text-gray-600 font-semibold">Total Calories</div>
                       <div className="text-4xl font-bold text-orange-600 mt-1">🔥 {totalCalories}</div>
                       <div className="text-xs text-gray-500 mt-1">kcal per serving</div>
+                    </div>
+                    
+                    {/* Macro Nutrients Donut Chart */}
+                    <div className="border-t pt-6">
+                      <h4 className="font-semibold text-gray-700 text-sm mb-4">Macro Nutrients Distribution</h4>
+                      <div className="flex flex-col md:flex-row gap-6 items-center">
+                        {/* Donut Chart */}
+                        <div className="flex-shrink-0">
+                          <svg width="200" height="200" viewBox="0 0 200 200" className="transform -rotate-90">
+                            {donutSegments.map((segment, index) => (
+                              <path
+                                key={index}
+                                d={createArc(segment.startAngle, segment.endAngle, 60, 90)}
+                                fill={segment.color}
+                                className="hover:opacity-80 transition-opacity cursor-pointer"
+                              />
+                            ))}
+                            {/* Center circle for donut hole */}
+                            <circle cx="100" cy="100" r="60" fill="white" />
+                          </svg>
+                          <div className="text-center -mt-32">
+                            <div className="text-2xl font-bold text-gray-900">{totalMacros.toFixed(1)}g</div>
+                            <div className="text-xs text-gray-500">Total Macros</div>
+                          </div>
+                        </div>
+                        
+                        {/* Macro Table */}
+                        <div className="flex-1 w-full">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b-2 border-gray-300">
+                                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 uppercase">Nutrient</th>
+                                <th className="text-right py-2 px-3 text-xs font-semibold text-gray-600 uppercase">Amount</th>
+                                <th className="text-right py-2 px-3 text-xs font-semibold text-gray-600 uppercase">% of Total</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {donutSegments.map((segment, index) => (
+                                <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
+                                  <td className="py-3 px-3">
+                                    <div className="flex items-center gap-2">
+                                      <div 
+                                        className="w-4 h-4 rounded"
+                                        style={{ backgroundColor: segment.color }}
+                                      ></div>
+                                      <span className="font-semibold text-gray-700 text-sm">
+                                        {segment.emoji} {segment.name}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="py-3 px-3 text-right">
+                                    <span className="font-bold text-gray-900 text-sm">{segment.value}g</span>
+                                  </td>
+                                  <td className="py-3 px-3 text-right">
+                                    <span className="text-gray-600 text-sm">{segment.percentage}%</span>
+                                  </td>
+                                </tr>
+                              ))}
+                              <tr className="bg-gray-100 font-bold">
+                                <td className="py-3 px-3 text-sm text-gray-900">Total</td>
+                                <td className="py-3 px-3 text-right text-sm text-gray-900">{totalMacros.toFixed(1)}g</td>
+                                <td className="py-3 px-3 text-right text-sm text-gray-900">100%</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
                     
                     {/* Bar Chart */}
