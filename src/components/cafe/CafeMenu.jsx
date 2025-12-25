@@ -927,14 +927,11 @@ const CafeMenu = ({ showToast }) => {
                                 <span className="text-gray-500">({percentage}%)</span>
                               </div>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
                               <div 
-                                className={`${colorClass} h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2`}
+                                className={`${colorClass} h-full rounded-full transition-all duration-500`}
                                 style={{ width: `${barWidth}%` }}
                               >
-                                {barWidth > 15 && (
-                                  <span className="text-xs font-semibold text-white">{percentage}%</span>
-                                )}
                               </div>
                             </div>
                           </div>
