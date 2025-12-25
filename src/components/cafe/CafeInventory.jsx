@@ -22,6 +22,10 @@ const CafeInventory = ({ showToast }) => {
     lastUsedDate: null,
     stockAdjustment: '',
     caloriesPer100g: '',
+    proteinPer100g: '',
+    carbsPer100g: '',
+    fatPer100g: '',
+    fiberPer100g: '',
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -199,6 +203,10 @@ const CafeInventory = ({ showToast }) => {
         unit: formData.unit,
         category: formData.category,
         caloriesPer100g: formData.caloriesPer100g ? parseFloat(formData.caloriesPer100g) : null,
+        proteinPer100g: formData.proteinPer100g ? parseFloat(formData.proteinPer100g) : null,
+        carbsPer100g: formData.carbsPer100g ? parseFloat(formData.carbsPer100g) : null,
+        fatPer100g: formData.fatPer100g ? parseFloat(formData.fatPer100g) : null,
+        fiberPer100g: formData.fiberPer100g ? parseFloat(formData.fiberPer100g) : null,
       });
       
       if (formData.stockAdjustment !== '') {
@@ -224,6 +232,10 @@ const CafeInventory = ({ showToast }) => {
         category: formData.category || 'Dry Store',
         pricePerUnit: 0,
         caloriesPer100g: formData.caloriesPer100g ? parseFloat(formData.caloriesPer100g) : null,
+        proteinPer100g: formData.proteinPer100g ? parseFloat(formData.proteinPer100g) : null,
+        carbsPer100g: formData.carbsPer100g ? parseFloat(formData.carbsPer100g) : null,
+        fatPer100g: formData.fatPer100g ? parseFloat(formData.fatPer100g) : null,
+        fiberPer100g: formData.fiberPer100g ? parseFloat(formData.fiberPer100g) : null,
       };
       await addInventoryItem(newItem);
       
@@ -240,7 +252,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', expiryDate: '', lastUsedDate: null, stockAdjustment: '', caloriesPer100g: '' });
+    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', expiryDate: '', lastUsedDate: null, stockAdjustment: '', caloriesPer100g: '', proteinPer100g: '', carbsPer100g: '', fatPer100g: '', fiberPer100g: '' });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -259,6 +271,10 @@ const CafeInventory = ({ showToast }) => {
         expiryDate: existingItem.expiryDate || existingItem.expiry_date || '',
         lastUsedDate: existingItem.lastUsedDate || existingItem.last_used_date || null,
         caloriesPer100g: existingItem.caloriesPer100g || existingItem.calories_per_100g || '',
+        proteinPer100g: existingItem.proteinPer100g || existingItem.protein_per_100g || '',
+        carbsPer100g: existingItem.carbsPer100g || existingItem.carbs_per_100g || '',
+        fatPer100g: existingItem.fatPer100g || existingItem.fat_per_100g || '',
+        fiberPer100g: existingItem.fiberPer100g || existingItem.fiber_per_100g || '',
       });
     } else {
       setFormData({
@@ -1207,20 +1223,93 @@ const CafeInventory = ({ showToast }) => {
                   </select>
                 </div>
 
-                {/* Calories per 100g (Optional) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Calories per 100g/ml (Optional)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={formData.caloriesPer100g}
-                    onChange={(e) => setFormData({...formData, caloriesPer100g: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="e.g., 130 for rice"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">For nutritional information - helps calculate dish calories</p>
+                {/* Nutritional Information Section */}
+                <div className="col-span-full border-t-2 border-gray-200 pt-4">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    🏋️ Nutritional Information (per 100g/ml)
+                    <span className="text-xs font-normal text-gray-500">- All fields optional but recommended for gym cafe</span>
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {/* Calories */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-2">
+                        🔥 Calories
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.caloriesPer100g}
+                        onChange={(e) => setFormData({...formData, caloriesPer100g: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        placeholder="130"
+                      />
+                    </div>
+
+                    {/* Protein */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-2">
+                        💪 Protein (g)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.proteinPer100g}
+                        onChange={(e) => setFormData({...formData, proteinPer100g: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        placeholder="2.7"
+                      />
+                    </div>
+
+                    {/* Carbs */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-2">
+                        🍞 Carbs (g)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.carbsPer100g}
+                        onChange={(e) => setFormData({...formData, carbsPer100g: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-sm"
+                        placeholder="28"
+                      />
+                    </div>
+
+                    {/* Fat */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-2">
+                        🥑 Fat (g)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.fatPer100g}
+                        onChange={(e) => setFormData({...formData, fatPer100g: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                        placeholder="0.3"
+                      />
+                    </div>
+
+                    {/* Fiber */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-2">
+                        🌾 Fiber (g)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.fiberPer100g}
+                        onChange={(e) => setFormData({...formData, fiberPer100g: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                        placeholder="0.4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-gray-500 mt-3">
+                    💡 <strong>Tip:</strong> Add nutritional data for automatic macro calculation in menu dishes. See reference data in database/ADD_NUTRITION_MACROS.sql
+                  </p>
                 </div>
 
                 {/* Info message for new items */}

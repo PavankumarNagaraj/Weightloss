@@ -25,6 +25,8 @@ const CafeMenu = ({ showToast }) => {
   const [calculatedCalories, setCalculatedCalories] = useState(0);
   const [calorieBreakdown, setCalorieBreakdown] = useState([]);
   const [expandedCalories, setExpandedCalories] = useState({});
+  const [calculatedMacros, setCalculatedMacros] = useState({ protein: 0, carbs: 0, fat: 0, fiber: 0 });
+  const [macroBreakdown, setMacroBreakdown] = useState([]);
 
   useEffect(() => {
     loadMenu();
@@ -37,6 +39,10 @@ const CafeMenu = ({ showToast }) => {
     const mappedItems = items.map(item => ({
       ...item,
       caloriesPer100g: item.calories_per_100g ?? item.caloriesPer100g,
+      proteinPer100g: item.protein_per_100g ?? item.proteinPer100g,
+      carbsPer100g: item.carbs_per_100g ?? item.carbsPer100g,
+      fatPer100g: item.fat_per_100g ?? item.fatPer100g,
+      fiberPer100g: item.fiber_per_100g ?? item.fiberPer100g,
     }));
     setInventoryItems(mappedItems);
   };

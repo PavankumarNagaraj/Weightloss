@@ -145,6 +145,10 @@ export const addInventoryItem = async (itemData) => {
         category: itemData.category,
         price_per_unit: itemData.pricePerUnit || 0,
         calories_per_100g: itemData.caloriesPer100g || null,
+        protein_per_100g: itemData.proteinPer100g || null,
+        carbs_per_100g: itemData.carbsPer100g || null,
+        fat_per_100g: itemData.fatPer100g || null,
+        fiber_per_100g: itemData.fiberPer100g || null,
       }])
       .select()
       .single();
@@ -203,9 +207,21 @@ export const updateInventoryItem = async (itemId, updates) => {
       price_per_unit: updates.pricePerUnit,
     };
     
-    // Only include calories if provided
+    // Only include nutrition data if provided
     if (updates.caloriesPer100g !== undefined) {
       updateData.calories_per_100g = updates.caloriesPer100g;
+    }
+    if (updates.proteinPer100g !== undefined) {
+      updateData.protein_per_100g = updates.proteinPer100g;
+    }
+    if (updates.carbsPer100g !== undefined) {
+      updateData.carbs_per_100g = updates.carbsPer100g;
+    }
+    if (updates.fatPer100g !== undefined) {
+      updateData.fat_per_100g = updates.fatPer100g;
+    }
+    if (updates.fiberPer100g !== undefined) {
+      updateData.fiber_per_100g = updates.fiberPer100g;
     }
     
     // Only include expiry date if provided
