@@ -17,6 +17,7 @@ const CafeMenu = ({ showToast }) => {
     isVeg: true,
     rawMaterials: [],
     calories: '',
+    cookingMethod: 'grilled',
   });
   const [currentMaterial, setCurrentMaterial] = useState({ name: '', quantity: '', unit: 'gm', extraPrice: 0 });
   const [inventoryItems, setInventoryItems] = useState([]);
@@ -27,6 +28,18 @@ const CafeMenu = ({ showToast }) => {
   const [expandedCalories, setExpandedCalories] = useState({});
   const [calculatedMacros, setCalculatedMacros] = useState({ protein: 0, carbs: 0, fat: 0, fiber: 0 });
   const [macroBreakdown, setMacroBreakdown] = useState([]);
+
+  // Cooking method adjustment factors
+  const COOKING_ADJUSTMENTS = {
+    raw: { weightLoss: 0, calorieAdd: 0, name: '🥗 Raw/Fresh', description: 'No cooking' },
+    grilled: { weightLoss: 0.20, calorieAdd: 0, name: '🔥 Grilled', description: '-20% water loss' },
+    boiled: { weightLoss: 0.15, calorieAdd: 0, name: '💧 Boiled', description: '-15% water loss' },
+    steamed: { weightLoss: 0.10, calorieAdd: 0, name: '♨️ Steamed', description: '-10% water loss' },
+    baked: { weightLoss: 0.18, calorieAdd: 0, name: '🍞 Baked', description: '-18% water loss' },
+    fried: { weightLoss: 0.10, calorieAdd: 0.30, name: '🍳 Fried', description: '-10% water, +30% oil calories' },
+    microwave: { weightLoss: 0.08, calorieAdd: 0, name: '📡 Microwave', description: '-8% water loss' },
+    soaked: { weightLoss: -0.50, calorieAdd: 0, name: '💦 Soaked', description: '+50% water absorption' },
+  };
 
   useEffect(() => {
     loadMenu();
@@ -93,7 +106,7 @@ const CafeMenu = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '' });
+    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '', cookingMethod: 'grilled' });
     setCurrentMaterial({ name: '', quantity: '', unit: 'gm' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
@@ -166,9 +179,9 @@ const CafeMenu = ({ showToast }) => {
     return { total: totalCalories.toFixed(1), breakdown };
   };
 
-  // Calculate all macronutrients from ingredients
-  const calculateMacros = (materials) => {
-    let totals = { protein: 0, carbs: 0, fat: 0, fiber: 0 };
+  // Calculate all macronutrients from ingredients with cooking adjustments
+  const calculateMacros = (materials, cookingMethod = 'grilled') => {
+    let totals = { protein: 0, carbs: 0, fat: 0, fiber: 0, calories: 0 };
     const breakdown = [];
 
     materials.forEach(material => {
@@ -189,11 +202,13 @@ const CafeMenu = ({ showToast }) => {
         const carbs = inventoryItem.carbsPer100g ? (inventoryItem.carbsPer100g * quantityInGrams) / 100 : 0;
         const fat = inventoryItem.fatPer100g ? (inventoryItem.fatPer100g * quantityInGrams) / 100 : 0;
         const fiber = inventoryItem.fiberPer100g ? (inventoryItem.fiberPer100g * quantityInGrams) / 100 : 0;
+        const calories = inventoryItem.caloriesPer100g ? (inventoryItem.caloriesPer100g * quantityInGrams) / 100 : 0;
         
         totals.protein += protein;
         totals.carbs += carbs;
         totals.fat += fat;
         totals.fiber += fiber;
+        totals.calories += calories;
         
         breakdown.push({
           name: material.name,
@@ -207,31 +222,47 @@ const CafeMenu = ({ showToast }) => {
       }
     });
 
+    // Apply cooking adjustments
+    const adjustment = COOKING_ADJUSTMENTS[cookingMethod] || COOKING_ADJUSTMENTS.grilled;
+    
+    // For fried items, add oil calories (30% increase)
+    if (adjustment.calorieAdd > 0) {
+      totals.calories *= (1 + adjustment.calorieAdd);
+      totals.fat *= (1 + adjustment.calorieAdd); // Oil adds fat
+    }
+    
+    // Note: Weight loss doesn't change total nutrition, just concentration
+    // We keep total macros the same as they represent the full serving
+
     return { 
       totals: {
         protein: totals.protein.toFixed(1),
         carbs: totals.carbs.toFixed(1),
         fat: totals.fat.toFixed(1),
-        fiber: totals.fiber.toFixed(1)
+        fiber: totals.fiber.toFixed(1),
+        calories: totals.calories.toFixed(1)
       }, 
       breakdown 
     };
   };
 
-  // Recalculate calories and macros whenever raw materials change
+  // Recalculate calories and macros whenever raw materials or cooking method change
   useEffect(() => {
     if (formData.rawMaterials.length > 0) {
       const { total, breakdown } = calculateCalories(formData.rawMaterials);
-      setCalculatedCalories(parseFloat(total) || 0);
-      setCalorieBreakdown(breakdown);
       
-      const macros = calculateMacros(formData.rawMaterials);
+      const macros = calculateMacros(formData.rawMaterials, formData.cookingMethod);
       setCalculatedMacros(macros.totals);
       setMacroBreakdown(macros.breakdown);
       
+      // Use adjusted calories from macros calculation
+      const adjustedCalories = parseFloat(macros.totals.calories) || parseFloat(total) || 0;
+      setCalculatedCalories(adjustedCalories);
+      setCalorieBreakdown(breakdown);
+      
       // Only auto-update if there's actual calorie data
-      if (parseFloat(total) > 0) {
-        setFormData(prev => ({ ...prev, calories: total }));
+      if (adjustedCalories > 0) {
+        setFormData(prev => ({ ...prev, calories: adjustedCalories.toFixed(1) }));
       }
     } else {
       setCalculatedCalories(0);
@@ -239,7 +270,7 @@ const CafeMenu = ({ showToast }) => {
       setCalculatedMacros({ protein: 0, carbs: 0, fat: 0, fiber: 0 });
       setMacroBreakdown([]);
     }
-  }, [formData.rawMaterials, inventoryItems]);
+  }, [formData.rawMaterials, formData.cookingMethod, inventoryItems]);
 
   const addRawMaterial = async () => {
     if (currentMaterial.name && currentMaterial.quantity) {
@@ -470,7 +501,7 @@ const CafeMenu = ({ showToast }) => {
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Customer Price (₹)</label>
                     <input
@@ -514,6 +545,18 @@ const CafeMenu = ({ showToast }) => {
                         <span className="text-sm font-medium text-gray-700">🔴 Non-Veg</span>
                       </label>
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Cooking Method</label>
+                    <select
+                      value={formData.cookingMethod}
+                      onChange={(e) => setFormData({...formData, cookingMethod: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm font-semibold"
+                    >
+                      {Object.entries(COOKING_ADJUSTMENTS).map(([key, value]) => (
+                        <option key={key} value={key}>{value.name}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -567,7 +610,7 @@ const CafeMenu = ({ showToast }) => {
                     </div>
                     {calculatedCalories > 0 && (
                       <div className="mt-2 text-xs text-green-700 font-semibold">
-                        ✅ Auto-calculated from ingredients
+                        ✅ Auto-calculated from ingredients ({COOKING_ADJUSTMENTS[formData.cookingMethod]?.name}: {COOKING_ADJUSTMENTS[formData.cookingMethod]?.description})
                       </div>
                     )}
                     {formData.rawMaterials.length > 0 && calculatedCalories === 0 && (
