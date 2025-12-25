@@ -17,9 +17,8 @@ const CafeMenu = ({ showToast }) => {
     isVeg: true,
     rawMaterials: [],
     calories: '',
-    cookingMethod: 'grilled',
   });
-  const [currentMaterial, setCurrentMaterial] = useState({ name: '', quantity: '', unit: 'gm', extraPrice: 0 });
+  const [currentMaterial, setCurrentMaterial] = useState({ name: '', quantity: '', unit: 'gm', extraPrice: 0, cookingMethod: 'sauteed' });
   const [inventoryItems, setInventoryItems] = useState([]);
   const [materialSearchTerm, setMaterialSearchTerm] = useState('');
   const [showMaterialDropdown, setShowMaterialDropdown] = useState(false);
@@ -112,8 +111,8 @@ const CafeMenu = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '', cookingMethod: 'sauteed' });
-    setCurrentMaterial({ name: '', quantity: '', unit: 'gm' });
+    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '' });
+    setCurrentMaterial({ name: '', quantity: '', unit: 'gm', extraPrice: 0, cookingMethod: 'sauteed' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
     setEditingItem(null);
@@ -185,8 +184,8 @@ const CafeMenu = ({ showToast }) => {
     return { total: totalCalories.toFixed(1), breakdown };
   };
 
-  // Calculate all macronutrients from ingredients with cooking adjustments
-  const calculateMacros = (materials, cookingMethod = 'grilled') => {
+  // Calculate all macronutrients from ingredients with per-ingredient cooking adjustments
+  const calculateMacros = (materials) => {
     let totals = { protein: 0, carbs: 0, fat: 0, fiber: 0, calories: 0 };
     const breakdown = [];
 
@@ -204,11 +203,21 @@ const CafeMenu = ({ showToast }) => {
           quantityInGrams = quantity * 100;
         }
         
-        const protein = inventoryItem.proteinPer100g ? (inventoryItem.proteinPer100g * quantityInGrams) / 100 : 0;
-        const carbs = inventoryItem.carbsPer100g ? (inventoryItem.carbsPer100g * quantityInGrams) / 100 : 0;
-        const fat = inventoryItem.fatPer100g ? (inventoryItem.fatPer100g * quantityInGrams) / 100 : 0;
-        const fiber = inventoryItem.fiberPer100g ? (inventoryItem.fiberPer100g * quantityInGrams) / 100 : 0;
-        const calories = inventoryItem.caloriesPer100g ? (inventoryItem.caloriesPer100g * quantityInGrams) / 100 : 0;
+        let protein = inventoryItem.proteinPer100g ? (inventoryItem.proteinPer100g * quantityInGrams) / 100 : 0;
+        let carbs = inventoryItem.carbsPer100g ? (inventoryItem.carbsPer100g * quantityInGrams) / 100 : 0;
+        let fat = inventoryItem.fatPer100g ? (inventoryItem.fatPer100g * quantityInGrams) / 100 : 0;
+        let fiber = inventoryItem.fiberPer100g ? (inventoryItem.fiberPer100g * quantityInGrams) / 100 : 0;
+        let calories = inventoryItem.caloriesPer100g ? (inventoryItem.caloriesPer100g * quantityInGrams) / 100 : 0;
+        
+        // Apply per-ingredient cooking adjustments
+        const cookingMethod = material.cookingMethod || 'raw';
+        const adjustment = COOKING_ADJUSTMENTS[cookingMethod] || COOKING_ADJUSTMENTS.raw;
+        
+        // For fried/sauteed items, add oil calories and fat
+        if (adjustment.calorieAdd > 0) {
+          calories *= (1 + adjustment.calorieAdd);
+          fat *= (1 + adjustment.calorieAdd);
+        }
         
         totals.protein += protein;
         totals.carbs += carbs;
@@ -220,25 +229,15 @@ const CafeMenu = ({ showToast }) => {
           name: material.name,
           quantity: material.quantity,
           unit: material.unit,
+          cookingMethod: cookingMethod,
           protein: protein.toFixed(1),
           carbs: carbs.toFixed(1),
           fat: fat.toFixed(1),
-          fiber: fiber.toFixed(1)
+          fiber: fiber.toFixed(1),
+          calories: calories.toFixed(1)
         });
       }
     });
-
-    // Apply cooking adjustments
-    const adjustment = COOKING_ADJUSTMENTS[cookingMethod] || COOKING_ADJUSTMENTS.grilled;
-    
-    // For fried items, add oil calories (30% increase)
-    if (adjustment.calorieAdd > 0) {
-      totals.calories *= (1 + adjustment.calorieAdd);
-      totals.fat *= (1 + adjustment.calorieAdd); // Oil adds fat
-    }
-    
-    // Note: Weight loss doesn't change total nutrition, just concentration
-    // We keep total macros the same as they represent the full serving
 
     return { 
       totals: {
@@ -252,12 +251,12 @@ const CafeMenu = ({ showToast }) => {
     };
   };
 
-  // Recalculate calories and macros whenever raw materials or cooking method change
+  // Recalculate calories and macros whenever raw materials change
   useEffect(() => {
     if (formData.rawMaterials.length > 0) {
       const { total, breakdown } = calculateCalories(formData.rawMaterials);
       
-      const macros = calculateMacros(formData.rawMaterials, formData.cookingMethod);
+      const macros = calculateMacros(formData.rawMaterials);
       setCalculatedMacros(macros.totals);
       setMacroBreakdown(macros.breakdown);
       
@@ -276,7 +275,7 @@ const CafeMenu = ({ showToast }) => {
       setCalculatedMacros({ protein: 0, carbs: 0, fat: 0, fiber: 0 });
       setMacroBreakdown([]);
     }
-  }, [formData.rawMaterials, formData.cookingMethod, inventoryItems]);
+  }, [formData.rawMaterials, inventoryItems]);
 
   const addRawMaterial = async () => {
     if (currentMaterial.name && currentMaterial.quantity) {
@@ -507,7 +506,7 @@ const CafeMenu = ({ showToast }) => {
                   />
                 </div>
 
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Customer Price (₹)</label>
                     <input
@@ -551,18 +550,6 @@ const CafeMenu = ({ showToast }) => {
                         <span className="text-sm font-medium text-gray-700">🔴 Non-Veg</span>
                       </label>
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Cooking Method</label>
-                    <select
-                      value={formData.cookingMethod}
-                      onChange={(e) => setFormData({...formData, cookingMethod: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm font-semibold"
-                    >
-                      {Object.entries(COOKING_ADJUSTMENTS).map(([key, value]) => (
-                        <option key={key} value={key}>{value.name}</option>
-                      ))}
-                    </select>
                   </div>
                 </div>
 
@@ -616,7 +603,7 @@ const CafeMenu = ({ showToast }) => {
                     </div>
                     {calculatedCalories > 0 && (
                       <div className="mt-2 text-xs text-green-700 font-semibold">
-                        ✅ Auto-calculated from ingredients ({COOKING_ADJUSTMENTS[formData.cookingMethod]?.name}: {COOKING_ADJUSTMENTS[formData.cookingMethod]?.description})
+                        ✅ Auto-calculated from ingredients (each with its own cooking method)
                       </div>
                     )}
                     {formData.rawMaterials.length > 0 && calculatedCalories === 0 && (
@@ -635,15 +622,16 @@ const CafeMenu = ({ showToast }) => {
                   <div className="bg-gray-50 rounded-lg p-4 mb-3">
                     {/* Headers */}
                     <div className="grid grid-cols-12 gap-2 mb-2 text-xs font-semibold text-gray-600">
-                      <div className="col-span-4">Ingredient Name</div>
-                      <div className="col-span-2">Quantity</div>
-                      <div className="col-span-2">Unit</div>
+                      <div className="col-span-3">Ingredient Name</div>
+                      <div className="col-span-1">Quantity</div>
+                      <div className="col-span-1">Unit</div>
+                      <div className="col-span-3">Cooking Method</div>
                       <div className="col-span-2">Extra Price (₹/unit)</div>
                       <div className="col-span-2">Action</div>
                     </div>
                     <div className="grid grid-cols-12 gap-2">
                       {/* Searchable Material Dropdown */}
-                      <div className="col-span-4 relative">
+                      <div className="col-span-3 relative">
                         <input
                           type="text"
                           placeholder="Search inventory..."
@@ -688,17 +676,26 @@ const CafeMenu = ({ showToast }) => {
                         placeholder="Qty"
                         value={currentMaterial.quantity}
                         onChange={(e) => setCurrentMaterial({...currentMaterial, quantity: e.target.value})}
-                        className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        className="col-span-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                       />
                       <select
                         value={currentMaterial.unit}
                         onChange={(e) => setCurrentMaterial({...currentMaterial, unit: e.target.value})}
-                        className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        className="col-span-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                         disabled={currentMaterial.name && inventoryItems.find(item => item.name === currentMaterial.name)}
                       >
                         <option value="gm">gm</option>
                         <option value="ml">ml</option>
                         <option value="pcs">pcs</option>
+                      </select>
+                      <select
+                        value={currentMaterial.cookingMethod}
+                        onChange={(e) => setCurrentMaterial({...currentMaterial, cookingMethod: e.target.value})}
+                        className="col-span-3 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-xs font-semibold"
+                      >
+                        {Object.entries(COOKING_ADJUSTMENTS).map(([key, value]) => (
+                          <option key={key} value={key}>{value.name}</option>
+                        ))}
                       </select>
                       <input
                         type="number"
@@ -726,23 +723,40 @@ const CafeMenu = ({ showToast }) => {
                   {formData.rawMaterials.length > 0 && (
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {formData.rawMaterials.map((material, index) => (
-                        <div key={index} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
-                          <div className="flex-1">
-                            <span className="font-semibold text-gray-900">{material.name}</span>
-                            <span className="text-gray-600 ml-2">- {material.quantity} {material.unit}</span>
-                            {material.extraPrice > 0 && (
-                              <span className="text-orange-600 ml-2 text-xs font-semibold">
-                                (Extra: ₹{material.extraPrice}/{material.unit})
-                              </span>
-                            )}
+                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <span className="font-semibold text-gray-900">{material.name}</span>
+                              <span className="text-gray-600 ml-2">- {material.quantity} {material.unit}</span>
+                              {material.extraPrice > 0 && (
+                                <span className="text-orange-600 ml-2 text-xs font-semibold">
+                                  (Extra: ₹{material.extraPrice}/{material.unit})
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeRawMaterial(index)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => removeRawMaterial(index)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="mt-2">
+                            <select
+                              value={material.cookingMethod || 'raw'}
+                              onChange={(e) => {
+                                const updatedMaterials = [...formData.rawMaterials];
+                                updatedMaterials[index].cookingMethod = e.target.value;
+                                setFormData({...formData, rawMaterials: updatedMaterials});
+                              }}
+                              className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-xs font-semibold bg-gradient-to-r from-green-50 to-orange-50"
+                            >
+                              {Object.entries(COOKING_ADJUSTMENTS).map(([key, value]) => (
+                                <option key={key} value={key}>{value.name}</option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                       ))}
                     </div>
