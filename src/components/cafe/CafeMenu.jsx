@@ -44,6 +44,7 @@ const CafeMenu = ({ showToast }) => {
     'steamed-sauteed': { weightLoss: 0.20, calorieAdd: 0.15, name: '♨️+🥘 Steamed then Sautéed', description: '-20% water, +15% oil' },
     'boiled-fried': { weightLoss: 0.22, calorieAdd: 0.30, name: '💧+🍳 Boiled then Fried', description: '-22% water, +30% oil' },
     'soaked-boiled': { weightLoss: -0.40, calorieAdd: 0, name: '💦+💧 Soaked then Boiled', description: '+40% water (net)' },
+    'soaked-sauteed': { weightLoss: -0.40, calorieAdd: 0.15, name: '💦+🥘 Soaked then Sautéed', description: '+40% water, +15% oil' },
   };
 
   useEffect(() => {
