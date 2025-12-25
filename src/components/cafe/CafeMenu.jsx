@@ -891,19 +891,65 @@ const CafeMenu = ({ showToast }) => {
                 
                 return (
                   <div className="space-y-6">
-                    {/* Total Calories */}
-                    <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-4 text-center">
-                      <div className="text-sm text-gray-600 font-semibold">Total Calories</div>
-                      <div className="text-4xl font-bold text-orange-600 mt-1">🔥 {totalCalories}</div>
-                      <div className="text-xs text-gray-500 mt-1">kcal per serving</div>
+                    {/* Top Row: Total Calories (Left) + Ingredient Breakdown (Right) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Left: Total Calories */}
+                      <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-6 text-center flex flex-col justify-center">
+                        <div className="text-sm text-gray-600 font-semibold">Total Calories</div>
+                        <div className="text-5xl font-bold text-orange-600 mt-2">🔥 {totalCalories}</div>
+                        <div className="text-xs text-gray-500 mt-2">kcal per serving</div>
+                      </div>
+                      
+                      {/* Right: Ingredient Breakdown Bar Chart */}
+                      <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
+                        <h4 className="font-semibold text-gray-700 text-sm mb-3">Ingredient Breakdown</h4>
+                        <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                      {breakdown.breakdown.map((ingredient, index) => {
+                        const calories = parseFloat(ingredient.calories) || 0;
+                        const percentage = totalCalories > 0 ? (calories / totalCalories * 100).toFixed(1) : 0;
+                        const barWidth = maxCalories > 0 ? (calories / maxCalories * 100).toFixed(1) : 0;
+                        const colorClass = colors[index % colors.length];
+                        
+                        return (
+                          <div key={index} className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded ${colorClass}`}></div>
+                                <span className="font-semibold text-gray-700">
+                                  {ingredient.name}
+                                </span>
+                                <span className="text-gray-500">
+                                  ({ingredient.quantity}{ingredient.unit})
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-gray-900">{calories} cal</span>
+                                <span className="text-gray-500">({percentage}%)</span>
+                              </div>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+                              <div 
+                                className={`${colorClass} h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2`}
+                                style={{ width: `${barWidth}%` }}
+                              >
+                                {barWidth > 15 && (
+                                  <span className="text-xs font-semibold text-white">{percentage}%</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                        </div>
+                      </div>
                     </div>
                     
-                    {/* Macro Nutrients Donut Chart */}
+                    {/* Bottom Row: Macro Nutrients Donut Chart + Table */}
                     <div className="border-t pt-6">
                       <h4 className="font-semibold text-gray-700 text-sm mb-4">Macro Nutrients Distribution</h4>
-                      <div className="flex flex-col md:flex-row gap-6 items-center">
+                      <div className="flex flex-col md:flex-row gap-6 items-start">
                         {/* Donut Chart */}
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 mx-auto md:mx-0">
                           <svg width="200" height="200" viewBox="0 0 200 200" className="transform -rotate-90">
                             {donutSegments.map((segment, index) => (
                               <path
@@ -964,86 +1010,6 @@ const CafeMenu = ({ showToast }) => {
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Bar Chart */}
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-gray-700 text-sm">Ingredient Breakdown</h4>
-                      {breakdown.breakdown.map((ingredient, index) => {
-                        const calories = parseFloat(ingredient.calories) || 0;
-                        const percentage = totalCalories > 0 ? (calories / totalCalories * 100).toFixed(1) : 0;
-                        const barWidth = maxCalories > 0 ? (calories / maxCalories * 100).toFixed(1) : 0;
-                        const colorClass = colors[index % colors.length];
-                        
-                        return (
-                          <div key={index} className="space-y-1">
-                            <div className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-3 h-3 rounded ${colorClass}`}></div>
-                                <span className="font-semibold text-gray-700">
-                                  {ingredient.name}
-                                </span>
-                                <span className="text-gray-500">
-                                  ({ingredient.quantity}{ingredient.unit})
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-gray-900">{calories} cal</span>
-                                <span className="text-gray-500">({percentage}%)</span>
-                              </div>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
-                              <div 
-                                className={`${colorClass} h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2`}
-                                style={{ width: `${barWidth}%` }}
-                              >
-                                {barWidth > 15 && (
-                                  <span className="text-xs font-semibold text-white">{percentage}%</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Legend */}
-                    <div className="border-t pt-4">
-                      <h4 className="font-semibold text-gray-700 text-sm mb-3">Legend</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        {breakdown.breakdown.map((ingredient, index) => {
-                          const calories = parseFloat(ingredient.calories) || 0;
-                          const percentage = totalCalories > 0 ? (calories / totalCalories * 100).toFixed(1) : 0;
-                          const colorClass = colors[index % colors.length];
-                          
-                          return (
-                            <div key={index} className="flex items-center gap-2 text-xs">
-                              <div className={`w-4 h-4 rounded ${colorClass}`}></div>
-                              <span className="font-semibold text-gray-700">{ingredient.name}</span>
-                              <span className="text-gray-500">- {percentage}%</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    
-                    {/* Cooking Methods Info */}
-                    {selectedItemForChart.rawMaterials.some(m => m.cookingMethod) && (
-                      <div className="border-t pt-4">
-                        <h4 className="font-semibold text-gray-700 text-sm mb-3">Cooking Methods Applied</h4>
-                        <div className="space-y-2">
-                          {selectedItemForChart.rawMaterials.map((material, index) => {
-                            const method = material.cookingMethod || 'raw';
-                            const adjustment = COOKING_ADJUSTMENTS[method];
-                            return (
-                              <div key={index} className="flex items-center justify-between text-xs bg-gray-50 rounded p-2">
-                                <span className="font-semibold text-gray-700">{material.name}</span>
-                                <span className="text-gray-600">{adjustment?.name || '🥗 Raw'}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 );
               })()}
