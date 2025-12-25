@@ -6,13 +6,15 @@ ALTER TABLE cafe_inventory
 ADD COLUMN IF NOT EXISTS protein_per_100g DECIMAL(10,2) DEFAULT NULL,
 ADD COLUMN IF NOT EXISTS carbs_per_100g DECIMAL(10,2) DEFAULT NULL,
 ADD COLUMN IF NOT EXISTS fat_per_100g DECIMAL(10,2) DEFAULT NULL,
-ADD COLUMN IF NOT EXISTS fiber_per_100g DECIMAL(10,2) DEFAULT NULL;
+ADD COLUMN IF NOT EXISTS fiber_per_100g DECIMAL(10,2) DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS expiry_date DATE DEFAULT NULL;
 
 -- Add comments
 COMMENT ON COLUMN cafe_inventory.protein_per_100g IS 'Protein in grams per 100g of ingredient';
 COMMENT ON COLUMN cafe_inventory.carbs_per_100g IS 'Carbohydrates in grams per 100g of ingredient';
 COMMENT ON COLUMN cafe_inventory.fat_per_100g IS 'Fat in grams per 100g of ingredient';
 COMMENT ON COLUMN cafe_inventory.fiber_per_100g IS 'Fiber in grams per 100g of ingredient';
+COMMENT ON COLUMN cafe_inventory.expiry_date IS 'Expiry date for perishable items';
 
 -- Add macro nutrients to menu items (per serving)
 ALTER TABLE cafe_menu
