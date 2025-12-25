@@ -6,6 +6,7 @@ import { inventoryTemplate } from '../../utils/inventoryTemplate';
 import { sendShoppingListEmail, getEmailSettings } from '../../services/emailService';
 import { getLowestCostVendor, getVendorPricesForItem, clearPurchasesCache } from '../../services/vendorPriceService';
 import { getPurchases } from '../../services/cafeService';
+import { searchNutritionReference } from '../../services/nutritionReferenceService';
 
 const CafeInventory = ({ showToast }) => {
   const [inventory, setInventory] = useState([]);
@@ -35,6 +36,7 @@ const CafeInventory = ({ showToast }) => {
   const [inventorySearchTerm, setInventorySearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [existingMaterials, setExistingMaterials] = useState([]);
+  const [nutritionSuggestions, setNutritionSuggestions] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [usageFilter, setUsageFilter] = useState('all'); // 'all', 'used', 'unused'
   const [showArchived, setShowArchived] = useState(false);
@@ -286,12 +288,55 @@ const CafeInventory = ({ showToast }) => {
     setShowDropdown(false);
   };
 
-  const handleSearchChange = (value) => {
+  const handleNutritionSelect = (nutritionItem) => {
+    // Check if item already exists in inventory
+    const existingItem = inventory.find(item => item.name.toLowerCase() === nutritionItem.ingredient_name.toLowerCase());
+    
+    if (existingItem) {
+      // Load existing inventory item
+      handleMaterialSelect(existingItem.name);
+    } else {
+      // Populate with nutrition reference data
+      setFormData({
+        name: nutritionItem.ingredient_name,
+        currentStock: 0,
+        minStock: '',
+        unit: nutritionItem.common_unit || 'gm',
+        category: nutritionItem.category || 'Dry Store',
+        expiryDate: '',
+        lastUsedDate: null,
+        stockAdjustment: '',
+        caloriesPer100g: nutritionItem.calories || '',
+        proteinPer100g: nutritionItem.protein || '',
+        carbsPer100g: nutritionItem.carbs || '',
+        fatPer100g: nutritionItem.fat || '',
+        fiberPer100g: nutritionItem.fiber || '',
+      });
+      setSearchTerm(nutritionItem.ingredient_name);
+    }
+    setShowDropdown(false);
+    setNutritionSuggestions([]);
+  };
+
+  const handleSearchChange = async (value) => {
     setSearchTerm(value);
     setFormData({ ...formData, name: value });
     setShowDropdown(true);
     
-    // Check if material exists
+    // Search nutrition reference database
+    if (value.length >= 2) {
+      try {
+        const suggestions = await searchNutritionReference(value);
+        setNutritionSuggestions(suggestions);
+      } catch (error) {
+        console.error('Error searching nutrition reference:', error);
+        setNutritionSuggestions([]);
+      }
+    } else {
+      setNutritionSuggestions([]);
+    }
+    
+    // Check if material exists in current inventory
     const existingItem = inventory.find(item => item.name.toLowerCase() === value.toLowerCase());
     if (existingItem) {
       setFormData({
@@ -300,6 +345,11 @@ const CafeInventory = ({ showToast }) => {
         minStock: existingItem.minStock,
         unit: existingItem.unit,
         category: existingItem.category || 'Dry Store',
+        caloriesPer100g: existingItem.caloriesPer100g || existingItem.calories_per_100g || '',
+        proteinPer100g: existingItem.proteinPer100g || existingItem.protein_per_100g || '',
+        carbsPer100g: existingItem.carbsPer100g || existingItem.carbs_per_100g || '',
+        fatPer100g: existingItem.fatPer100g || existingItem.fat_per_100g || '',
+        fiberPer100g: existingItem.fiberPer100g || existingItem.fiber_per_100g || '',
       });
     }
   };
@@ -1097,25 +1147,68 @@ const CafeInventory = ({ showToast }) => {
                     
                     {/* Dropdown */}
                     {showDropdown && searchTerm && (
-                      <div className="absolute z-50 w-full mt-1 bg-white border-2 border-orange-300 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                        {filteredMaterials.length > 0 ? (
-                          filteredMaterials.map((material, index) => (
-                            <button
-                              key={index}
-                              type="button"
-                              onClick={() => handleMaterialSelect(material)}
-                              className="w-full px-4 py-2 text-left hover:bg-orange-50 transition border-b border-gray-100 last:border-0"
-                            >
-                              <span className="font-semibold text-gray-900">{material}</span>
-                              {inventory.find(item => item.name === material) && (
-                                <span className="text-xs text-gray-500 ml-2">
-                                  (Stock: {inventory.find(item => item.name === material).currentStock}
-                                  {inventory.find(item => item.name === material).unit})
-                                </span>
-                              )}
-                            </button>
-                          ))
-                        ) : (
+                      <div className="absolute z-50 w-full mt-1 bg-white border-2 border-orange-300 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                        {/* Nutrition Reference Suggestions */}
+                        {nutritionSuggestions.length > 0 && (
+                          <div className="border-b-2 border-orange-200">
+                            <div className="px-3 py-2 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200">
+                              <p className="text-xs font-bold text-green-700">🏋️ NUTRITION DATABASE ({nutritionSuggestions.length})</p>
+                            </div>
+                            {nutritionSuggestions.map((item, index) => (
+                              <button
+                                key={`nutrition-${index}`}
+                                type="button"
+                                onClick={() => handleNutritionSelect(item)}
+                                className="w-full px-4 py-3 text-left hover:bg-green-50 transition border-b border-gray-100 last:border-0"
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-900">{item.ingredient_name}</div>
+                                    <div className="text-xs text-gray-500 mt-0.5">{item.indian_name} • {item.category}</div>
+                                    <div className="flex gap-2 mt-1 text-xs">
+                                      <span className="text-orange-600 font-semibold">🔥 {item.calories}cal</span>
+                                      <span className="text-blue-600">💪 {item.protein}g</span>
+                                      <span className="text-yellow-600">🍞 {item.carbs}g</span>
+                                      <span className="text-green-600">🥑 {item.fat}g</span>
+                                      {item.fiber > 0 && <span className="text-amber-600">🌾 {item.fiber}g</span>}
+                                    </div>
+                                  </div>
+                                  <div className="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">
+                                    AUTO-FILL
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Existing Inventory Items */}
+                        {filteredMaterials.length > 0 && (
+                          <div>
+                            <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
+                              <p className="text-xs font-bold text-gray-600">📦 YOUR INVENTORY ({filteredMaterials.length})</p>
+                            </div>
+                            {filteredMaterials.map((material, index) => (
+                              <button
+                                key={`inventory-${index}`}
+                                type="button"
+                                onClick={() => handleMaterialSelect(material)}
+                                className="w-full px-4 py-2 text-left hover:bg-orange-50 transition border-b border-gray-100 last:border-0"
+                              >
+                                <span className="font-semibold text-gray-900">{material}</span>
+                                {inventory.find(item => item.name === material) && (
+                                  <span className="text-xs text-gray-500 ml-2">
+                                    (Stock: {inventory.find(item => item.name === material).currentStock}
+                                    {inventory.find(item => item.name === material).unit})
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* No Results */}
+                        {nutritionSuggestions.length === 0 && filteredMaterials.length === 0 && (
                           <button
                             type="button"
                             onClick={() => setShowDropdown(false)}
