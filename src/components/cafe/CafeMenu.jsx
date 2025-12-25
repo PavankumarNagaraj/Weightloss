@@ -792,14 +792,58 @@ const CafeMenu = ({ showToast }) => {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (!recipientEmail) {
                       showToast('⚠️ Please configure recipient email in Settings first');
                       return;
                     }
-                    const subject = `Nutrition Analysis: ${selectedItemForChart.name} - Afterburn`;
-                    const body = `Check out the nutrition breakdown for ${selectedItemForChart.name}!\n\nTotal Calories: ${calculateCalories(selectedItemForChart.rawMaterials).total} kcal\n\nView full details in the Afterburn Cafe Menu.`;
-                    window.location.href = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                    
+                    try {
+                      showToast('📧 Sending email...');
+                      
+                      const breakdown = calculateCalories(selectedItemForChart.rawMaterials);
+                      const macros = calculateMacros(selectedItemForChart.rawMaterials);
+                      
+                      // Sort ingredients by calories (high to low) for email
+                      const sortedIngredients = breakdown.breakdown
+                        .sort((a, b) => parseFloat(b.calories) - parseFloat(a.calories))
+                        .map(ing => ({
+                          name: ing.name,
+                          quantity: ing.quantity,
+                          unit: ing.unit,
+                          calories: ing.calories
+                        }));
+                      
+                      const response = await fetch('http://localhost:5000/api/email/nutrition-chart', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          to: recipientEmail,
+                          dishName: selectedItemForChart.name,
+                          totalCalories: breakdown.total,
+                          ingredients: sortedIngredients,
+                          macros: {
+                            protein: macros.totals.protein,
+                            carbs: macros.totals.carbs,
+                            fat: macros.totals.fat,
+                            fiber: macros.totals.fiber
+                          }
+                        })
+                      });
+                      
+                      const result = await response.json();
+                      
+                      if (result.success) {
+                        showToast('✅ Email sent successfully!');
+                      } else {
+                        showToast(`❌ Failed to send email: ${result.error}`);
+                      }
+                    } catch (error) {
+                      console.error('Error sending email:', error);
+                      showToast('❌ Failed to send email. Please try again.');
+                    }
                   }}
                   className="p-2 hover:bg-orange-50 rounded-lg transition text-orange-600"
                   title="Email this nutrition chart"

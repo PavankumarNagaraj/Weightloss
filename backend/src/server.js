@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import photosRoutes from './routes/photos.js';
 import googlefitRoutes from './routes/googlefit.js';
+import emailRoutes from './routes/email.js';
 
 dotenv.config();
 
@@ -69,6 +70,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/photos', photosRoutes);
 app.use('/api/googlefit', googlefitRoutes);
+app.use('/api/email', emailRoutes);
 
 // 404 handler
 app.use((req, res) => {
