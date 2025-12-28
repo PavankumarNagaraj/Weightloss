@@ -1159,45 +1159,45 @@ const CafeMenu = ({ showToast }) => {
       {/* Kitchen Dialog View */}
       {showKitchenView && selectedItemForKitchen && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-2">
-          <div className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col">
+          <div className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-3xl max-h-[95vh] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-2 border-b-2 border-orange-500 bg-gray-900 rounded-t-lg">
+            <div className="flex items-center justify-between p-2 sm:p-3 border-b-2 border-orange-500 bg-gray-900 rounded-t-lg">
               <div className="flex-1 min-w-0">
-                <h1 className="text-lg sm:text-xl font-black text-white truncate">
+                <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-white truncate">
                   {selectedItemForKitchen.is_veg ? '🟢' : '🔴'} {selectedItemForKitchen.name}
                 </h1>
-                <p className="text-xs text-gray-400">ESC to close • {selectedItemForKitchen.calories || '-'} cal • {selectedItemForKitchen.raw_materials?.length || 0} items</p>
+                <p className="text-xs sm:text-sm text-gray-400">ESC to close • {selectedItemForKitchen.calories || '-'} cal • {selectedItemForKitchen.raw_materials?.length || 0} items</p>
               </div>
               <button
                 onClick={() => setShowKitchenView(false)}
-                className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition flex-shrink-0 ml-2"
+                className="p-1.5 sm:p-2 bg-red-600 hover:bg-red-700 text-white rounded transition flex-shrink-0 ml-2"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
 
             {/* Ingredients List - Compact, No Scroll */}
-            <div className="p-2 overflow-y-auto flex-1">
+            <div className="p-2 sm:p-3 overflow-y-auto flex-1">
               {selectedItemForKitchen.raw_materials && selectedItemForKitchen.raw_materials.length > 0 ? (
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 sm:space-y-2">
                   {selectedItemForKitchen.raw_materials.map((material, index) => (
                     <div 
                       key={index}
-                      className="bg-gray-700 rounded p-2 border-l-4 border-orange-500"
+                      className="bg-gray-700 rounded p-2 sm:p-2.5 md:p-3 border-l-4 border-orange-500"
                     >
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center justify-between gap-2 sm:gap-3">
                         <div className="flex-1 min-w-0">
-                          <span className="text-base sm:text-lg font-bold text-white break-words">
+                          <span className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-white break-words">
                             {index + 1}. {material.name}
                           </span>
                           {material.cooking_method && material.cooking_method !== 'none' && (
-                            <div className="text-xs text-gray-400 mt-0.5">
+                            <div className="text-xs sm:text-sm text-gray-400 mt-0.5">
                               {COOKING_ADJUSTMENTS[material.cooking_method]?.name || material.cooking_method}
                             </div>
                           )}
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <div className="text-xl sm:text-2xl font-black text-orange-400 whitespace-nowrap">
+                          <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-orange-400 whitespace-nowrap">
                             {material.quantity} {material.unit}
                           </div>
                         </div>
@@ -1206,7 +1206,7 @@ const CafeMenu = ({ showToast }) => {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400 text-center py-4">
+                <p className="text-sm sm:text-base text-gray-400 text-center py-4">
                   No ingredients listed
                 </p>
               )}
