@@ -246,59 +246,90 @@ const CafeMenuBooklet = ({ showToast }) => {
                 {/* Nutrition Chart */}
                 {macros.calories > 0 && (
                   <div className="nutrition-section">
-                    {/* Calories Hero */}
-                    <div className="calories-display">
-                      <div className="calories-value">{macros.calories}</div>
-                      <div className="calories-label">cal</div>
-                    </div>
+                    <div className="nutrition-layout">
+                      {/* Left: Donut Chart */}
+                      <div className="donut-container">
+                        <svg viewBox="0 0 100 100" className="donut-chart">
+                          <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" strokeWidth="20" />
+                          <circle 
+                            cx="50" cy="50" r="40" 
+                            fill="none" 
+                            stroke="#3b82f6" 
+                            strokeWidth="20"
+                            strokeDasharray={`${proteinPercent * 2.51} 251`}
+                            strokeDashoffset="0"
+                            transform="rotate(-90 50 50)"
+                          />
+                          <circle 
+                            cx="50" cy="50" r="40" 
+                            fill="none" 
+                            stroke="#10b981" 
+                            strokeWidth="20"
+                            strokeDasharray={`${carbsPercent * 2.51} 251`}
+                            strokeDashoffset={`-${proteinPercent * 2.51}`}
+                            transform="rotate(-90 50 50)"
+                          />
+                          <circle 
+                            cx="50" cy="50" r="40" 
+                            fill="none" 
+                            stroke="#f59e0b" 
+                            strokeWidth="20"
+                            strokeDasharray={`${fatPercent * 2.51} 251`}
+                            strokeDashoffset={`-${(proteinPercent + carbsPercent) * 2.51}`}
+                            transform="rotate(-90 50 50)"
+                          />
+                          <text x="50" y="48" textAnchor="middle" className="donut-calories">{macros.calories}</text>
+                          <text x="50" y="58" textAnchor="middle" className="donut-label">cal</text>
+                        </svg>
+                        <div className="donut-legend">
+                          <div className="donut-legend-item">
+                            <span className="legend-dot protein"></span>
+                            <span>P {proteinPercent}%</span>
+                          </div>
+                          <div className="donut-legend-item">
+                            <span className="legend-dot carbs"></span>
+                            <span>C {carbsPercent}%</span>
+                          </div>
+                          <div className="donut-legend-item">
+                            <span className="legend-dot fat"></span>
+                            <span>F {fatPercent}%</span>
+                          </div>
+                        </div>
+                      </div>
 
-                    {/* Macro Cards */}
-                    <div className="macro-grid">
-                      <div className="macro-item">
-                        <div className="macro-icon">🥩</div>
-                        <div className="macro-value">{macros.protein}g</div>
-                        <div className="macro-label">Protein</div>
-                      </div>
-                      <div className="macro-item">
-                        <div className="macro-icon">🍚</div>
-                        <div className="macro-value">{macros.carbs}g</div>
-                        <div className="macro-label">Carbs</div>
-                      </div>
-                      <div className="macro-item">
-                        <div className="macro-icon">🥑</div>
-                        <div className="macro-value">{macros.fat}g</div>
-                        <div className="macro-label">Fat</div>
-                      </div>
-                      <div className="macro-item">
-                        <div className="macro-icon">🌾</div>
-                        <div className="macro-value">{macros.fiber}g</div>
-                        <div className="macro-label">Fiber</div>
-                      </div>
-                    </div>
-
-                    {/* Macro Distribution Bar */}
-                    <div className="macro-bar-container">
-                      <div className="macro-bar">
-                        <div className="macro-segment protein" style={{ width: `${proteinPercent}%` }}>
-                          {proteinPercent > 15 ? `${proteinPercent}%` : ''}
-                        </div>
-                        <div className="macro-segment carbs" style={{ width: `${carbsPercent}%` }}>
-                          {carbsPercent > 15 ? `${carbsPercent}%` : ''}
-                        </div>
-                        <div className="macro-segment fat" style={{ width: `${fatPercent}%` }}>
-                          {fatPercent > 15 ? `${fatPercent}%` : ''}
-                        </div>
-                      </div>
-                      <div className="macro-legend">
-                        <span className="legend-item">
-                          <span className="legend-dot protein"></span>P {proteinPercent}%
-                        </span>
-                        <span className="legend-item">
-                          <span className="legend-dot carbs"></span>C {carbsPercent}%
-                        </span>
-                        <span className="legend-item">
-                          <span className="legend-dot fat"></span>F {fatPercent}%
-                        </span>
+                      {/* Right: Nutrition Table */}
+                      <div className="nutrition-table">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Nutrient</th>
+                              <th>Amount</th>
+                              <th>%</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td><span className="nutrient-icon">🥩</span> Protein</td>
+                              <td className="amount">{macros.protein}g</td>
+                              <td className="percent">{proteinPercent}%</td>
+                            </tr>
+                            <tr>
+                              <td><span className="nutrient-icon">🍚</span> Carbs</td>
+                              <td className="amount">{macros.carbs}g</td>
+                              <td className="percent">{carbsPercent}%</td>
+                            </tr>
+                            <tr>
+                              <td><span className="nutrient-icon">🥑</span> Fat</td>
+                              <td className="amount">{macros.fat}g</td>
+                              <td className="percent">{fatPercent}%</td>
+                            </tr>
+                            <tr>
+                              <td><span className="nutrient-icon">🌾</span> Fiber</td>
+                              <td className="amount">{macros.fiber}g</td>
+                              <td className="percent">-</td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div>
@@ -406,115 +437,61 @@ const CafeMenuBooklet = ({ showToast }) => {
             border-top: 1px solid #e5e7eb;
           }
           
-          .calories-display {
-            text-align: center;
-            margin-bottom: 10px;
-            padding: 8px;
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-radius: 8px;
-          }
-          
-          .calories-value {
-            font-size: 28px;
-            font-weight: 800;
-            color: #ea580c;
-            line-height: 1;
-          }
-          
-          .layout-2 .calories-value {
-            font-size: 36px;
-          }
-          
-          .calories-label {
-            font-size: 11px;
-            color: #92400e;
-            font-weight: 600;
-            text-transform: uppercase;
-          }
-          
-          .macro-grid {
+          .nutrition-layout {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: 1fr 1.5fr;
+            gap: 10px;
+            align-items: center;
+          }
+          
+          /* Donut Chart */
+          .donut-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 6px;
-            margin-bottom: 10px;
           }
           
-          .macro-item {
-            text-align: center;
-            padding: 6px 4px;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            border-radius: 6px;
+          .donut-chart {
+            width: 80px;
+            height: 80px;
           }
           
-          .macro-icon {
-            font-size: 14px;
-            margin-bottom: 2px;
+          .layout-2 .donut-chart {
+            width: 100px;
+            height: 100px;
           }
           
-          .macro-value {
-            font-size: 13px;
-            font-weight: 800;
-            color: white;
-            line-height: 1;
-          }
-          
-          .layout-2 .macro-value {
+          .donut-calories {
             font-size: 16px;
+            font-weight: 800;
+            fill: #ea580c;
           }
           
-          .macro-label {
+          .layout-2 .donut-calories {
+            font-size: 18px;
+          }
+          
+          .donut-label {
             font-size: 8px;
-            color: white;
             font-weight: 600;
+            fill: #92400e;
             text-transform: uppercase;
-            opacity: 0.95;
           }
           
-          .macro-bar-container {
-            margin-top: 8px;
-          }
-          
-          .macro-bar {
+          .donut-legend {
             display: flex;
-            height: 20px;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 6px;
-          }
-          
-          .macro-segment {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 9px;
-          }
-          
-          .macro-segment.protein {
-            background: #3b82f6;
-          }
-          
-          .macro-segment.carbs {
-            background: #10b981;
-          }
-          
-          .macro-segment.fat {
-            background: #f59e0b;
-          }
-          
-          .macro-legend {
-            display: flex;
-            justify-content: space-around;
-            gap: 4px;
-          }
-          
-          .legend-item {
-            display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 3px;
+          }
+          
+          .donut-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
             font-size: 8px;
             color: #374151;
+            font-weight: 600;
           }
           
           .legend-dot {
@@ -533,6 +510,63 @@ const CafeMenuBooklet = ({ showToast }) => {
           
           .legend-dot.fat {
             background: #f59e0b;
+          }
+          
+          /* Nutrition Table */
+          .nutrition-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+          }
+          
+          .layout-2 .nutrition-table table {
+            font-size: 11px;
+          }
+          
+          .nutrition-table th {
+            background: #f97316;
+            color: white;
+            padding: 4px 6px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 8px;
+            text-transform: uppercase;
+          }
+          
+          .layout-2 .nutrition-table th {
+            font-size: 10px;
+            padding: 6px 8px;
+          }
+          
+          .nutrition-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+          }
+          
+          .layout-2 .nutrition-table td {
+            padding: 6px 8px;
+          }
+          
+          .nutrition-table .nutrient-icon {
+            font-size: 10px;
+            margin-right: 2px;
+          }
+          
+          .nutrition-table .amount {
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+          }
+          
+          .nutrition-table .percent {
+            font-weight: 700;
+            color: #f97316;
+            text-align: center;
+          }
+          
+          .nutrition-table tbody tr:last-child td {
+            border-bottom: none;
           }
           
           @page {
@@ -609,114 +643,57 @@ const CafeMenuBooklet = ({ showToast }) => {
             border-top: 1px solid #e5e7eb;
           }
           
-          .calories-display {
-            text-align: center;
-            margin-bottom: 12px;
-            padding: 12px;
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-radius: 8px;
-          }
-          
-          .calories-value {
-            font-size: 36px;
-            font-weight: 800;
-            color: #ea580c;
-            line-height: 1;
-          }
-          
-          .calories-label {
-            font-size: 12px;
-            color: #92400e;
-            font-weight: 600;
-            text-transform: uppercase;
-          }
-          
-          .macro-grid {
+          .nutrition-layout {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
-          }
-          
-          .macro-item {
-            text-align: center;
-            padding: 10px 6px;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            border-radius: 8px;
-          }
-          
-          .macro-icon {
-            font-size: 18px;
-            margin-bottom: 4px;
-          }
-          
-          .macro-value {
-            font-size: 16px;
-            font-weight: 800;
-            color: white;
-            line-height: 1;
-            margin: 4px 0;
-          }
-          
-          .macro-label {
-            font-size: 10px;
-            color: white;
-            font-weight: 600;
-            text-transform: uppercase;
-            opacity: 0.95;
-          }
-          
-          .macro-bar-container {
-            margin-top: 12px;
-          }
-          
-          .macro-bar {
-            display: flex;
-            height: 24px;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 8px;
-          }
-          
-          .macro-segment {
-            display: flex;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 16px;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 11px;
           }
           
-          .macro-segment.protein {
-            background: #3b82f6;
-          }
-          
-          .macro-segment.carbs {
-            background: #10b981;
-          }
-          
-          .macro-segment.fat {
-            background: #f59e0b;
-          }
-          
-          .macro-legend {
+          /* Donut Chart - Screen */
+          .donut-container {
             display: flex;
-            justify-content: space-around;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+          }
+          
+          .donut-chart {
+            width: 120px;
+            height: 120px;
+          }
+          
+          .donut-calories {
+            font-size: 20px;
+            font-weight: 800;
+            fill: #ea580c;
+          }
+          
+          .donut-label {
+            font-size: 10px;
+            font-weight: 600;
+            fill: #92400e;
+            text-transform: uppercase;
+          }
+          
+          .donut-legend {
+            display: flex;
+            flex-direction: column;
             gap: 6px;
           }
           
-          .legend-item {
+          .donut-legend-item {
             display: flex;
             align-items: center;
-            gap: 4px;
-            font-size: 11px;
+            gap: 6px;
+            font-size: 12px;
             color: #374151;
             font-weight: 600;
           }
           
           .legend-dot {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
           }
           
@@ -730,6 +707,54 @@ const CafeMenuBooklet = ({ showToast }) => {
           
           .legend-dot.fat {
             background: #f59e0b;
+          }
+          
+          /* Nutrition Table - Screen */
+          .nutrition-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+          }
+          
+          .nutrition-table th {
+            background: #f97316;
+            color: white;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+          }
+          
+          .nutrition-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+          }
+          
+          .nutrition-table .nutrient-icon {
+            font-size: 14px;
+            margin-right: 4px;
+          }
+          
+          .nutrition-table .amount {
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+          }
+          
+          .nutrition-table .percent {
+            font-weight: 700;
+            color: #f97316;
+            text-align: center;
+          }
+          
+          .nutrition-table tbody tr:last-child td {
+            border-bottom: none;
+          }
+          
+          .nutrition-table tbody tr:hover {
+            background: #f9fafb;
           }
         }
       `}</style>
