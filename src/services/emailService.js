@@ -897,19 +897,19 @@ export const sendNutritionChartEmail = async (recipientEmail, dishName, totalCal
               <h3>💪 Macronutrients</h3>
               <div class="macros">
                 <div class="macro-card">
-                  <div class="value">${macros.protein.toFixed(1)}g</div>
+                  <div class="value">${typeof macros.protein === 'number' ? macros.protein.toFixed(1) : macros.protein}g</div>
                   <div class="label">Protein</div>
                 </div>
                 <div class="macro-card">
-                  <div class="value">${macros.carbs.toFixed(1)}g</div>
+                  <div class="value">${typeof macros.carbs === 'number' ? macros.carbs.toFixed(1) : macros.carbs}g</div>
                   <div class="label">Carbs</div>
                 </div>
                 <div class="macro-card">
-                  <div class="value">${macros.fat.toFixed(1)}g</div>
+                  <div class="value">${typeof macros.fat === 'number' ? macros.fat.toFixed(1) : macros.fat}g</div>
                   <div class="label">Fat</div>
                 </div>
                 <div class="macro-card">
-                  <div class="value">${macros.fiber.toFixed(1)}g</div>
+                  <div class="value">${typeof macros.fiber === 'number' ? macros.fiber.toFixed(1) : macros.fiber}g</div>
                   <div class="label">Fiber</div>
                 </div>
               </div>
