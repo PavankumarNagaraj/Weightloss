@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, X, ChevronDown, ChevronUp, Mail } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, ChevronDown, ChevronUp, Mail, Maximize2 } from 'lucide-react';
 import { getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, getInventory, addInventoryItem, getSettings } from '../../services/cafeService';
 import { sendNutritionChartEmail } from '../../services/emailService';
 
@@ -31,6 +31,8 @@ const CafeMenu = ({ showToast }) => {
   const [showCalorieChart, setShowCalorieChart] = useState(false);
   const [selectedItemForChart, setSelectedItemForChart] = useState(null);
   const [recipientEmail, setRecipientEmail] = useState('');
+  const [showKitchenView, setShowKitchenView] = useState(false);
+  const [selectedItemForKitchen, setSelectedItemForKitchen] = useState(null);
 
   // Cooking method adjustment factors
   const COOKING_ADJUSTMENTS = {
@@ -498,6 +500,16 @@ const CafeMenu = ({ showToast }) => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedItemForKitchen(item);
+                          setShowKitchenView(true);
+                        }}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
+                        title="Kitchen View - Full Screen Ingredients"
+                      >
+                        <Maximize2 className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => {
                           setEditingItem(item);
@@ -1117,6 +1129,97 @@ const CafeMenu = ({ showToast }) => {
                   </div>
                 );
               })()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Kitchen Full-Screen View */}
+      {showKitchenView && selectedItemForKitchen && (
+        <div className="fixed inset-0 bg-gray-900 z-50 overflow-auto">
+          <div className="min-h-screen p-8">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8 pb-6 border-b-4 border-orange-500">
+              <div>
+                <h1 className="text-6xl font-black text-white mb-2">
+                  {selectedItemForKitchen.is_veg ? '🟢' : '🔴'} {selectedItemForKitchen.name}
+                </h1>
+                <p className="text-2xl text-gray-400">Kitchen Recipe View</p>
+              </div>
+              <button
+                onClick={() => setShowKitchenView(false)}
+                className="p-4 bg-red-600 hover:bg-red-700 text-white rounded-xl transition shadow-lg"
+              >
+                <X className="w-8 h-8" />
+              </button>
+            </div>
+
+            {/* Ingredients List */}
+            <div className="bg-gray-800 rounded-2xl p-8 shadow-2xl">
+              <h2 className="text-4xl font-bold text-orange-500 mb-8 pb-4 border-b-2 border-orange-500">
+                📋 INGREDIENTS
+              </h2>
+              
+              {selectedItemForKitchen.raw_materials && selectedItemForKitchen.raw_materials.length > 0 ? (
+                <div className="space-y-4">
+                  {selectedItemForKitchen.raw_materials.map((material, index) => (
+                    <div 
+                      key={index}
+                      className="bg-gray-700 rounded-xl p-6 border-l-8 border-orange-500 hover:bg-gray-650 transition"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <span className="text-4xl font-bold text-white">
+                            {index + 1}. {material.name}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-5xl font-black text-orange-400">
+                            {material.quantity} {material.unit}
+                          </div>
+                          {material.cooking_method && material.cooking_method !== 'none' && (
+                            <div className="text-xl text-gray-400 mt-2">
+                              {COOKING_ADJUSTMENTS[material.cooking_method]?.name || material.cooking_method}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-3xl text-gray-400 text-center py-12">
+                  No ingredients listed
+                </p>
+              )}
+
+              {/* Summary */}
+              <div className="mt-8 pt-8 border-t-2 border-gray-700">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-r from-orange-600 to-red-600 rounded-xl p-6 text-center">
+                    <div className="text-2xl text-orange-100 mb-2">Total Items</div>
+                    <div className="text-6xl font-black text-white">
+                      {selectedItemForKitchen.raw_materials?.length || 0}
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-6 text-center">
+                    <div className="text-2xl text-green-100 mb-2">Calories</div>
+                    <div className="text-6xl font-black text-white">
+                      {selectedItemForKitchen.calories || '-'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Close Button at Bottom */}
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setShowKitchenView(false)}
+                className="px-12 py-6 bg-red-600 hover:bg-red-700 text-white text-3xl font-bold rounded-xl transition shadow-lg"
+              >
+                ✕ Close Kitchen View
+              </button>
             </div>
           </div>
         </div>
