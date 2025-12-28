@@ -345,7 +345,7 @@ const CafeMenuBooklet = ({ showToast }) => {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             column-gap: 6mm;
-            row-gap: 6mm;
+            row-gap: 3mm;
             padding: 0 3mm 3mm 3mm;
           }
           
@@ -517,7 +517,7 @@ const CafeMenuBooklet = ({ showToast }) => {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             column-gap: 40px;
-            row-gap: 40px;
+            row-gap: 20px;
             padding: 20px;
           }
           
