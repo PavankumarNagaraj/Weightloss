@@ -5,7 +5,6 @@ import { getMenuItems, getInventory } from '../../services/cafeService';
 const CafeMenuBooklet = ({ showToast }) => {
   const [menuItems, setMenuItems] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
-  const [layout, setLayout] = useState('4'); // '2' or '4' dishes per page
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showVeg, setShowVeg] = useState(true);
   const [showNonVeg, setShowNonVeg] = useState(true);
@@ -110,51 +109,29 @@ const CafeMenuBooklet = ({ showToast }) => {
   return (
     <div className="p-6">
       {/* Controls - Hidden when printing */}
-      <div className="no-print mb-6 bg-white rounded-lg shadow-md p-6">
+      <div className="no-print mb-6 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">📖 Menu Booklet Generator</h2>
+          <div>
+            <h2 className="text-2xl font-bold text-white">📖 Menu Booklet Generator</h2>
+            <p className="text-orange-100 text-sm mt-1">3 columns × 4 rows • 12 dishes per page</p>
+          </div>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+            className="flex items-center gap-2 px-6 py-3 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition font-bold shadow-md"
           >
             <Printer className="w-5 h-5" />
             Print Menu
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Layout Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Layout</label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setLayout('2')}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg border-2 transition ${
-                  layout === '2' ? 'border-orange-600 bg-orange-50 text-orange-600' : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                <Grid2x2 className="w-4 h-4" />
-                2 per page
-              </button>
-              <button
-                onClick={() => setLayout('4')}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg border-2 transition ${
-                  layout === '4' ? 'border-orange-600 bg-orange-50 text-orange-600' : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                <Grid3x3 className="w-4 h-4" />
-                4 per page
-              </button>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Category Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <label className="block text-sm font-medium text-white mb-2">Category</label>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg focus:ring-2 focus:ring-white bg-white"
             >
               <option value="all">All Categories</option>
               <option value="main-course">Main Course</option>
@@ -167,11 +144,11 @@ const CafeMenuBooklet = ({ showToast }) => {
 
           {/* Price Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Price Type</label>
+            <label className="block text-sm font-medium text-white mb-2">Price Type</label>
             <select
               value={priceType}
               onChange={(e) => setPriceType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg focus:ring-2 focus:ring-white bg-white"
             >
               <option value="customer">Customer Price</option>
               <option value="trainer">Trainer Price</option>
@@ -180,20 +157,20 @@ const CafeMenuBooklet = ({ showToast }) => {
 
           {/* Veg/Non-Veg Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Food Type</label>
+            <label className="block text-sm font-medium text-white mb-2">Food Type</label>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowVeg(!showVeg)}
-                className={`flex-1 px-3 py-2 rounded-lg border-2 transition ${
-                  showVeg ? 'border-green-600 bg-green-50 text-green-600' : 'border-gray-300'
+                className={`flex-1 px-3 py-2 rounded-lg border-2 transition font-semibold ${
+                  showVeg ? 'border-white bg-white text-green-600' : 'border-orange-300 bg-orange-400 text-white'
                 }`}
               >
                 🟢 Veg
               </button>
               <button
                 onClick={() => setShowNonVeg(!showNonVeg)}
-                className={`flex-1 px-3 py-2 rounded-lg border-2 transition ${
-                  showNonVeg ? 'border-red-600 bg-red-50 text-red-600' : 'border-gray-300'
+                className={`flex-1 px-3 py-2 rounded-lg border-2 transition font-semibold ${
+                  showNonVeg ? 'border-white bg-white text-red-600' : 'border-orange-300 bg-orange-400 text-white'
                 }`}
               >
                 🔴 Non-Veg
@@ -202,142 +179,125 @@ const CafeMenuBooklet = ({ showToast }) => {
           </div>
         </div>
 
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            <strong>📄 {filteredItems.length} dishes</strong> will be printed • 
-            <strong> {Math.ceil(filteredItems.length / parseInt(layout))} pages</strong> • 
-            Layout: <strong>{layout} dishes per A4 page</strong>
+        <div className="mt-4 p-4 bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-lg">
+          <p className="text-sm text-white font-semibold">
+            <strong>📄 {filteredItems.length} dishes</strong> ready to print • 
+            <strong> {Math.ceil(filteredItems.length / 12)} pages</strong> • 
+            <strong>12 dishes per A4 page</strong>
           </p>
         </div>
       </div>
 
-      {/* Printable Menu */}
-      <div className={`print-content ${layout === '2' ? 'layout-2' : 'layout-4'}`}>
-        {filteredItems.map((item, index) => {
-          const macros = calculateMacros(item.raw_materials || []);
-          const totalMacroGrams = parseFloat(macros.protein) + parseFloat(macros.carbs) + parseFloat(macros.fat);
-          const proteinPercent = totalMacroGrams > 0 ? ((parseFloat(macros.protein) / totalMacroGrams) * 100).toFixed(0) : 0;
-          const carbsPercent = totalMacroGrams > 0 ? ((parseFloat(macros.carbs) / totalMacroGrams) * 100).toFixed(0) : 0;
-          const fatPercent = totalMacroGrams > 0 ? ((parseFloat(macros.fat) / totalMacroGrams) * 100).toFixed(0) : 0;
+      {/* Printable Menu with Page Headers */}
+      <div className="print-content">
+        {Array.from({ length: Math.ceil(filteredItems.length / 12) }).map((_, pageIndex) => (
+          <div key={pageIndex} className="page">
+            {/* Page Header */}
+            <div className="page-header">
+              <h1 className="cafe-name">AFTERBURN GYM CAFE</h1>
+              <p className="cafe-location">Sutra Fitness, Sarjapura</p>
+            </div>
 
-          return (
-            <div key={item.id} className="menu-card">
-              <div className="menu-card-inner">
-                {/* Header */}
-                <div className="menu-card-header">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`w-3 h-3 rounded-full ${item.is_veg ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                      </div>
-                      <h3 className="menu-card-title">{item.name}</h3>
+            {/* Menu Grid */}
+            <div className="menu-grid">
+              {filteredItems.slice(pageIndex * 12, (pageIndex + 1) * 12).map((item) => {
+                const macros = calculateMacros(item.raw_materials || []);
+                const totalMacroGrams = parseFloat(macros.protein) + parseFloat(macros.carbs) + parseFloat(macros.fat);
+                const proteinPercent = totalMacroGrams > 0 ? ((parseFloat(macros.protein) / totalMacroGrams) * 100).toFixed(0) : 0;
+                const carbsPercent = totalMacroGrams > 0 ? ((parseFloat(macros.carbs) / totalMacroGrams) * 100).toFixed(0) : 0;
+                const fatPercent = totalMacroGrams > 0 ? ((parseFloat(macros.fat) / totalMacroGrams) * 100).toFixed(0) : 0;
+
+                return (
+                  <div key={item.id} className="menu-card">
+                    <div className="card-header">
+                      <span className={`veg-indicator ${item.is_veg ? 'veg' : 'non-veg'}`}></span>
+                      <h3 className="dish-name">{item.name}</h3>
+                      <div className="price">₹{priceType === 'customer' ? item.customer_price : item.trainer_price}</div>
                     </div>
-                    <div className="menu-card-price">
-                      ₹{priceType === 'customer' ? item.customer_price : item.trainer_price}
-                    </div>
-                  </div>
-                </div>
 
-                {/* Description */}
-                {item.description && (
-                  <p className="menu-card-description">{item.description}</p>
-                )}
-
-                {/* Nutrition Chart */}
-                {macros.calories > 0 && (
-                  <div className="nutrition-section">
-                    <div className="nutrition-layout">
-                      {/* Left: Donut Chart */}
-                      <div className="donut-container">
-                        <svg viewBox="0 0 100 100" className="donut-chart">
-                          <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" strokeWidth="20" />
-                          <circle 
-                            cx="50" cy="50" r="40" 
-                            fill="none" 
-                            stroke="#3b82f6" 
-                            strokeWidth="20"
-                            strokeDasharray={`${proteinPercent * 2.51} 251`}
-                            strokeDashoffset="0"
-                            transform="rotate(-90 50 50)"
-                          />
-                          <circle 
-                            cx="50" cy="50" r="40" 
-                            fill="none" 
-                            stroke="#10b981" 
-                            strokeWidth="20"
-                            strokeDasharray={`${carbsPercent * 2.51} 251`}
-                            strokeDashoffset={`-${proteinPercent * 2.51}`}
-                            transform="rotate(-90 50 50)"
-                          />
-                          <circle 
-                            cx="50" cy="50" r="40" 
-                            fill="none" 
-                            stroke="#f59e0b" 
-                            strokeWidth="20"
-                            strokeDasharray={`${fatPercent * 2.51} 251`}
-                            strokeDashoffset={`-${(proteinPercent + carbsPercent) * 2.51}`}
-                            transform="rotate(-90 50 50)"
-                          />
-                          <text x="50" y="48" textAnchor="middle" className="donut-calories">{macros.calories}</text>
-                          <text x="50" y="58" textAnchor="middle" className="donut-label">cal</text>
-                        </svg>
-                        <div className="donut-legend">
-                          <div className="donut-legend-item">
-                            <span className="legend-dot protein"></span>
-                            <span>P {proteinPercent}%</span>
-                          </div>
-                          <div className="donut-legend-item">
-                            <span className="legend-dot carbs"></span>
-                            <span>C {carbsPercent}%</span>
-                          </div>
-                          <div className="donut-legend-item">
-                            <span className="legend-dot fat"></span>
-                            <span>F {fatPercent}%</span>
-                          </div>
+                    {macros.calories > 0 && (
+                      <div className="nutrition-content">
+                        {/* Pie Chart */}
+                        <div className="pie-container">
+                          <svg viewBox="0 0 100 100" className="pie-chart">
+                            {/* Background circle */}
+                            <circle cx="50" cy="50" r="50" fill="#f3f4f6" />
+                            {/* Protein slice */}
+                            <circle 
+                              cx="50" cy="50" r="50" 
+                              fill="transparent"
+                              stroke="#3b82f6" 
+                              strokeWidth="100"
+                              strokeDasharray={`${proteinPercent * 3.14} 314`}
+                              strokeDashoffset="0"
+                              transform="rotate(-90 50 50)"
+                            />
+                            {/* Carbs slice */}
+                            <circle 
+                              cx="50" cy="50" r="50" 
+                              fill="transparent"
+                              stroke="#10b981" 
+                              strokeWidth="100"
+                              strokeDasharray={`${carbsPercent * 3.14} 314`}
+                              strokeDashoffset={`-${proteinPercent * 3.14}`}
+                              transform="rotate(-90 50 50)"
+                            />
+                            {/* Fat slice */}
+                            <circle 
+                              cx="50" cy="50" r="50" 
+                              fill="transparent"
+                              stroke="#f59e0b" 
+                              strokeWidth="100"
+                              strokeDasharray={`${fatPercent * 3.14} 314`}
+                              strokeDashoffset={`-${(proteinPercent + carbsPercent) * 3.14}`}
+                              transform="rotate(-90 50 50)"
+                            />
+                            {/* Center text */}
+                            <text x="50" y="48" textAnchor="middle" className="pie-calories">{macros.calories}</text>
+                            <text x="50" y="58" textAnchor="middle" className="pie-label">cal</text>
+                          </svg>
                         </div>
-                      </div>
 
-                      {/* Right: Nutrition Table */}
-                      <div className="nutrition-table">
-                        <table>
+                        {/* Nutrition Table */}
+                        <table className="nutrition-table">
                           <thead>
                             <tr>
                               <th>Nutrient</th>
-                              <th>Amount</th>
+                              <th>g</th>
                               <th>%</th>
                             </tr>
                           </thead>
                           <tbody>
                             <tr>
-                              <td><span className="nutrient-icon">🥩</span> Protein</td>
-                              <td className="amount">{macros.protein}g</td>
-                              <td className="percent">{proteinPercent}%</td>
+                              <td>🥩 Protein</td>
+                              <td>{macros.protein}</td>
+                              <td>{proteinPercent}</td>
                             </tr>
                             <tr>
-                              <td><span className="nutrient-icon">🍚</span> Carbs</td>
-                              <td className="amount">{macros.carbs}g</td>
-                              <td className="percent">{carbsPercent}%</td>
+                              <td>🍚 Carbs</td>
+                              <td>{macros.carbs}</td>
+                              <td>{carbsPercent}</td>
                             </tr>
                             <tr>
-                              <td><span className="nutrient-icon">🥑</span> Fat</td>
-                              <td className="amount">{macros.fat}g</td>
-                              <td className="percent">{fatPercent}%</td>
+                              <td>🥑 Fat</td>
+                              <td>{macros.fat}</td>
+                              <td>{fatPercent}</td>
                             </tr>
                             <tr>
-                              <td><span className="nutrient-icon">🌾</span> Fiber</td>
-                              <td className="amount">{macros.fiber}g</td>
-                              <td className="percent">-</td>
+                              <td>🌾 Fiber</td>
+                              <td>{macros.fiber}</td>
+                              <td>-</td>
                             </tr>
                           </tbody>
                         </table>
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
 
       {/* Print Styles */}
@@ -352,401 +312,350 @@ const CafeMenuBooklet = ({ showToast }) => {
             padding: 0;
           }
           
+          @page {
+            size: A4;
+            margin: 5mm;
+          }
+          
           .print-content {
+            width: 100%;
+          }
+          
+          .page {
+            page-break-after: always;
+            width: 100%;
+          }
+          
+          .page:last-child {
+            page-break-after: auto;
+          }
+          
+          /* Page Header */
+          .page-header {
+            text-align: center;
+            padding: 8mm 0 6mm 0;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            margin-bottom: 4mm;
+          }
+          
+          .cafe-name {
+            font-size: 24px;
+            font-weight: 900;
+            color: #fef3c7;
+            margin: 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+          }
+          
+          .cafe-location {
+            font-size: 12px;
+            color: #fed7aa;
+            margin: 2px 0 0 0;
+            font-weight: 600;
+          }
+          
+          /* 3x4 Grid */
+          .menu-grid {
             display: grid;
-            gap: 10mm;
-            padding: 10mm;
-          }
-          
-          .layout-2 {
-            grid-template-columns: 1fr;
-            gap: 15mm;
-          }
-          
-          .layout-4 {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8mm;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 3mm;
+            padding: 0 3mm;
           }
           
           .menu-card {
             break-inside: avoid;
             page-break-inside: avoid;
-            border: 2px solid #f97316;
-            border-radius: 12px;
+            border: 1.5px solid #f97316;
+            border-radius: 6px;
             overflow: hidden;
-            background: white;
-          }
-          
-          .layout-2 .menu-card {
-            min-height: 130mm;
-          }
-          
-          .layout-4 .menu-card {
-            min-height: 60mm;
-          }
-          
-          .menu-card-inner {
-            padding: 15px;
-            height: 100%;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 4mm;
             display: flex;
             flex-direction: column;
           }
           
-          .menu-card-header {
-            margin-bottom: 10px;
+          /* Card Header */
+          .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 3mm;
+            gap: 2mm;
           }
           
-          .menu-card-title {
-            font-size: 18px;
+          .veg-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
+          }
+          
+          .veg-indicator.veg {
+            background: #10b981;
+          }
+          
+          .veg-indicator.non-veg {
+            background: #ef4444;
+          }
+          
+          .dish-name {
+            font-size: 11px;
             font-weight: 700;
-            color: #1f2937;
-            line-height: 1.3;
-          }
-          
-          .layout-2 .menu-card-title {
-            font-size: 24px;
-          }
-          
-          .menu-card-price {
-            font-size: 24px;
-            font-weight: 800;
-            color: #f97316;
-            white-space: nowrap;
-          }
-          
-          .layout-2 .menu-card-price {
-            font-size: 32px;
-          }
-          
-          .menu-card-description {
-            font-size: 12px;
-            color: #6b7280;
-            line-height: 1.5;
-            margin-bottom: 10px;
+            color: #92400e;
+            line-height: 1.2;
+            margin: 0;
             flex: 1;
           }
           
-          .layout-2 .menu-card-description {
+          .price {
             font-size: 14px;
+            font-weight: 900;
+            color: #ea580c;
+            white-space: nowrap;
           }
           
-          /* Nutrition Section */
-          .nutrition-section {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #e5e7eb;
-          }
-          
-          .nutrition-layout {
+          /* Nutrition Content */
+          .nutrition-content {
             display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 10px;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 3mm;
             align-items: center;
           }
           
-          /* Donut Chart */
-          .donut-container {
+          /* Pie Chart */
+          .pie-container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
+            justify-content: center;
           }
           
-          .donut-chart {
-            width: 80px;
-            height: 80px;
+          .pie-chart {
+            width: 50px;
+            height: 50px;
           }
           
-          .layout-2 .donut-chart {
-            width: 100px;
-            height: 100px;
-          }
-          
-          .donut-calories {
-            font-size: 16px;
+          .pie-calories {
+            font-size: 14px;
             font-weight: 800;
             fill: #ea580c;
           }
           
-          .layout-2 .donut-calories {
-            font-size: 18px;
-          }
-          
-          .donut-label {
-            font-size: 8px;
+          .pie-label {
+            font-size: 7px;
             font-weight: 600;
             fill: #92400e;
             text-transform: uppercase;
           }
           
-          .donut-legend {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-          }
-          
-          .donut-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 8px;
-            color: #374151;
-            font-weight: 600;
-          }
-          
-          .legend-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-          }
-          
-          .legend-dot.protein {
-            background: #3b82f6;
-          }
-          
-          .legend-dot.carbs {
-            background: #10b981;
-          }
-          
-          .legend-dot.fat {
-            background: #f59e0b;
-          }
-          
           /* Nutrition Table */
-          .nutrition-table table {
+          .nutrition-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9px;
-          }
-          
-          .layout-2 .nutrition-table table {
-            font-size: 11px;
+            font-size: 7px;
           }
           
           .nutrition-table th {
             background: #f97316;
-            color: white;
-            padding: 4px 6px;
+            color: #fef3c7;
+            padding: 2px 3px;
             text-align: left;
             font-weight: 700;
-            font-size: 8px;
+            font-size: 6px;
             text-transform: uppercase;
           }
           
-          .layout-2 .nutrition-table th {
-            font-size: 10px;
-            padding: 6px 8px;
-          }
-          
           .nutrition-table td {
-            padding: 4px 6px;
-            border-bottom: 1px solid #e5e7eb;
-            color: #374151;
+            padding: 2px 3px;
+            border-bottom: 0.5px solid #f97316;
+            color: #92400e;
+            font-weight: 600;
           }
           
-          .layout-2 .nutrition-table td {
-            padding: 6px 8px;
+          .nutrition-table td:first-child {
+            font-size: 8px;
           }
           
-          .nutrition-table .nutrient-icon {
-            font-size: 10px;
-            margin-right: 2px;
-          }
-          
-          .nutrition-table .amount {
-            font-weight: 700;
-            color: #1f2937;
+          .nutrition-table td:nth-child(2),
+          .nutrition-table td:nth-child(3) {
             text-align: center;
-          }
-          
-          .nutrition-table .percent {
             font-weight: 700;
-            color: #f97316;
-            text-align: center;
+            color: #ea580c;
           }
           
           .nutrition-table tbody tr:last-child td {
             border-bottom: none;
           }
-          
-          @page {
-            size: A4;
-            margin: 10mm;
-          }
         }
         
         @media screen {
           .print-content {
+            background: #f3f4f6;
+            padding: 20px;
+          }
+          
+          .page {
+            background: #ffffff;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+          }
+          
+          /* Page Header - Screen */
+          .page-header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+          }
+          
+          .cafe-name {
+            font-size: 28px;
+            font-weight: 900;
+            color: #fef3c7;
+            margin: 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+          }
+          
+          .cafe-location {
+            font-size: 14px;
+            color: #fed7aa;
+            margin: 4px 0 0 0;
+            font-weight: 600;
+          }
+          
+          /* Menu Grid - Screen */
+          .menu-grid {
             display: grid;
-            gap: 20px;
-          }
-          
-          .layout-2 {
-            grid-template-columns: 1fr;
-          }
-          
-          .layout-4 {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 20px;
           }
           
           .menu-card {
             border: 2px solid #f97316;
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
-            background: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(249, 115, 22, 0.2);
           }
           
           .menu-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 8px rgba(249, 115, 22, 0.3);
           }
           
-          .menu-card-inner {
-            padding: 20px;
-            height: 100%;
+          /* Card Header - Screen */
+          .card-header {
             display: flex;
-            flex-direction: column;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            gap: 8px;
           }
           
-          .menu-card-header {
-            margin-bottom: 12px;
+          .veg-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
           }
           
-          .menu-card-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1f2937;
-            line-height: 1.3;
+          .veg-indicator.veg {
+            background: #10b981;
           }
           
-          .menu-card-price {
-            font-size: 28px;
-            font-weight: 800;
-            color: #f97316;
-            white-space: nowrap;
+          .veg-indicator.non-veg {
+            background: #ef4444;
           }
           
-          .menu-card-description {
+          .dish-name {
             font-size: 14px;
-            color: #6b7280;
-            line-height: 1.6;
-            margin-bottom: 12px;
+            font-weight: 700;
+            color: #92400e;
+            line-height: 1.3;
+            margin: 0;
             flex: 1;
           }
           
-          /* Nutrition Section - Screen */
-          .nutrition-section {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #e5e7eb;
+          .price {
+            font-size: 18px;
+            font-weight: 900;
+            color: #ea580c;
+            white-space: nowrap;
           }
           
-          .nutrition-layout {
+          /* Nutrition Content - Screen */
+          .nutrition-content {
             display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 16px;
-            align-items: center;
-          }
-          
-          /* Donut Chart - Screen */
-          .donut-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            grid-template-columns: 1fr 1.2fr;
             gap: 10px;
+            align-items: center;
           }
           
-          .donut-chart {
-            width: 120px;
-            height: 120px;
+          /* Pie Chart - Screen */
+          .pie-container {
+            display: flex;
+            justify-content: center;
           }
           
-          .donut-calories {
-            font-size: 20px;
+          .pie-chart {
+            width: 80px;
+            height: 80px;
+          }
+          
+          .pie-calories {
+            font-size: 18px;
             font-weight: 800;
             fill: #ea580c;
           }
           
-          .donut-label {
-            font-size: 10px;
+          .pie-label {
+            font-size: 9px;
             font-weight: 600;
             fill: #92400e;
             text-transform: uppercase;
           }
           
-          .donut-legend {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-          }
-          
-          .donut-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #374151;
-            font-weight: 600;
-          }
-          
-          .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-          }
-          
-          .legend-dot.protein {
-            background: #3b82f6;
-          }
-          
-          .legend-dot.carbs {
-            background: #10b981;
-          }
-          
-          .legend-dot.fat {
-            background: #f59e0b;
-          }
-          
           /* Nutrition Table - Screen */
-          .nutrition-table table {
+          .nutrition-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 11px;
           }
           
           .nutrition-table th {
             background: #f97316;
-            color: white;
-            padding: 8px 10px;
+            color: #fef3c7;
+            padding: 4px 6px;
             text-align: left;
             font-weight: 700;
-            font-size: 11px;
+            font-size: 9px;
             text-transform: uppercase;
           }
           
           .nutrition-table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #e5e7eb;
-            color: #374151;
+            padding: 4px 6px;
+            border-bottom: 0.5px solid #f97316;
+            color: #92400e;
+            font-weight: 600;
           }
           
-          .nutrition-table .nutrient-icon {
-            font-size: 14px;
-            margin-right: 4px;
+          .nutrition-table td:first-child {
+            font-size: 11px;
           }
           
-          .nutrition-table .amount {
-            font-weight: 700;
-            color: #1f2937;
+          .nutrition-table td:nth-child(2),
+          .nutrition-table td:nth-child(3) {
             text-align: center;
-          }
-          
-          .nutrition-table .percent {
             font-weight: 700;
-            color: #f97316;
-            text-align: center;
+            color: #ea580c;
           }
           
           .nutrition-table tbody tr:last-child td {
@@ -754,7 +663,7 @@ const CafeMenuBooklet = ({ showToast }) => {
           }
           
           .nutrition-table tbody tr:hover {
-            background: #f9fafb;
+            background: rgba(249, 115, 22, 0.1);
           }
         }
       `}</style>
