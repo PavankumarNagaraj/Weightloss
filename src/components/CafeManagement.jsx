@@ -107,7 +107,7 @@ const CafeManagement = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 border-b-4 border-purple-700 z-20 shadow-xl">
+      <div className="no-print bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 border-b-4 border-purple-700 z-20 shadow-xl">
         <div className="px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -155,6 +155,7 @@ const CafeManagement = () => {
         
         {/* Sidebar Navigation */}
         <div className={`
+          no-print
           fixed lg:static inset-y-0 left-0 z-40
           w-64 bg-white border-r-2 border-gray-200 shadow-lg overflow-y-auto
           transform transition-transform duration-300 ease-in-out
