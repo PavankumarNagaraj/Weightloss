@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, X, ChevronDown, ChevronUp, Mail } from 'lucide-react';
 import { getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, getInventory, addInventoryItem, getSettings } from '../../services/cafeService';
+import { sendNutritionChartEmail } from '../../services/emailService';
 
 const CafeMenu = ({ showToast }) => {
   const [menuItems, setMenuItems] = useState([]);
@@ -50,6 +51,26 @@ const CafeMenu = ({ showToast }) => {
     'soaked-sauteed': { weightLoss: -0.40, calorieAdd: 0.15, name: '💦+🥘 Soaked then Sautéed', description: '+40% water, +15% oil' },
   };
 
+  // Helper function to calculate raw equivalent weight for inventory deduction
+  // This solves the problem: If inventory is raw but recipe uses cooked weight
+  const calculateRawEquivalent = (cookedWeight, cookingMethod, inventoryState) => {
+    // If inventory is already cooked, no conversion needed
+    if (inventoryState === 'cooked') {
+      return cookedWeight;
+    }
+    
+    // If inventory is raw and recipe uses raw, no conversion needed
+    if (cookingMethod === 'raw' || cookingMethod === 'none') {
+      return cookedWeight;
+    }
+    
+    // Calculate raw weight needed to get the cooked weight
+    const adjustment = COOKING_ADJUSTMENTS[cookingMethod] || COOKING_ADJUSTMENTS.raw;
+    const rawWeight = cookedWeight / (1 - adjustment.weightLoss);
+    
+    return rawWeight;
+  };
+
   useEffect(() => {
     loadMenu();
     loadInventory();
@@ -71,6 +92,7 @@ const CafeMenu = ({ showToast }) => {
       carbsPer100g: item.carbs_per_100g ?? item.carbsPer100g,
       fatPer100g: item.fat_per_100g ?? item.fatPer100g,
       fiberPer100g: item.fiber_per_100g ?? item.fiberPer100g,
+      inventoryState: item.inventory_state ?? item.inventoryState ?? 'raw',
     }));
     setInventoryItems(mappedItems);
   };
@@ -158,6 +180,9 @@ const CafeMenu = ({ showToast }) => {
   );
 
   // Calculate calories and macros from ingredients
+  // IMPORTANT: Nutritional values in inventory should match the inventory state
+  // - If inventory is 'raw', caloriesPer100g should be for raw ingredient
+  // - If inventory is 'cooked', caloriesPer100g should be for cooked ingredient
   const calculateCalories = (materials) => {
     let totalCalories = 0;
     const breakdown = [];
@@ -169,6 +194,9 @@ const CafeMenu = ({ showToast }) => {
       
       if (inventoryItem && inventoryItem.caloriesPer100g) {
         const quantity = parseFloat(material.quantity) || 0;
+        const inventoryState = inventoryItem.inventoryState || 'raw';
+        const cookingMethod = material.cookingMethod || 'raw';
+        
         // Convert quantity to grams if needed
         let quantityInGrams = quantity;
         if (material.unit === 'ml') {
@@ -179,8 +207,15 @@ const CafeMenu = ({ showToast }) => {
           quantityInGrams = quantity * (isEgg ? 45 : 100);
         }
         
-        // Calculate calories: (caloriesPer100g * quantity) / 100
-        const calories = (inventoryItem.caloriesPer100g * quantityInGrams) / 100;
+        // Calculate base calories from inventory nutritional data
+        // The inventory nutritional values match the inventory state (raw or cooked)
+        let calories = (inventoryItem.caloriesPer100g * quantityInGrams) / 100;
+        
+        // If inventory is raw but we're using it cooked, the weight changes
+        // The calories stay roughly the same (just water loss), but concentrated per gram
+        // This is already handled by the inventory deduction using raw equivalent
+        // For display purposes, we show calories based on the actual weight used in recipe
+        
         totalCalories += calories;
         
         breakdown.push({
@@ -188,7 +223,9 @@ const CafeMenu = ({ showToast }) => {
           quantity: material.quantity,
           unit: material.unit,
           caloriesPer100g: inventoryItem.caloriesPer100g,
-          calories: calories.toFixed(1)
+          calories: calories.toFixed(1),
+          inventoryState: inventoryState,
+          cookingMethod: cookingMethod
         });
       }
     });
@@ -197,6 +234,7 @@ const CafeMenu = ({ showToast }) => {
   };
 
   // Calculate all macronutrients from ingredients with per-ingredient cooking adjustments
+  // IMPORTANT: This uses the inventory nutritional data which should match inventory state
   const calculateMacros = (materials) => {
     let totals = { protein: 0, carbs: 0, fat: 0, fiber: 0, calories: 0 };
     const breakdown = [];
@@ -208,6 +246,9 @@ const CafeMenu = ({ showToast }) => {
       
       if (inventoryItem) {
         const quantity = parseFloat(material.quantity) || 0;
+        const inventoryState = inventoryItem.inventoryState || 'raw';
+        const cookingMethod = material.cookingMethod || 'raw';
+        
         let quantityInGrams = quantity;
         if (material.unit === 'ml') {
           quantityInGrams = quantity;
@@ -224,7 +265,6 @@ const CafeMenu = ({ showToast }) => {
         let calories = inventoryItem.caloriesPer100g ? (inventoryItem.caloriesPer100g * quantityInGrams) / 100 : 0;
         
         // Apply per-ingredient cooking adjustments
-        const cookingMethod = material.cookingMethod || 'raw';
         const adjustment = COOKING_ADJUSTMENTS[cookingMethod] || COOKING_ADJUSTMENTS.raw;
         
         // For fried/sauteed items, add oil calories and fat
@@ -819,31 +859,24 @@ const CafeMenu = ({ showToast }) => {
                           calories: ing.calories
                         }));
                       
-                      const response = await fetch('http://localhost:5001/api/email/nutrition-chart', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          to: recipientEmail,
-                          dishName: selectedItemForChart.name,
-                          totalCalories: breakdown.total,
-                          ingredients: sortedIngredients,
-                          macros: {
-                            protein: macros.totals.protein,
-                            carbs: macros.totals.carbs,
-                            fat: macros.totals.fat,
-                            fiber: macros.totals.fiber
-                          }
-                        })
-                      });
-                      
-                      const result = await response.json();
+                      // Send email using the email service
+                      const result = await sendNutritionChartEmail(
+                        recipientEmail,
+                        selectedItemForChart.name,
+                        breakdown.total,
+                        sortedIngredients,
+                        {
+                          protein: macros.totals.protein,
+                          carbs: macros.totals.carbs,
+                          fat: macros.totals.fat,
+                          fiber: macros.totals.fiber
+                        }
+                      );
                       
                       if (result.success) {
                         showToast('✅ Email sent successfully!');
                       } else {
-                        showToast(`❌ Failed to send email: ${result.error}`);
+                        showToast(`❌ Failed to send email: ${result.error || 'Please try again'}`);
                       }
                     } catch (error) {
                       console.error('Error sending email:', error);

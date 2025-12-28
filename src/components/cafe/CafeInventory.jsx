@@ -19,6 +19,7 @@ const CafeInventory = ({ showToast }) => {
     minStock: '',
     unit: 'gm',
     category: 'Dry Store',
+    inventoryState: 'raw',
     expiryDate: '',
     lastUsedDate: null,
     stockAdjustment: '',
@@ -272,6 +273,7 @@ const CafeInventory = ({ showToast }) => {
         expiryDate: formData.expiryDate || null,
         unit: formData.unit,
         category: formData.category,
+        inventoryState: formData.inventoryState || 'raw',
         caloriesPer100g: formData.caloriesPer100g ? parseFloat(formData.caloriesPer100g) : null,
         proteinPer100g: formData.proteinPer100g ? parseFloat(formData.proteinPer100g) : null,
         carbsPer100g: formData.carbsPer100g ? parseFloat(formData.carbsPer100g) : null,
@@ -300,6 +302,7 @@ const CafeInventory = ({ showToast }) => {
         minStock: parseFloat(formData.minStock),
         unit: formData.unit,
         category: formData.category || 'Dry Store',
+        inventoryState: formData.inventoryState || 'raw',
         pricePerUnit: 0,
         caloriesPer100g: formData.caloriesPer100g ? parseFloat(formData.caloriesPer100g) : null,
         proteinPer100g: formData.proteinPer100g ? parseFloat(formData.proteinPer100g) : null,
@@ -322,7 +325,7 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', expiryDate: '', lastUsedDate: null, stockAdjustment: '', caloriesPer100g: '', proteinPer100g: '', carbsPer100g: '', fatPer100g: '', fiberPer100g: '' });
+    setFormData({ name: '', currentStock: 0, minStock: '', unit: 'gm', category: 'Dry Store', inventoryState: 'raw', expiryDate: '', lastUsedDate: null, stockAdjustment: '', caloriesPer100g: '', proteinPer100g: '', carbsPer100g: '', fatPer100g: '', fiberPer100g: '' });
     setSearchTerm('');
     setEditingItem(null);
     setShowModal(false);
@@ -1309,6 +1312,7 @@ const CafeInventory = ({ showToast }) => {
                               minStock: item.minStock,
                               unit: item.unit,
                               category: item.category || 'Dry Store',
+                              inventoryState: item.inventoryState || item.inventory_state || 'raw',
                               expiryDate: item.expiryDate || '',
                               lastUsedDate: item.lastUsedDate || null,
                               stockAdjustment: '',
@@ -1496,8 +1500,8 @@ const CafeInventory = ({ showToast }) => {
                 </div>
 
 
-                {/* Expiry Date and Type on same line */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Expiry Date, Type, and Inventory State on same line */}
+                <div className="grid grid-cols-3 gap-4">
                   {/* Expiry Date (Optional) */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1530,6 +1534,23 @@ const CafeInventory = ({ showToast }) => {
                       <option value="Frozen">🧊 Frozen</option>
                       <option value="Fruits">🍎 Fruits</option>
                     </select>
+                  </div>
+
+                  {/* Inventory State (Raw/Cooked) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Inventory State <span className="text-orange-600">*</span>
+                    </label>
+                    <select
+                      value={formData.inventoryState}
+                      onChange={(e) => setFormData({...formData, inventoryState: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-semibold"
+                      required
+                    >
+                      <option value="raw">🥩 Raw (As Purchased)</option>
+                      <option value="cooked">🍗 Cooked (Pre-cooked)</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">How this item is stored in inventory</p>
                   </div>
                 </div>
 

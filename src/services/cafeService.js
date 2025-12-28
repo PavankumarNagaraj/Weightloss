@@ -539,8 +539,9 @@ export const createOrder = async (orderData) => {
 
               if (!invError && inventoryItems && inventoryItems.length > 0) {
                 const inventoryItem = inventoryItems[0];
-                // Base quantity deduction
-                const baseQuantityToDeduct = parseFloat(material.quantity) * orderItem.quantity;
+                
+                // Base quantity from recipe
+                const recipeQuantity = parseFloat(material.quantity) * orderItem.quantity;
                 
                 // Check if this ingredient has extra quantity added
                 const extraIngredient = (orderItem.extraIngredients || []).find(
@@ -548,8 +549,40 @@ export const createOrder = async (orderData) => {
                 );
                 const extraQuantity = extraIngredient ? parseFloat(extraIngredient.quantity) : 0;
                 
-                // Total deduction = base + extra
-                const quantityToDeduct = baseQuantityToDeduct + extraQuantity;
+                // Total recipe quantity (what the recipe calls for)
+                const totalRecipeQuantity = recipeQuantity + extraQuantity;
+                
+                // CRITICAL: Calculate raw equivalent for inventory deduction
+                // If inventory is raw but recipe uses cooked, we need more raw material
+                const inventoryState = inventoryItem.inventory_state || 'raw';
+                const cookingMethod = material.cookingMethod || 'raw';
+                
+                // Calculate actual inventory to deduct based on cooking conversion
+                let quantityToDeduct = totalRecipeQuantity;
+                
+                if (inventoryState === 'raw' && cookingMethod !== 'raw' && cookingMethod !== 'none') {
+                  // Recipe uses cooked weight, but inventory is raw
+                  // Need to calculate how much raw material is needed
+                  const COOKING_ADJUSTMENTS = {
+                    grilled: 0.20,
+                    boiled: 0.15,
+                    steamed: 0.10,
+                    baked: 0.18,
+                    fried: 0.10,
+                    sauteed: 0.12,
+                    microwave: 0.08,
+                    'boiled-sauteed': 0.25,
+                    'steamed-sauteed': 0.20,
+                    'boiled-fried': 0.22,
+                  };
+                  
+                  const weightLoss = COOKING_ADJUSTMENTS[cookingMethod] || 0;
+                  if (weightLoss > 0) {
+                    // Raw needed = cooked weight / (1 - weight loss)
+                    quantityToDeduct = totalRecipeQuantity / (1 - weightLoss);
+                  }
+                }
+                
                 const newStock = parseFloat(inventoryItem.current_stock) - quantityToDeduct;
 
                 await supabase

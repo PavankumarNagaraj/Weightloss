@@ -643,11 +643,12 @@ export const getEmailSettings = () => {
 // Send shopping list email
 export const sendShoppingListEmail = async (recipientEmail, recipientName, items) => {
   try {
-    // Calculate total cost
+    // Calculate total cost and get vendor info for each item
     let totalCost = 0;
-    const itemsWithPricing = items.map(item => {
+    const itemsWithPricing = await Promise.all(items.map(async item => {
       const neededQty = Math.max(0, item.minStock - item.currentStock);
-      const pricePerUnit = parseFloat(item.pricePerUnit) || 0;
+      const lowestCostVendor = await getLowestCostVendor(item.name);
+      const pricePerUnit = lowestCostVendor?.lastPrice || parseFloat(item.pricePerUnit) || 0;
       const itemTotal = neededQty * pricePerUnit;
       totalCost += itemTotal;
       return {
@@ -656,8 +657,19 @@ export const sendShoppingListEmail = async (recipientEmail, recipientName, items
         unit: item.unit,
         pricePerUnit,
         total: itemTotal,
-        category: item.category
+        category: item.category,
+        vendor: lowestCostVendor?.vendorName || null
       };
+    }));
+
+    // Group items by vendor
+    const itemsByVendor = {};
+    itemsWithPricing.forEach(item => {
+      const vendorKey = item.vendor || 'No Vendor';
+      if (!itemsByVendor[vendorKey]) {
+        itemsByVendor[vendorKey] = [];
+      }
+      itemsByVendor[vendorKey].push(item);
     });
 
     const htmlContent = `
@@ -670,11 +682,14 @@ export const sendShoppingListEmail = async (recipientEmail, recipientName, items
     .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }
     .header h1 { margin: 0; font-size: 24px; }
     .header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
-    table { width: 100%; border-collapse: collapse; margin: 15px 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .vendor-section { margin: 20px 0; }
+    .vendor-header { background: #f3f4f6; padding: 12px; border-left: 4px solid #667eea; font-weight: bold; font-size: 16px; color: #374151; margin-bottom: 10px; border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 20px 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     th { background: #667eea; color: white; padding: 10px 8px; text-align: left; font-size: 13px; font-weight: 600; }
     td { padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
     tr:last-child td { border-bottom: none; }
-    .total-row { background: #f3f4f6; font-weight: bold; font-size: 15px; }
+    .subtotal-row { background: #f9fafb; font-weight: 600; font-size: 14px; }
+    .total-row { background: #f3f4f6; font-weight: bold; font-size: 16px; }
     .total-row td { padding: 12px 8px; border-top: 2px solid #667eea; }
     .footer { text-align: center; color: #6b7280; margin-top: 20px; font-size: 11px; }
   </style>
@@ -686,26 +701,45 @@ export const sendShoppingListEmail = async (recipientEmail, recipientName, items
       <p>${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
     </div>
 
+    ${Object.keys(itemsByVendor).map(vendorName => {
+      const vendorItems = itemsByVendor[vendorName];
+      const vendorTotal = vendorItems.reduce((sum, item) => sum + item.total, 0);
+      
+      return `
+        <div class="vendor-section">
+          <div class="vendor-header">📦 ${vendorName}</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th style="text-align: center;">Qty</th>
+                <th style="text-align: right;">Price/Unit</th>
+                <th style="text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${vendorItems.map(item => `
+                <tr>
+                  <td><strong>${item.name}</strong></td>
+                  <td style="text-align: center;">${item.qty} ${item.unit}</td>
+                  <td style="text-align: right;">₹${item.pricePerUnit.toFixed(2)}</td>
+                  <td style="text-align: right;">₹${item.total.toFixed(2)}</td>
+                </tr>
+              `).join('')}
+              <tr class="subtotal-row">
+                <td colspan="3" style="text-align: right;">Subtotal</td>
+                <td style="text-align: right;">₹${vendorTotal.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    }).join('')}
+
     <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th style="text-align: center;">Qty</th>
-          <th style="text-align: right;">Price/Unit</th>
-          <th style="text-align: right;">Total</th>
-        </tr>
-      </thead>
       <tbody>
-        ${itemsWithPricing.map(item => `
-          <tr>
-            <td><strong>${item.name}</strong></td>
-            <td style="text-align: center;">${item.qty} ${item.unit}</td>
-            <td style="text-align: right;">₹${item.pricePerUnit.toFixed(2)}</td>
-            <td style="text-align: right;">₹${item.total.toFixed(2)}</td>
-          </tr>
-        `).join('')}
         <tr class="total-row">
-          <td colspan="3" style="text-align: right;">TOTAL</td>
+          <td colspan="3" style="text-align: right;">GRAND TOTAL</td>
           <td style="text-align: right;">₹${totalCost.toFixed(2)}</td>
         </tr>
       </tbody>
@@ -799,6 +833,160 @@ export const sendShoppingListEmail = async (recipientEmail, recipientName, items
     };
   } catch (error) {
     console.error('Error sending shopping list:', error);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+// Send nutrition chart email
+export const sendNutritionChartEmail = async (recipientEmail, dishName, totalCalories, ingredients, macros) => {
+  try {
+    // Generate HTML content for nutrition chart
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+          .calories-box { background: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+          .calories-box h2 { color: #667eea; margin: 0 0 10px 0; font-size: 48px; }
+          .calories-box p { color: #6b7280; margin: 0; }
+          .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+          .section h3 { color: #374151; margin-top: 0; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+          .ingredient { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+          .ingredient:last-child { border-bottom: none; }
+          .ingredient-name { font-weight: 600; color: #374151; }
+          .ingredient-cal { color: #667eea; font-weight: 600; }
+          .macros { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+          .macro-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center; }
+          .macro-card .value { font-size: 32px; font-weight: bold; margin: 5px 0; }
+          .macro-card .label { font-size: 14px; opacity: 0.9; }
+          .footer { text-align: center; color: #6b7280; font-size: 12px; margin-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🍽️ Nutrition Chart</h1>
+            <p style="margin: 10px 0 0 0; font-size: 18px;">${dishName}</p>
+          </div>
+          
+          <div class="content">
+            <div class="calories-box">
+              <h2>${totalCalories}</h2>
+              <p>Total Calories</p>
+            </div>
+            
+            <div class="section">
+              <h3>📊 Ingredient Breakdown</h3>
+              ${ingredients.map(ing => `
+                <div class="ingredient">
+                  <span class="ingredient-name">${ing.name} (${ing.quantity}${ing.unit})</span>
+                  <span class="ingredient-cal">${ing.calories} cal</span>
+                </div>
+              `).join('')}
+            </div>
+            
+            <div class="section">
+              <h3>💪 Macronutrients</h3>
+              <div class="macros">
+                <div class="macro-card">
+                  <div class="value">${macros.protein.toFixed(1)}g</div>
+                  <div class="label">Protein</div>
+                </div>
+                <div class="macro-card">
+                  <div class="value">${macros.carbs.toFixed(1)}g</div>
+                  <div class="label">Carbs</div>
+                </div>
+                <div class="macro-card">
+                  <div class="value">${macros.fat.toFixed(1)}g</div>
+                  <div class="label">Fat</div>
+                </div>
+                <div class="macro-card">
+                  <div class="value">${macros.fiber.toFixed(1)}g</div>
+                  <div class="label">Fiber</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="footer">
+              <p>Generated from Afterburn Cafe Management System</p>
+              <p>${new Date().toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Supabase configuration
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || 'YOUR_ANON_KEY';
+    
+    // Try Supabase Edge Function first
+    if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipientEmail,
+            recipientName: 'Customer',
+            subject: `🍽️ Nutrition Chart - ${dishName}`,
+            htmlContent,
+          }),
+        });
+
+        if (response.ok) {
+          return {
+            success: true,
+            message: 'Nutrition chart sent successfully',
+          };
+        }
+      } catch (supabaseError) {
+        console.log('Supabase function not available, trying fallback');
+      }
+    }
+    
+    // Fallback to local API only in development
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      try {
+        const response = await fetch('http://localhost:3001/api/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipientEmail,
+            recipientName: 'Customer',
+            subject: `🍽️ Nutrition Chart - ${dishName}`,
+            htmlContent,
+          }),
+        });
+
+        if (response.ok) {
+          return {
+            success: true,
+            message: 'Nutrition chart sent successfully',
+          };
+        }
+      } catch (localError) {
+        console.log('Local API not available');
+      }
+    }
+
+    throw new Error('No email service available');
+  } catch (error) {
+    console.error('Error sending nutrition chart email:', error);
     return {
       success: false,
       error: error.message,

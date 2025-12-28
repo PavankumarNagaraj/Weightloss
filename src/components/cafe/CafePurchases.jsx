@@ -20,6 +20,10 @@ const CafePurchases = ({ showToast }) => {
     supplierName: '',
     items: [],
     totalAmount: '',
+    discount: '',
+    pointsRedeemed: '',
+    handlingCharges: '',
+    deliveryCharges: '',
     notes: '',
     receiptUrl: null,
     receiptFilename: null,
@@ -192,12 +196,41 @@ const CafePurchases = ({ showToast }) => {
     return formData.items.reduce((sum, item) => sum + item.total, 0);
   };
 
+  const calculateFinalAmount = () => {
+    const subtotal = calculateTotal();
+    
+    // Calculate discount (fixed rupees amount)
+    const discountAmount = parseFloat(formData.discount) || 0;
+    
+    // Add handling and delivery charges
+    const handlingCharges = parseFloat(formData.handlingCharges) || 0;
+    const deliveryCharges = parseFloat(formData.deliveryCharges) || 0;
+    
+    // Subtract points redeemed
+    const pointsValue = parseFloat(formData.pointsRedeemed) || 0;
+    
+    const finalAmount = subtotal - discountAmount + handlingCharges + deliveryCharges - pointsValue;
+    return Math.max(0, finalAmount); // Ensure non-negative
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    const subtotal = calculateTotal();
+    const finalAmount = calculateFinalAmount();
+    
+    // Normalize supplier name to title case for consistency
+    const normalizedSupplierName = formData.supplierName
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    
     const purchaseData = {
       ...formData,
-      totalAmount: calculateTotal(),
+      supplierName: normalizedSupplierName,
+      subtotal: subtotal,
+      totalAmount: finalAmount,
     };
     
     if (editingPurchase) {
@@ -283,6 +316,10 @@ const CafePurchases = ({ showToast }) => {
       supplierName: purchase.supplierName || '',
       items: purchase.items || [],
       totalAmount: purchase.totalAmount || '',
+      discount: purchase.discount || '',
+      pointsRedeemed: purchase.pointsRedeemed || '',
+      handlingCharges: purchase.handlingCharges || '',
+      deliveryCharges: purchase.deliveryCharges || '',
       notes: purchase.notes || '',
       receiptUrl: purchase.receiptUrl || null,
       receiptFilename: purchase.receiptFilename || null,
@@ -307,7 +344,18 @@ const CafePurchases = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ supplierName: '', items: [], totalAmount: '', notes: '', receiptUrl: null, receiptFilename: null });
+    setFormData({ 
+      supplierName: '', 
+      items: [], 
+      totalAmount: '', 
+      discount: '',
+      pointsRedeemed: '',
+      handlingCharges: '',
+      deliveryCharges: '',
+      notes: '', 
+      receiptUrl: null, 
+      receiptFilename: null 
+    });
     setCurrentItem({ materialName: '', quantity: '', unit: 'gm', totalPrice: '' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
@@ -635,11 +683,101 @@ const CafePurchases = ({ showToast }) => {
                         </div>
                       ))}
                       
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-3 shadow-md mt-2">
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-900">Total Amount:</span>
-                          <span className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹{calculateTotal()}</span>
+                      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-lg p-3 shadow-md mt-2">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-semibold text-gray-700">Subtotal:</span>
+                          <span className="text-xl font-bold text-gray-900">₹{calculateTotal()}</span>
                         </div>
+                        
+                        {/* Discount Section */}
+                        <div className="mb-2 pb-2 border-b border-blue-200">
+                          <input
+                            type="number"
+                            placeholder="Discount (₹)"
+                            value={formData.discount}
+                            onChange={(e) => setFormData({...formData, discount: e.target.value})}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                        
+                        {/* Handling Charges */}
+                        <div className="mb-2 pb-2 border-b border-blue-200">
+                          <input
+                            type="number"
+                            placeholder="Handling Charges (₹)"
+                            value={formData.handlingCharges}
+                            onChange={(e) => setFormData({...formData, handlingCharges: e.target.value})}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                        
+                        {/* Delivery Charges */}
+                        <div className="mb-2 pb-2 border-b border-blue-200">
+                          <input
+                            type="number"
+                            placeholder="Delivery Charges (₹)"
+                            value={formData.deliveryCharges}
+                            onChange={(e) => setFormData({...formData, deliveryCharges: e.target.value})}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                        
+                        {/* Points Redeemed */}
+                        <div className="mb-2 pb-2 border-b border-blue-200">
+                          <input
+                            type="number"
+                            placeholder="Points Redeemed (₹)"
+                            value={formData.pointsRedeemed}
+                            onChange={(e) => setFormData({...formData, pointsRedeemed: e.target.value})}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-2 focus:ring-blue-500"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                        
+                        {/* Final Amount */}
+                        <div className="flex justify-between items-center bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-2 -mx-1">
+                          <span className="font-bold text-gray-900">Final Amount:</span>
+                          <span className="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">₹{calculateFinalAmount().toFixed(2)}</span>
+                        </div>
+                        
+                        {/* Breakdown Display */}
+                        {(formData.discount || formData.handlingCharges || formData.deliveryCharges || formData.pointsRedeemed) && (
+                          <div className="mt-2 pt-2 border-t border-blue-200 text-xs text-gray-600 space-y-1">
+                            {formData.discount && (
+                              <div className="flex justify-between">
+                                <span>Discount:</span>
+                                <span className="text-red-600 font-semibold">
+                                  -₹{parseFloat(formData.discount || 0).toFixed(2)}
+                                </span>
+                              </div>
+                            )}
+                            {formData.handlingCharges && (
+                              <div className="flex justify-between">
+                                <span>Handling Charges:</span>
+                                <span className="text-green-600 font-semibold">+₹{parseFloat(formData.handlingCharges || 0).toFixed(2)}</span>
+                              </div>
+                            )}
+                            {formData.deliveryCharges && (
+                              <div className="flex justify-between">
+                                <span>Delivery Charges:</span>
+                                <span className="text-green-600 font-semibold">+₹{parseFloat(formData.deliveryCharges || 0).toFixed(2)}</span>
+                              </div>
+                            )}
+                            {formData.pointsRedeemed && (
+                              <div className="flex justify-between">
+                                <span>Points Redeemed:</span>
+                                <span className="text-red-600 font-semibold">-₹{parseFloat(formData.pointsRedeemed || 0).toFixed(2)}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
