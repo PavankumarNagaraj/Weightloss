@@ -237,45 +237,10 @@ const CafeMenuBooklet = ({ showToast }) => {
 
                     {macros.calories > 0 && (
                       <div className="nutrition-content">
-                        {/* Pie Chart */}
-                        <div className="pie-container">
-                          <svg viewBox="0 0 100 100" className="pie-chart">
-                            {/* Background circle */}
-                            <circle cx="50" cy="50" r="50" fill="#f3f4f6" />
-                            {/* Protein slice */}
-                            <circle 
-                              cx="50" cy="50" r="50" 
-                              fill="transparent"
-                              stroke="#3b82f6" 
-                              strokeWidth="100"
-                              strokeDasharray={`${proteinPercent * 3.14} 314`}
-                              strokeDashoffset="0"
-                              transform="rotate(-90 50 50)"
-                            />
-                            {/* Carbs slice */}
-                            <circle 
-                              cx="50" cy="50" r="50" 
-                              fill="transparent"
-                              stroke="#10b981" 
-                              strokeWidth="100"
-                              strokeDasharray={`${carbsPercent * 3.14} 314`}
-                              strokeDashoffset={`-${proteinPercent * 3.14}`}
-                              transform="rotate(-90 50 50)"
-                            />
-                            {/* Fat slice */}
-                            <circle 
-                              cx="50" cy="50" r="50" 
-                              fill="transparent"
-                              stroke="#f59e0b" 
-                              strokeWidth="100"
-                              strokeDasharray={`${fatPercent * 3.14} 314`}
-                              strokeDashoffset={`-${(proteinPercent + carbsPercent) * 3.14}`}
-                              transform="rotate(-90 50 50)"
-                            />
-                            {/* Center text */}
-                            <text x="50" y="48" textAnchor="middle" className="pie-calories">{macros.calories}</text>
-                            <text x="50" y="58" textAnchor="middle" className="pie-label">cal</text>
-                          </svg>
+                        {/* Large Calorie Display */}
+                        <div className="calorie-hero">
+                          <div className="calorie-number">{macros.calories}</div>
+                          <div className="calorie-label">CALORIES</div>
                         </div>
 
                         {/* Nutrition Table */}
@@ -379,10 +344,8 @@ const CafeMenuBooklet = ({ showToast }) => {
           .menu-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(3, 1fr);
             gap: 4mm;
-            padding: 0 4mm;
-            height: calc(100% - 40mm);
+            padding: 0 4mm 4mm 4mm;
           }
           
           .menu-card {
@@ -449,29 +412,31 @@ const CafeMenuBooklet = ({ showToast }) => {
             flex: 1;
           }
           
-          /* Pie Chart */
-          .pie-container {
+          /* Large Calorie Display */
+          .calorie-hero {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border-radius: 8px;
+            padding: 8mm 4mm;
           }
           
-          .pie-chart {
-            width: 65px;
-            height: 65px;
+          .calorie-number {
+            font-size: 36px;
+            font-weight: 900;
+            color: #fef3c7;
+            line-height: 1;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
           }
           
-          .pie-calories {
-            font-size: 16px;
-            font-weight: 800;
-            fill: #ea580c;
-          }
-          
-          .pie-label {
-            font-size: 8px;
-            font-weight: 600;
-            fill: #92400e;
-            text-transform: uppercase;
+          .calorie-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: #fed7aa;
+            letter-spacing: 1px;
+            margin-top: 2mm;
           }
           
           /* Nutrition Table */
@@ -622,34 +587,36 @@ const CafeMenuBooklet = ({ showToast }) => {
           .nutrition-content {
             display: grid;
             grid-template-columns: 1fr 1.3fr;
-            gap: 12px;
+            gap: 16px;
             align-items: center;
             flex: 1;
           }
           
-          /* Pie Chart - Screen */
-          .pie-container {
+          /* Large Calorie Display - Screen */
+          .calorie-hero {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border-radius: 12px;
+            padding: 24px 16px;
           }
           
-          .pie-chart {
-            width: 100px;
-            height: 100px;
+          .calorie-number {
+            font-size: 48px;
+            font-weight: 900;
+            color: #fef3c7;
+            line-height: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
           }
           
-          .pie-calories {
-            font-size: 22px;
-            font-weight: 800;
-            fill: #ea580c;
-          }
-          
-          .pie-label {
-            font-size: 11px;
-            font-weight: 600;
-            fill: #92400e;
-            text-transform: uppercase;
+          .calorie-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #fed7aa;
+            letter-spacing: 1.5px;
+            margin-top: 8px;
           }
           
           /* Nutrition Table - Screen */
