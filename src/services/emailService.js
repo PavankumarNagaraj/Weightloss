@@ -843,82 +843,368 @@ export const sendShoppingListEmail = async (recipientEmail, recipientName, items
 // Send nutrition chart email
 export const sendNutritionChartEmail = async (recipientEmail, dishName, totalCalories, ingredients, macros) => {
   try {
-    // Generate HTML content for nutrition chart
+    // Calculate macro percentages for visual bars
+    const totalMacroGrams = parseFloat(macros.protein || 0) + parseFloat(macros.carbs || 0) + parseFloat(macros.fat || 0);
+    const proteinPercent = totalMacroGrams > 0 ? ((parseFloat(macros.protein || 0) / totalMacroGrams) * 100).toFixed(0) : 0;
+    const carbsPercent = totalMacroGrams > 0 ? ((parseFloat(macros.carbs || 0) / totalMacroGrams) * 100).toFixed(0) : 0;
+    const fatPercent = totalMacroGrams > 0 ? ((parseFloat(macros.fat || 0) / totalMacroGrams) * 100).toFixed(0) : 0;
+    
+    // Generate HTML content for nutrition chart - Mobile-First Responsive Design
     const htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-          .header h1 { margin: 0; font-size: 28px; }
-          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-          .calories-box { background: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-          .calories-box h2 { color: #667eea; margin: 0 0 10px 0; font-size: 48px; }
-          .calories-box p { color: #6b7280; margin: 0; }
-          .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-          .section h3 { color: #374151; margin-top: 0; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
-          .ingredient { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+          /* Reset and Base Styles */
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6; 
+            color: #1f2937;
+            background: #f3f4f6;
+            padding: 0;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+          }
+          
+          /* Container - Mobile First */
+          .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: #ffffff;
+          }
+          
+          /* Header with Gradient */
+          .header { 
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white; 
+            padding: 32px 20px;
+            text-align: center;
+          }
+          .header h1 { 
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+          }
+          .header .dish-name {
+            font-size: 18px;
+            font-weight: 500;
+            opacity: 0.95;
+            margin-top: 8px;
+          }
+          
+          /* Content Area */
+          .content { 
+            padding: 24px 20px;
+          }
+          
+          /* Calories Hero Box */
+          .calories-hero { 
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 32px 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 24px;
+            border: 3px solid #fbbf24;
+            box-shadow: 0 4px 6px rgba(251, 191, 36, 0.2);
+          }
+          .calories-hero .value { 
+            font-size: 56px;
+            font-weight: 800;
+            color: #ea580c;
+            line-height: 1;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+          }
+          .calories-hero .label { 
+            font-size: 16px;
+            color: #92400e;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          
+          /* Section Styling */
+          .section { 
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+          .section-title { 
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #f97316;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          
+          /* Ingredient List */
+          .ingredient { 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+          }
           .ingredient:last-child { border-bottom: none; }
-          .ingredient-name { font-weight: 600; color: #374151; }
-          .ingredient-cal { color: #667eea; font-weight: 600; }
-          .macros { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-          .macro-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center; }
-          .macro-card .value { font-size: 32px; font-weight: bold; margin: 5px 0; }
-          .macro-card .label { font-size: 14px; opacity: 0.9; }
-          .footer { text-align: center; color: #6b7280; font-size: 12px; margin-top: 20px; }
+          .ingredient-name { 
+            font-weight: 600;
+            color: #374151;
+            font-size: 15px;
+            flex: 1;
+          }
+          .ingredient-qty {
+            color: #6b7280;
+            font-size: 13px;
+            margin-right: 12px;
+          }
+          .ingredient-cal { 
+            color: #f97316;
+            font-weight: 700;
+            font-size: 15px;
+            white-space: nowrap;
+          }
+          
+          /* Macro Cards Grid */
+          .macros-grid { 
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+          }
+          .macro-card { 
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+            padding: 20px 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(249, 115, 22, 0.3);
+          }
+          .macro-card .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+          }
+          .macro-card .value { 
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1;
+            margin: 8px 0;
+          }
+          .macro-card .label { 
+            font-size: 13px;
+            opacity: 0.95;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          
+          /* Macro Distribution Bar */
+          .macro-distribution {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+          }
+          .macro-distribution .title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+            text-align: center;
+          }
+          .macro-bar {
+            display: flex;
+            height: 40px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
+          .macro-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            transition: all 0.3s ease;
+          }
+          .protein-segment { background: #3b82f6; }
+          .carbs-segment { background: #10b981; }
+          .fat-segment { background: #f59e0b; }
+          .macro-legend {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 12px;
+            gap: 8px;
+          }
+          .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+          }
+          .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+          }
+          
+          /* Footer */
+          .footer { 
+            text-align: center;
+            padding: 24px 20px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+          }
+          .footer .brand {
+            font-weight: 700;
+            color: #f97316;
+            font-size: 16px;
+            margin-bottom: 4px;
+          }
+          .footer .tagline {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 8px;
+          }
+          .footer .timestamp {
+            color: #9ca3af;
+            font-size: 11px;
+          }
+          
+          /* Mobile Responsive */
+          @media only screen and (max-width: 480px) {
+            .header h1 { font-size: 24px; }
+            .header .dish-name { font-size: 16px; }
+            .calories-hero .value { font-size: 48px; }
+            .content { padding: 16px 12px; }
+            .section { padding: 16px; }
+            .macro-card { padding: 16px 12px; }
+            .macro-card .value { font-size: 28px; }
+            .ingredient-name { font-size: 14px; }
+            .ingredient-cal { font-size: 14px; }
+          }
+          
+          /* Dark Mode Support */
+          @media (prefers-color-scheme: dark) {
+            body { background: #1f2937; }
+            .container { background: #111827; }
+            .section { background: #1f2937; border-color: #374151; }
+            .ingredient { border-color: #374151; }
+            .ingredient-name { color: #f3f4f6; }
+            .macro-distribution { background: #374151; }
+          }
         </style>
       </head>
       <body>
         <div class="container">
+          <!-- Header -->
           <div class="header">
-            <h1>🍽️ Nutrition Chart</h1>
-            <p style="margin: 10px 0 0 0; font-size: 18px;">${dishName}</p>
+            <h1>🍽️ Nutrition Analysis</h1>
+            <div class="dish-name">${dishName}</div>
           </div>
           
+          <!-- Content -->
           <div class="content">
-            <div class="calories-box">
-              <h2>${totalCalories}</h2>
-              <p>Total Calories</p>
+            <!-- Calories Hero -->
+            <div class="calories-hero">
+              <div class="value">${totalCalories}</div>
+              <div class="label">Total Calories</div>
             </div>
             
+            <!-- Macronutrients Grid -->
             <div class="section">
-              <h3>📊 Ingredient Breakdown</h3>
-              ${ingredients.map(ing => `
-                <div class="ingredient">
-                  <span class="ingredient-name">${ing.name} (${ing.quantity}${ing.unit})</span>
-                  <span class="ingredient-cal">${ing.calories} cal</span>
-                </div>
-              `).join('')}
-            </div>
-            
-            <div class="section">
-              <h3>💪 Macronutrients</h3>
-              <div class="macros">
+              <div class="section-title">💪 Macronutrients</div>
+              <div class="macros-grid">
                 <div class="macro-card">
+                  <div class="icon">🥩</div>
                   <div class="value">${typeof macros.protein === 'number' ? macros.protein.toFixed(1) : macros.protein}g</div>
                   <div class="label">Protein</div>
                 </div>
                 <div class="macro-card">
+                  <div class="icon">🍚</div>
                   <div class="value">${typeof macros.carbs === 'number' ? macros.carbs.toFixed(1) : macros.carbs}g</div>
                   <div class="label">Carbs</div>
                 </div>
                 <div class="macro-card">
+                  <div class="icon">🥑</div>
                   <div class="value">${typeof macros.fat === 'number' ? macros.fat.toFixed(1) : macros.fat}g</div>
                   <div class="label">Fat</div>
                 </div>
                 <div class="macro-card">
+                  <div class="icon">🌾</div>
                   <div class="value">${typeof macros.fiber === 'number' ? macros.fiber.toFixed(1) : macros.fiber}g</div>
                   <div class="label">Fiber</div>
                 </div>
               </div>
+              
+              <!-- Macro Distribution Bar -->
+              <div class="macro-distribution">
+                <div class="title">Macro Distribution</div>
+                <div class="macro-bar">
+                  <div class="macro-segment protein-segment" style="width: ${proteinPercent}%">
+                    ${proteinPercent > 15 ? proteinPercent + '%' : ''}
+                  </div>
+                  <div class="macro-segment carbs-segment" style="width: ${carbsPercent}%">
+                    ${carbsPercent > 15 ? carbsPercent + '%' : ''}
+                  </div>
+                  <div class="macro-segment fat-segment" style="width: ${fatPercent}%">
+                    ${fatPercent > 15 ? fatPercent + '%' : ''}
+                  </div>
+                </div>
+                <div class="macro-legend">
+                  <div class="legend-item">
+                    <div class="legend-dot protein-segment"></div>
+                    <span>Protein ${proteinPercent}%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-dot carbs-segment"></div>
+                    <span>Carbs ${carbsPercent}%</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-dot fat-segment"></div>
+                    <span>Fat ${fatPercent}%</span>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div class="footer">
-              <p>Generated from Afterburn Cafe Management System</p>
-              <p>${new Date().toLocaleString()}</p>
+            <!-- Ingredients Breakdown -->
+            <div class="section">
+              <div class="section-title">📊 Ingredient Breakdown</div>
+              ${ingredients.map(ing => `
+                <div class="ingredient">
+                  <span class="ingredient-name">${ing.name}</span>
+                  <span class="ingredient-qty">${ing.quantity}${ing.unit}</span>
+                  <span class="ingredient-cal">${ing.calories} cal</span>
+                </div>
+              `).join('')}
             </div>
+          </div>
+          
+          <!-- Footer -->
+          <div class="footer">
+            <div class="brand">🔥 AfterBurn Gym Cafe</div>
+            <div class="tagline">by Sutra Fitness</div>
+            <div class="timestamp">${new Date().toLocaleString('en-US', { 
+              weekday: 'short', 
+              year: 'numeric', 
+              month: 'short', 
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}</div>
           </div>
         </div>
       </body>
