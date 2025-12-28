@@ -1156,52 +1156,48 @@ const CafeMenu = ({ showToast }) => {
         </div>
       )}
 
-      {/* Kitchen Full-Screen View */}
+      {/* Kitchen Dialog View */}
       {showKitchenView && selectedItemForKitchen && (
-        <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
-          <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full p-3 sm:p-4">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-2">
+          <div className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between mb-3 pb-2 border-b-2 border-orange-500">
+            <div className="flex items-center justify-between p-2 border-b-2 border-orange-500 bg-gray-900 rounded-t-lg">
               <div className="flex-1 min-w-0">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-1 break-words">
+                <h1 className="text-lg sm:text-xl font-black text-white truncate">
                   {selectedItemForKitchen.is_veg ? '🟢' : '🔴'} {selectedItemForKitchen.name}
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-400">Press ESC to close • {selectedItemForKitchen.calories || '-'} cal</p>
+                <p className="text-xs text-gray-400">ESC to close • {selectedItemForKitchen.calories || '-'} cal • {selectedItemForKitchen.raw_materials?.length || 0} items</p>
               </div>
               <button
                 onClick={() => setShowKitchenView(false)}
-                className="p-2 sm:p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition shadow-lg flex-shrink-0 ml-2"
+                className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition flex-shrink-0 ml-2"
               >
-                <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Ingredients List - Scrollable if needed */}
-            <div className="flex-1 bg-gray-800 rounded-xl p-3 sm:p-4 shadow-2xl overflow-y-auto">
-              <h2 className="text-xl sm:text-2xl font-bold text-orange-500 mb-3 pb-2 border-b border-orange-500 sticky top-0 bg-gray-800 z-10">
-                📋 INGREDIENTS ({selectedItemForKitchen.raw_materials?.length || 0})
-              </h2>
-              
+            {/* Ingredients List - Compact, No Scroll */}
+            <div className="p-2 overflow-y-auto flex-1">
               {selectedItemForKitchen.raw_materials && selectedItemForKitchen.raw_materials.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {selectedItemForKitchen.raw_materials.map((material, index) => (
                     <div 
                       key={index}
-                      className="bg-gray-700 rounded-lg p-3 border-l-4 border-orange-500 hover:bg-gray-650 transition"
+                      className="bg-gray-700 rounded p-2 border-l-4 border-orange-500"
                     >
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <span className="text-xl sm:text-2xl md:text-3xl font-bold text-white break-words">
+                          <span className="text-base sm:text-lg font-bold text-white break-words">
                             {index + 1}. {material.name}
                           </span>
                           {material.cooking_method && material.cooking_method !== 'none' && (
-                            <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                            <div className="text-xs text-gray-400 mt-0.5">
                               {COOKING_ADJUSTMENTS[material.cooking_method]?.name || material.cooking_method}
                             </div>
                           )}
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <div className="text-2xl sm:text-3xl md:text-4xl font-black text-orange-400 whitespace-nowrap">
+                          <div className="text-xl sm:text-2xl font-black text-orange-400 whitespace-nowrap">
                             {material.quantity} {material.unit}
                           </div>
                         </div>
@@ -1210,7 +1206,7 @@ const CafeMenu = ({ showToast }) => {
                   ))}
                 </div>
               ) : (
-                <p className="text-lg sm:text-xl text-gray-400 text-center py-8">
+                <p className="text-sm text-gray-400 text-center py-4">
                   No ingredients listed
                 </p>
               )}
