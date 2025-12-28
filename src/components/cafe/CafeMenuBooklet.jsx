@@ -113,7 +113,7 @@ const CafeMenuBooklet = ({ showToast }) => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-white">📖 Menu Booklet Generator</h2>
-            <p className="text-orange-100 text-sm mt-1">3 columns × 4 rows • 12 dishes per page</p>
+            <p className="text-orange-100 text-sm mt-1">2 columns × 3 rows • 6 dishes per page</p>
           </div>
           <button
             onClick={handlePrint}
@@ -182,15 +182,15 @@ const CafeMenuBooklet = ({ showToast }) => {
         <div className="mt-4 p-4 bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-lg">
           <p className="text-sm text-white font-semibold">
             <strong>📄 {filteredItems.length} dishes</strong> ready to print • 
-            <strong> {Math.ceil(filteredItems.length / 12)} pages</strong> • 
-            <strong>12 dishes per A4 page</strong>
+            <strong> {Math.ceil(filteredItems.length / 6)} pages</strong> • 
+            <strong>6 dishes per A4 page (2×3 grid)</strong>
           </p>
         </div>
       </div>
 
       {/* Printable Menu with Page Headers */}
       <div className="print-content">
-        {Array.from({ length: Math.ceil(filteredItems.length / 12) }).map((_, pageIndex) => (
+        {Array.from({ length: Math.ceil(filteredItems.length / 6) }).map((_, pageIndex) => (
           <div key={pageIndex} className="page">
             {/* Page Header */}
             <div className="page-header">
@@ -200,12 +200,32 @@ const CafeMenuBooklet = ({ showToast }) => {
 
             {/* Menu Grid */}
             <div className="menu-grid">
-              {filteredItems.slice(pageIndex * 12, (pageIndex + 1) * 12).map((item) => {
+              {filteredItems.slice(pageIndex * 6, (pageIndex + 1) * 6).map((item) => {
                 const macros = calculateMacros(item.raw_materials || []);
                 const totalMacroGrams = parseFloat(macros.protein) + parseFloat(macros.carbs) + parseFloat(macros.fat);
-                const proteinPercent = totalMacroGrams > 0 ? ((parseFloat(macros.protein) / totalMacroGrams) * 100).toFixed(0) : 0;
-                const carbsPercent = totalMacroGrams > 0 ? ((parseFloat(macros.carbs) / totalMacroGrams) * 100).toFixed(0) : 0;
-                const fatPercent = totalMacroGrams > 0 ? ((parseFloat(macros.fat) / totalMacroGrams) * 100).toFixed(0) : 0;
+                
+                // Calculate percentages and ensure they add up to 100%
+                let proteinPercent = totalMacroGrams > 0 ? (parseFloat(macros.protein) / totalMacroGrams) * 100 : 0;
+                let carbsPercent = totalMacroGrams > 0 ? (parseFloat(macros.carbs) / totalMacroGrams) * 100 : 0;
+                let fatPercent = totalMacroGrams > 0 ? (parseFloat(macros.fat) / totalMacroGrams) * 100 : 0;
+                
+                // Round and adjust to ensure total is 100%
+                proteinPercent = Math.round(proteinPercent);
+                carbsPercent = Math.round(carbsPercent);
+                fatPercent = Math.round(fatPercent);
+                
+                const total = proteinPercent + carbsPercent + fatPercent;
+                if (total !== 100 && total > 0) {
+                  const diff = 100 - total;
+                  // Add difference to the largest component
+                  if (proteinPercent >= carbsPercent && proteinPercent >= fatPercent) {
+                    proteinPercent += diff;
+                  } else if (carbsPercent >= fatPercent) {
+                    carbsPercent += diff;
+                  } else {
+                    fatPercent += diff;
+                  }
+                }
 
                 return (
                   <div key={item.id} className="menu-card">
@@ -333,34 +353,36 @@ const CafeMenuBooklet = ({ showToast }) => {
           /* Page Header */
           .page-header {
             text-align: center;
-            padding: 8mm 0 6mm 0;
+            padding: 6mm 0 5mm 0;
             background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            margin-bottom: 4mm;
+            margin-bottom: 5mm;
           }
           
           .cafe-name {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 900;
             color: #fef3c7;
             margin: 0;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             text-transform: uppercase;
+            white-space: nowrap;
           }
           
           .cafe-location {
-            font-size: 12px;
+            font-size: 11px;
             color: #fed7aa;
-            margin: 2px 0 0 0;
+            margin: 3px 0 0 0;
             font-weight: 600;
           }
           
-          /* 3x4 Grid */
+          /* 2x3 Grid */
           .menu-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-            gap: 3mm;
-            padding: 0 3mm;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4mm;
+            padding: 0 4mm;
+            height: calc(100% - 40mm);
           }
           
           .menu-card {
@@ -370,9 +392,11 @@ const CafeMenuBooklet = ({ showToast }) => {
             border-radius: 6px;
             overflow: hidden;
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            padding: 4mm;
+            padding: 5mm;
             display: flex;
             flex-direction: column;
+            aspect-ratio: 1 / 1;
+            min-height: 0;
           }
           
           /* Card Header */
@@ -401,7 +425,7 @@ const CafeMenuBooklet = ({ showToast }) => {
           }
           
           .dish-name {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 700;
             color: #92400e;
             line-height: 1.2;
@@ -410,7 +434,7 @@ const CafeMenuBooklet = ({ showToast }) => {
           }
           
           .price {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 900;
             color: #ea580c;
             white-space: nowrap;
@@ -419,30 +443,32 @@ const CafeMenuBooklet = ({ showToast }) => {
           /* Nutrition Content */
           .nutrition-content {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 3mm;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 4mm;
             align-items: center;
+            flex: 1;
           }
           
           /* Pie Chart */
           .pie-container {
             display: flex;
             justify-content: center;
+            align-items: center;
           }
           
           .pie-chart {
-            width: 50px;
-            height: 50px;
+            width: 65px;
+            height: 65px;
           }
           
           .pie-calories {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 800;
             fill: #ea580c;
           }
           
           .pie-label {
-            font-size: 7px;
+            font-size: 8px;
             font-weight: 600;
             fill: #92400e;
             text-transform: uppercase;
@@ -452,28 +478,28 @@ const CafeMenuBooklet = ({ showToast }) => {
           .nutrition-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 7px;
+            font-size: 9px;
           }
           
           .nutrition-table th {
             background: #f97316;
             color: #fef3c7;
-            padding: 2px 3px;
+            padding: 3px 4px;
             text-align: left;
             font-weight: 700;
-            font-size: 6px;
+            font-size: 8px;
             text-transform: uppercase;
           }
           
           .nutrition-table td {
-            padding: 2px 3px;
+            padding: 3px 4px;
             border-bottom: 0.5px solid #f97316;
             color: #92400e;
             font-weight: 600;
           }
           
           .nutrition-table td:first-child {
-            font-size: 8px;
+            font-size: 10px;
           }
           
           .nutrition-table td:nth-child(2),
@@ -528,8 +554,8 @@ const CafeMenuBooklet = ({ showToast }) => {
           /* Menu Grid - Screen */
           .menu-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
             padding: 20px;
           }
           
@@ -538,11 +564,12 @@ const CafeMenuBooklet = ({ showToast }) => {
             border-radius: 8px;
             overflow: hidden;
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            padding: 12px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 2px 4px rgba(249, 115, 22, 0.2);
+            aspect-ratio: 1 / 1;
           }
           
           .menu-card:hover {
@@ -576,7 +603,7 @@ const CafeMenuBooklet = ({ showToast }) => {
           }
           
           .dish-name {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
             color: #92400e;
             line-height: 1.3;
@@ -585,7 +612,7 @@ const CafeMenuBooklet = ({ showToast }) => {
           }
           
           .price {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 900;
             color: #ea580c;
             white-space: nowrap;
@@ -594,30 +621,32 @@ const CafeMenuBooklet = ({ showToast }) => {
           /* Nutrition Content - Screen */
           .nutrition-content {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 10px;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 12px;
             align-items: center;
+            flex: 1;
           }
           
           /* Pie Chart - Screen */
           .pie-container {
             display: flex;
             justify-content: center;
+            align-items: center;
           }
           
           .pie-chart {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
           }
           
           .pie-calories {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 800;
             fill: #ea580c;
           }
           
           .pie-label {
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 600;
             fill: #92400e;
             text-transform: uppercase;
@@ -627,28 +656,28 @@ const CafeMenuBooklet = ({ showToast }) => {
           .nutrition-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 13px;
           }
           
           .nutrition-table th {
             background: #f97316;
             color: #fef3c7;
-            padding: 4px 6px;
+            padding: 6px 8px;
             text-align: left;
             font-weight: 700;
-            font-size: 9px;
+            font-size: 11px;
             text-transform: uppercase;
           }
           
           .nutrition-table td {
-            padding: 4px 6px;
+            padding: 6px 8px;
             border-bottom: 0.5px solid #f97316;
             color: #92400e;
             font-weight: 600;
           }
           
           .nutrition-table td:first-child {
-            font-size: 11px;
+            font-size: 13px;
           }
           
           .nutrition-table td:nth-child(2),
