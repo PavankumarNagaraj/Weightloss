@@ -344,7 +344,8 @@ const CafeMenuBooklet = ({ showToast }) => {
           .menu-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 3mm;
+            column-gap: 6mm;
+            row-gap: 6mm;
             padding: 0 3mm 3mm 3mm;
           }
           
@@ -416,23 +417,20 @@ const CafeMenuBooklet = ({ showToast }) => {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            border-radius: 8px;
-            padding: 8mm 4mm;
+            padding: 4mm 2mm;
           }
           
           .calorie-number {
             font-size: 36px;
             font-weight: 900;
-            color: #fef3c7;
+            color: #92400e;
             line-height: 1;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
           }
           
           .calorie-label {
             font-size: 9px;
             font-weight: 700;
-            color: #fed7aa;
+            color: #92400e;
             letter-spacing: 1px;
             margin-top: 2mm;
           }
@@ -518,7 +516,8 @@ const CafeMenuBooklet = ({ showToast }) => {
           .menu-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            column-gap: 40px;
+            row-gap: 40px;
             padding: 20px;
           }
           
@@ -595,23 +594,20 @@ const CafeMenuBooklet = ({ showToast }) => {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            border-radius: 12px;
-            padding: 24px 16px;
+            padding: 16px 8px;
           }
           
           .calorie-number {
             font-size: 48px;
             font-weight: 900;
-            color: #fef3c7;
+            color: #92400e;
             line-height: 1;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
           }
           
           .calorie-label {
             font-size: 12px;
             font-weight: 700;
-            color: #fed7aa;
+            color: #92400e;
             letter-spacing: 1.5px;
             margin-top: 8px;
           }
