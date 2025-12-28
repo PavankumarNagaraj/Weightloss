@@ -188,16 +188,10 @@ const CafeMenuBooklet = ({ showToast }) => {
         </div>
       </div>
 
-      {/* Printable Menu with Page Headers */}
+      {/* Printable Menu */}
       <div className="print-content">
         {Array.from({ length: Math.ceil(filteredItems.length / 6) }).map((_, pageIndex) => (
           <div key={pageIndex} className="page">
-            {/* Page Header */}
-            <div className="page-header">
-              <h1 className="cafe-name">AFTERBURN GYM CAFE</h1>
-              <p className="cafe-location">Sutra Fitness, Sarjapura</p>
-            </div>
-
             {/* Menu Grid */}
             <div className="menu-grid">
               {filteredItems.slice(pageIndex * 6, (pageIndex + 1) * 6).map((item) => {
@@ -315,37 +309,12 @@ const CafeMenuBooklet = ({ showToast }) => {
             page-break-after: auto;
           }
           
-          /* Page Header */
-          .page-header {
-            text-align: center;
-            padding: 6mm 0 5mm 0;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            margin-bottom: 5mm;
-          }
-          
-          .cafe-name {
-            font-size: 20px;
-            font-weight: 900;
-            color: #fef3c7;
-            margin: 0;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            white-space: nowrap;
-          }
-          
-          .cafe-location {
-            font-size: 11px;
-            color: #fed7aa;
-            margin: 3px 0 0 0;
-            font-weight: 600;
-          }
-          
           /* 2x3 Grid */
           .menu-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 4mm;
-            padding: 0 4mm 4mm 4mm;
+            gap: 5mm;
+            padding: 5mm;
           }
           
           .menu-card {
@@ -491,29 +460,6 @@ const CafeMenuBooklet = ({ showToast }) => {
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             overflow: hidden;
-          }
-          
-          /* Page Header - Screen */
-          .page-header {
-            text-align: center;
-            padding: 20px;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-          }
-          
-          .cafe-name {
-            font-size: 28px;
-            font-weight: 900;
-            color: #fef3c7;
-            margin: 0;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-          }
-          
-          .cafe-location {
-            font-size: 14px;
-            color: #fed7aa;
-            margin: 4px 0 0 0;
-            font-weight: 600;
           }
           
           /* Menu Grid - Screen */
