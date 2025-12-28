@@ -113,7 +113,7 @@ const CafeMenuBooklet = ({ showToast }) => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-white">📖 Menu Booklet Generator</h2>
-            <p className="text-orange-100 text-sm mt-1">2 columns × 4 rows • 8 dishes per page</p>
+            <p className="text-orange-100 text-sm mt-1">2 columns × 5 rows • 10 dishes per page</p>
           </div>
           <button
             onClick={handlePrint}
@@ -182,15 +182,15 @@ const CafeMenuBooklet = ({ showToast }) => {
         <div className="mt-4 p-4 bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-lg">
           <p className="text-sm text-white font-semibold">
             <strong>📄 {filteredItems.length} dishes</strong> ready to print • 
-            <strong> {Math.ceil(filteredItems.length / 8)} pages</strong> • 
-            <strong>8 dishes per A4 page (2×4 grid)</strong>
+            <strong> {Math.ceil(filteredItems.length / 10)} pages</strong> • 
+            <strong>10 dishes per A4 page (2×5 grid)</strong>
           </p>
         </div>
       </div>
 
       {/* Printable Menu */}
       <div className="print-content">
-        {Array.from({ length: Math.ceil(filteredItems.length / 8) }).map((_, pageIndex) => (
+        {Array.from({ length: Math.ceil(filteredItems.length / 10) }).map((_, pageIndex) => (
           <div key={pageIndex} className="page">
             {/* Page Header */}
             <div className="page-header">
@@ -200,7 +200,7 @@ const CafeMenuBooklet = ({ showToast }) => {
 
             {/* Menu Grid */}
             <div className="menu-grid">
-              {filteredItems.slice(pageIndex * 8, (pageIndex + 1) * 8).map((item) => {
+              {filteredItems.slice(pageIndex * 10, (pageIndex + 1) * 10).map((item) => {
                 const macros = calculateMacros(item.raw_materials || []);
                 const totalMacroGrams = parseFloat(macros.protein) + parseFloat(macros.carbs) + parseFloat(macros.fat);
                 
@@ -318,13 +318,13 @@ const CafeMenuBooklet = ({ showToast }) => {
           /* Page Header */
           .page-header {
             text-align: center;
-            padding: 4mm 0 3mm 0;
+            padding: 2mm 0 2mm 0;
             background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            margin-bottom: 3mm;
+            margin-bottom: 2mm;
           }
           
           .cafe-name {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 900;
             color: #fef3c7;
             margin: 0;
@@ -334,13 +334,13 @@ const CafeMenuBooklet = ({ showToast }) => {
           }
           
           .cafe-location {
-            font-size: 10px;
+            font-size: 9px;
             color: #fed7aa;
-            margin: 2px 0 0 0;
+            margin: 1px 0 0 0;
             font-weight: 600;
           }
           
-          /* 2x4 Grid */
+          /* 2x5 Grid - 10 dishes per page */
           .menu-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
