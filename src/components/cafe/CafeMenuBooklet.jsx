@@ -192,6 +192,12 @@ const CafeMenuBooklet = ({ showToast }) => {
       <div className="print-content">
         {Array.from({ length: Math.ceil(filteredItems.length / 6) }).map((_, pageIndex) => (
           <div key={pageIndex} className="page">
+            {/* Page Header */}
+            <div className="page-header">
+              <h1 className="cafe-name">AFTERBURN GYM CAFE</h1>
+              <p className="cafe-location">Sutra Fitness, Sarjapura</p>
+            </div>
+
             {/* Menu Grid */}
             <div className="menu-grid">
               {filteredItems.slice(pageIndex * 6, (pageIndex + 1) * 6).map((item) => {
@@ -309,12 +315,37 @@ const CafeMenuBooklet = ({ showToast }) => {
             page-break-after: auto;
           }
           
+          /* Page Header */
+          .page-header {
+            text-align: center;
+            padding: 6mm 0 5mm 0;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            margin-bottom: 4mm;
+          }
+          
+          .cafe-name {
+            font-size: 20px;
+            font-weight: 900;
+            color: #fef3c7;
+            margin: 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+          }
+          
+          .cafe-location {
+            font-size: 11px;
+            color: #fed7aa;
+            margin: 3px 0 0 0;
+            font-weight: 600;
+          }
+          
           /* 2x3 Grid */
           .menu-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 5mm;
-            padding: 5mm;
+            gap: 4mm;
+            padding: 0 4mm 4mm 4mm;
           }
           
           .menu-card {
@@ -324,11 +355,9 @@ const CafeMenuBooklet = ({ showToast }) => {
             border-radius: 6px;
             overflow: hidden;
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            padding: 5mm;
+            padding: 4mm;
             display: flex;
             flex-direction: column;
-            aspect-ratio: 1 / 1;
-            min-height: 0;
           }
           
           /* Card Header */
@@ -462,6 +491,29 @@ const CafeMenuBooklet = ({ showToast }) => {
             overflow: hidden;
           }
           
+          /* Page Header - Screen */
+          .page-header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+          }
+          
+          .cafe-name {
+            font-size: 28px;
+            font-weight: 900;
+            color: #fef3c7;
+            margin: 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+          }
+          
+          .cafe-location {
+            font-size: 14px;
+            color: #fed7aa;
+            margin: 4px 0 0 0;
+            font-weight: 600;
+          }
+          
           /* Menu Grid - Screen */
           .menu-grid {
             display: grid;
@@ -480,7 +532,6 @@ const CafeMenuBooklet = ({ showToast }) => {
             flex-direction: column;
             transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 2px 4px rgba(249, 115, 22, 0.2);
-            aspect-ratio: 1 / 1;
           }
           
           .menu-card:hover {
