@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Printer, Download, Grid3x3, Grid2x2 } from 'lucide-react';
-import { getMenuItems } from '../../services/cafeService';
+import { getMenuItems, getInventory } from '../../services/cafeService';
 
 const CafeMenuBooklet = ({ showToast }) => {
   const [menuItems, setMenuItems] = useState([]);
+  const [inventoryItems, setInventoryItems] = useState([]);
   const [layout, setLayout] = useState('4'); // '2' or '4' dishes per page
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showVeg, setShowVeg] = useState(true);
@@ -12,6 +13,7 @@ const CafeMenuBooklet = ({ showToast }) => {
 
   useEffect(() => {
     loadMenuItems();
+    loadInventory();
   }, []);
 
   const loadMenuItems = async () => {
@@ -22,6 +24,63 @@ const CafeMenuBooklet = ({ showToast }) => {
       console.error('Error loading menu items:', error);
       showToast('Failed to load menu items');
     }
+  };
+
+  const loadInventory = async () => {
+    try {
+      const items = await getInventory();
+      setInventoryItems(items.map(item => ({
+        ...item,
+        inventoryState: item.inventory_state || 'raw'
+      })));
+    } catch (error) {
+      console.error('Error loading inventory:', error);
+    }
+  };
+
+  // Calculate macros for a menu item
+  const calculateMacros = (materials) => {
+    let totals = { protein: 0, carbs: 0, fat: 0, fiber: 0, calories: 0 };
+
+    if (!materials || materials.length === 0) return totals;
+
+    materials.forEach(material => {
+      const inventoryItem = inventoryItems.find(item => 
+        item.name.toLowerCase() === material.name.toLowerCase()
+      );
+      
+      if (inventoryItem) {
+        const quantity = parseFloat(material.quantity) || 0;
+        let quantityInGrams = quantity;
+        
+        if (material.unit === 'ml') {
+          quantityInGrams = quantity;
+        } else if (material.unit === 'pcs') {
+          const isEgg = material.name.toLowerCase().includes('egg');
+          quantityInGrams = quantity * (isEgg ? 45 : 100);
+        }
+        
+        let protein = inventoryItem.protein_per_100g ? (inventoryItem.protein_per_100g * quantityInGrams) / 100 : 0;
+        let carbs = inventoryItem.carbs_per_100g ? (inventoryItem.carbs_per_100g * quantityInGrams) / 100 : 0;
+        let fat = inventoryItem.fat_per_100g ? (inventoryItem.fat_per_100g * quantityInGrams) / 100 : 0;
+        let fiber = inventoryItem.fiber_per_100g ? (inventoryItem.fiber_per_100g * quantityInGrams) / 100 : 0;
+        let calories = inventoryItem.calories_per_100g ? (inventoryItem.calories_per_100g * quantityInGrams) / 100 : 0;
+        
+        totals.protein += protein;
+        totals.carbs += carbs;
+        totals.fat += fat;
+        totals.fiber += fiber;
+        totals.calories += calories;
+      }
+    });
+
+    return {
+      protein: totals.protein.toFixed(1),
+      carbs: totals.carbs.toFixed(1),
+      fat: totals.fat.toFixed(1),
+      fiber: totals.fiber.toFixed(1),
+      calories: totals.calories.toFixed(0)
+    };
   };
 
   const categories = ['all', 'main-course', 'beverages', 'snacks', 'desserts', 'breakfast'];
@@ -154,46 +213,100 @@ const CafeMenuBooklet = ({ showToast }) => {
 
       {/* Printable Menu */}
       <div className={`print-content ${layout === '2' ? 'layout-2' : 'layout-4'}`}>
-        {filteredItems.map((item, index) => (
-          <div key={item.id} className="menu-card">
-            <div className="menu-card-inner">
-              {/* Header */}
-              <div className="menu-card-header">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-2xl">{getCategoryIcon(item.category)}</span>
-                      <span className={`w-3 h-3 rounded-full ${item.is_veg ? 'bg-green-500' : 'bg-red-500'}`}></span>
+        {filteredItems.map((item, index) => {
+          const macros = calculateMacros(item.raw_materials || []);
+          const totalMacroGrams = parseFloat(macros.protein) + parseFloat(macros.carbs) + parseFloat(macros.fat);
+          const proteinPercent = totalMacroGrams > 0 ? ((parseFloat(macros.protein) / totalMacroGrams) * 100).toFixed(0) : 0;
+          const carbsPercent = totalMacroGrams > 0 ? ((parseFloat(macros.carbs) / totalMacroGrams) * 100).toFixed(0) : 0;
+          const fatPercent = totalMacroGrams > 0 ? ((parseFloat(macros.fat) / totalMacroGrams) * 100).toFixed(0) : 0;
+
+          return (
+            <div key={item.id} className="menu-card">
+              <div className="menu-card-inner">
+                {/* Header */}
+                <div className="menu-card-header">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`w-3 h-3 rounded-full ${item.is_veg ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                      </div>
+                      <h3 className="menu-card-title">{item.name}</h3>
                     </div>
-                    <h3 className="menu-card-title">{item.name}</h3>
-                  </div>
-                  <div className="menu-card-price">
-                    ₹{priceType === 'customer' ? item.customer_price : item.trainer_price}
+                    <div className="menu-card-price">
+                      ₹{priceType === 'customer' ? item.customer_price : item.trainer_price}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Description */}
-              {item.description && (
-                <p className="menu-card-description">{item.description}</p>
-              )}
+                {/* Description */}
+                {item.description && (
+                  <p className="menu-card-description">{item.description}</p>
+                )}
 
-              {/* Calories */}
-              {item.calories && (
-                <div className="menu-card-calories">
-                  🔥 {item.calories} cal
-                </div>
-              )}
+                {/* Nutrition Chart */}
+                {macros.calories > 0 && (
+                  <div className="nutrition-section">
+                    {/* Calories Hero */}
+                    <div className="calories-display">
+                      <div className="calories-value">{macros.calories}</div>
+                      <div className="calories-label">cal</div>
+                    </div>
 
-              {/* Footer */}
-              <div className="menu-card-footer">
-                <span className="menu-card-category">
-                  {item.category.replace('-', ' ').toUpperCase()}
-                </span>
+                    {/* Macro Cards */}
+                    <div className="macro-grid">
+                      <div className="macro-item">
+                        <div className="macro-icon">🥩</div>
+                        <div className="macro-value">{macros.protein}g</div>
+                        <div className="macro-label">Protein</div>
+                      </div>
+                      <div className="macro-item">
+                        <div className="macro-icon">🍚</div>
+                        <div className="macro-value">{macros.carbs}g</div>
+                        <div className="macro-label">Carbs</div>
+                      </div>
+                      <div className="macro-item">
+                        <div className="macro-icon">🥑</div>
+                        <div className="macro-value">{macros.fat}g</div>
+                        <div className="macro-label">Fat</div>
+                      </div>
+                      <div className="macro-item">
+                        <div className="macro-icon">🌾</div>
+                        <div className="macro-value">{macros.fiber}g</div>
+                        <div className="macro-label">Fiber</div>
+                      </div>
+                    </div>
+
+                    {/* Macro Distribution Bar */}
+                    <div className="macro-bar-container">
+                      <div className="macro-bar">
+                        <div className="macro-segment protein" style={{ width: `${proteinPercent}%` }}>
+                          {proteinPercent > 15 ? `${proteinPercent}%` : ''}
+                        </div>
+                        <div className="macro-segment carbs" style={{ width: `${carbsPercent}%` }}>
+                          {carbsPercent > 15 ? `${carbsPercent}%` : ''}
+                        </div>
+                        <div className="macro-segment fat" style={{ width: `${fatPercent}%` }}>
+                          {fatPercent > 15 ? `${fatPercent}%` : ''}
+                        </div>
+                      </div>
+                      <div className="macro-legend">
+                        <span className="legend-item">
+                          <span className="legend-dot protein"></span>P {proteinPercent}%
+                        </span>
+                        <span className="legend-item">
+                          <span className="legend-dot carbs"></span>C {carbsPercent}%
+                        </span>
+                        <span className="legend-item">
+                          <span className="legend-dot fat"></span>F {fatPercent}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Print Styles */}
@@ -286,24 +399,140 @@ const CafeMenuBooklet = ({ showToast }) => {
             font-size: 14px;
           }
           
-          .menu-card-calories {
-            font-size: 13px;
-            font-weight: 600;
-            color: #ea580c;
-            margin-bottom: 10px;
-          }
-          
-          .menu-card-footer {
-            margin-top: auto;
-            padding-top: 10px;
+          /* Nutrition Section */
+          .nutrition-section {
+            margin-top: 12px;
+            padding-top: 12px;
             border-top: 1px solid #e5e7eb;
           }
           
-          .menu-card-category {
-            font-size: 10px;
+          .calories-display {
+            text-align: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 8px;
+          }
+          
+          .calories-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ea580c;
+            line-height: 1;
+          }
+          
+          .layout-2 .calories-value {
+            font-size: 36px;
+          }
+          
+          .calories-label {
+            font-size: 11px;
+            color: #92400e;
             font-weight: 600;
-            color: #9ca3af;
-            letter-spacing: 0.5px;
+            text-transform: uppercase;
+          }
+          
+          .macro-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+          }
+          
+          .macro-item {
+            text-align: center;
+            padding: 6px 4px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border-radius: 6px;
+          }
+          
+          .macro-icon {
+            font-size: 14px;
+            margin-bottom: 2px;
+          }
+          
+          .macro-value {
+            font-size: 13px;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+          }
+          
+          .layout-2 .macro-value {
+            font-size: 16px;
+          }
+          
+          .macro-label {
+            font-size: 8px;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            opacity: 0.95;
+          }
+          
+          .macro-bar-container {
+            margin-top: 8px;
+          }
+          
+          .macro-bar {
+            display: flex;
+            height: 20px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 6px;
+          }
+          
+          .macro-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 9px;
+          }
+          
+          .macro-segment.protein {
+            background: #3b82f6;
+          }
+          
+          .macro-segment.carbs {
+            background: #10b981;
+          }
+          
+          .macro-segment.fat {
+            background: #f59e0b;
+          }
+          
+          .macro-legend {
+            display: flex;
+            justify-content: space-around;
+            gap: 4px;
+          }
+          
+          .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 8px;
+            color: #374151;
+          }
+          
+          .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+          }
+          
+          .legend-dot.protein {
+            background: #3b82f6;
+          }
+          
+          .legend-dot.carbs {
+            background: #10b981;
+          }
+          
+          .legend-dot.fat {
+            background: #f59e0b;
           }
           
           @page {
@@ -373,24 +602,134 @@ const CafeMenuBooklet = ({ showToast }) => {
             flex: 1;
           }
           
-          .menu-card-calories {
-            font-size: 14px;
-            font-weight: 600;
-            color: #ea580c;
-            margin-bottom: 12px;
-          }
-          
-          .menu-card-footer {
-            margin-top: auto;
-            padding-top: 12px;
+          /* Nutrition Section - Screen */
+          .nutrition-section {
+            margin-top: 16px;
+            padding-top: 16px;
             border-top: 1px solid #e5e7eb;
           }
           
-          .menu-card-category {
-            font-size: 11px;
+          .calories-display {
+            text-align: center;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 8px;
+          }
+          
+          .calories-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: #ea580c;
+            line-height: 1;
+          }
+          
+          .calories-label {
+            font-size: 12px;
+            color: #92400e;
             font-weight: 600;
-            color: #9ca3af;
-            letter-spacing: 0.5px;
+            text-transform: uppercase;
+          }
+          
+          .macro-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+          }
+          
+          .macro-item {
+            text-align: center;
+            padding: 10px 6px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border-radius: 8px;
+          }
+          
+          .macro-icon {
+            font-size: 18px;
+            margin-bottom: 4px;
+          }
+          
+          .macro-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+            margin: 4px 0;
+          }
+          
+          .macro-label {
+            font-size: 10px;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            opacity: 0.95;
+          }
+          
+          .macro-bar-container {
+            margin-top: 12px;
+          }
+          
+          .macro-bar {
+            display: flex;
+            height: 24px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+          }
+          
+          .macro-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 11px;
+          }
+          
+          .macro-segment.protein {
+            background: #3b82f6;
+          }
+          
+          .macro-segment.carbs {
+            background: #10b981;
+          }
+          
+          .macro-segment.fat {
+            background: #f59e0b;
+          }
+          
+          .macro-legend {
+            display: flex;
+            justify-content: space-around;
+            gap: 6px;
+          }
+          
+          .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #374151;
+            font-weight: 600;
+          }
+          
+          .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+          }
+          
+          .legend-dot.protein {
+            background: #3b82f6;
+          }
+          
+          .legend-dot.carbs {
+            background: #10b981;
+          }
+          
+          .legend-dot.fat {
+            background: #f59e0b;
           }
         }
       `}</style>
