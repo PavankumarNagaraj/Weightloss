@@ -194,7 +194,7 @@ const CafeMenuBooklet = ({ showToast }) => {
           <div key={pageIndex} className="page">
             {/* Page Header */}
             <div className="page-header">
-              <h1 className="cafe-name">AFTERBURN GYM CAFE</h1>
+              <h1 className="cafe-name">AFTERBURN GYM CAFE - 8899175788</h1>
               <p className="cafe-location">Sutra Fitness, Sarjapura</p>
             </div>
 
@@ -439,7 +439,7 @@ const CafeMenuBooklet = ({ showToast }) => {
           .nutrition-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9px;
+            font-size: 11px;
           }
           
           .nutrition-table th {
@@ -448,7 +448,7 @@ const CafeMenuBooklet = ({ showToast }) => {
             padding: 3px 4px;
             text-align: left;
             font-weight: 700;
-            font-size: 8px;
+            font-size: 10px;
             text-transform: uppercase;
           }
           
@@ -460,7 +460,7 @@ const CafeMenuBooklet = ({ showToast }) => {
           }
           
           .nutrition-table td:first-child {
-            font-size: 10px;
+            font-size: 12px;
           }
           
           .nutrition-table td:nth-child(2),
@@ -616,7 +616,7 @@ const CafeMenuBooklet = ({ showToast }) => {
           .nutrition-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 16px;
           }
           
           .nutrition-table th {
@@ -625,7 +625,7 @@ const CafeMenuBooklet = ({ showToast }) => {
             padding: 6px 8px;
             text-align: left;
             font-weight: 700;
-            font-size: 11px;
+            font-size: 13px;
             text-transform: uppercase;
           }
           
@@ -637,7 +637,7 @@ const CafeMenuBooklet = ({ showToast }) => {
           }
           
           .nutrition-table td:first-child {
-            font-size: 13px;
+            font-size: 16px;
           }
           
           .nutrition-table td:nth-child(2),
