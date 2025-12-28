@@ -22,6 +22,7 @@ import CafeSuggestions from './cafe/CafeSuggestions';
 import CafeCustomers from './cafe/CafeCustomers';
 import CafeSubscriptions from './cafe/CafeSubscriptions';
 import CafeDeliveryTracking from './cafe/CafeDeliveryTracking';
+import CafeMenuBooklet from './cafe/CafeMenuBooklet';
 
 const CafeManagement = () => {
   const location = useLocation();
@@ -79,6 +80,7 @@ const CafeManagement = () => {
     { path: '/cafe/subscriptions', label: 'Subscriptions', icon: Calendar, requiresMode: ['delivery'] },
     { path: '/cafe/delivery', label: 'Delivery', icon: Truck, requiresMode: ['delivery'] },
     { path: '/cafe/menu', label: 'Menu', icon: ShoppingBag, alwaysShow: true },
+    { path: '/cafe/menu-booklet', label: 'Menu Booklet', icon: FileText, alwaysShow: true },
     { path: '/cafe/inventory', label: 'Inventory', icon: Package, alwaysShow: true },
     { path: '/cafe/purchases', label: 'Purchases', icon: DollarSign, alwaysShow: true },
     { path: '/cafe/expenses', label: 'Expenses', icon: Wallet, alwaysShow: true },
@@ -194,6 +196,7 @@ const CafeManagement = () => {
               <Route path="/subscriptions" element={<CafeSubscriptions showToast={handleToast} />} />
               <Route path="/delivery" element={<CafeDeliveryTracking showToast={handleToast} />} />
               <Route path="/menu" element={<CafeMenu showToast={handleToast} />} />
+              <Route path="/menu-booklet" element={<CafeMenuBooklet showToast={handleToast} />} />
               <Route path="/inventory" element={<CafeInventory showToast={handleToast} />} />
               <Route path="/purchases" element={<CafePurchases showToast={handleToast} />} />
               <Route path="/expenses" element={<CafeExpenses showToast={handleToast} />} />
