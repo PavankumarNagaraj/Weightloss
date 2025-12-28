@@ -286,14 +286,21 @@ const CafeMenuBooklet = ({ showToast }) => {
       </div>
 
       {/* Print Styles */}
-      <style jsx>{`
+      <style jsx global>{`
         @media print {
           .no-print {
             display: none !important;
           }
           
-          /* Hide parent navigation elements */
+          /* Hide parent navigation and header - using global styles */
+          body > div > div:first-child,
+          .bg-gradient-to-r.from-purple-600,
           header, nav, .header, .navigation {
+            display: none !important;
+          }
+          
+          /* Hide sidebar */
+          body > div > div > div:first-child {
             display: none !important;
           }
           
