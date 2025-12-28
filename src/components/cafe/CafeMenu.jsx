@@ -457,7 +457,15 @@ const CafeMenu = ({ showToast }) => {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-semibold text-gray-900">{item.name}</span>
+                    <button
+                      onClick={() => {
+                        setSelectedItemForKitchen(item);
+                        setShowKitchenView(true);
+                      }}
+                      className="font-semibold text-gray-900 hover:text-orange-600 hover:underline transition text-left"
+                    >
+                      {item.name}
+                    </button>
                   </td>
                   <td className="px-6 py-4">
                     {item.rawMaterials && item.rawMaterials.length > 0 ? (
