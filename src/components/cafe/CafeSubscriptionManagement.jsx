@@ -355,22 +355,40 @@ const CafeSubscriptionManagement = ({ showToast }) => {
                   <td className="px-6 py-4">
                     <div className="flex gap-2 flex-wrap">
                       {subscription.status === 'active' && (
-                        <button
-                          onClick={() => handleStatusChange(subscription, 'paused')}
-                          className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition"
-                          title="Pause subscription"
-                        >
-                          <Pause className="w-4 h-4" />
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleStatusChange(subscription, 'paused')}
+                            className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition"
+                            title="Pause subscription"
+                          >
+                            <Pause className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(subscription, 'expired')}
+                            className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                            title="Manually expire subscription"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        </>
                       )}
                       {subscription.status === 'paused' && (
-                        <button
-                          onClick={() => handleStatusChange(subscription, 'active')}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
-                          title="Resume subscription"
-                        >
-                          <Play className="w-4 h-4" />
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleStatusChange(subscription, 'active')}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
+                            title="Resume subscription"
+                          >
+                            <Play className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(subscription, 'expired')}
+                            className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                            title="Manually expire subscription"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        </>
                       )}
                       {(subscription.status === 'expired' || subscription.status === 'active') && (
                         <button
