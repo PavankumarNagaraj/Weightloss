@@ -1,7 +1,7 @@
 -- Subscriber Meal Tracking Table
 CREATE TABLE IF NOT EXISTS subscriber_meals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  subscriber_id UUID NOT NULL REFERENCES cafe_subscription_orders(id) ON DELETE CASCADE,
+  subscriber_id UUID NOT NULL REFERENCES cafe_subscriptions(id) ON DELETE CASCADE,
   date DATE NOT NULL,
   meal_type VARCHAR(20) NOT NULL CHECK (meal_type IN ('breakfast', 'lunch', 'dinner', 'snack')),
   dishes JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS subscriber_meals (
 -- Subscriber Physical Measurements Table
 CREATE TABLE IF NOT EXISTS subscriber_measurements (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  subscriber_id UUID NOT NULL REFERENCES cafe_subscription_orders(id) ON DELETE CASCADE,
+  subscriber_id UUID NOT NULL REFERENCES cafe_subscriptions(id) ON DELETE CASCADE,
   date DATE NOT NULL,
   weight DECIMAL(5,2),
   body_fat_percentage DECIMAL(5,2),

@@ -58,7 +58,10 @@ export const getMealsByDate = async (date) => {
       .from('subscriber_meals')
       .select(`
         *,
-        subscriber:cafe_subscription_orders(customer_name, phone)
+        subscriber:cafe_subscriptions(
+          id,
+          customer:cafe_customers(name, phone)
+        )
       `)
       .eq('date', date)
       .order('meal_type', { ascending: true });
