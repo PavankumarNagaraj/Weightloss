@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Calendar, CreditCard } from 'lucide-react';
+import { Calendar, CreditCard, TrendingUp } from 'lucide-react';
 import CafeSubscriptionManagement from './CafeSubscriptionManagement';
 import CafeSubscriptionBilling from './CafeSubscriptionBilling';
+import CafeSubscriberTracking from './CafeSubscriberTracking';
 
 const CafeSubscriptions = ({ showToast }) => {
   const [activeTab, setActiveTab] = useState('management');
@@ -15,13 +16,13 @@ const CafeSubscriptions = ({ showToast }) => {
             Subscriptions
           </h2>
           <p className="text-sm sm:text-base text-gray-600 font-semibold mt-1">
-            Manage subscription plans and billing
+            Manage subscription plans, billing, and tracking
           </p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1 inline-flex gap-1">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1 inline-flex gap-1 flex-wrap">
         <button
           onClick={() => setActiveTab('management')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${
@@ -44,12 +45,24 @@ const CafeSubscriptions = ({ showToast }) => {
           <CreditCard className="w-4 h-4" />
           Billing
         </button>
+        <button
+          onClick={() => setActiveTab('tracking')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${
+            activeTab === 'tracking'
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <TrendingUp className="w-4 h-4" />
+          Tracking
+        </button>
       </div>
 
       {/* Tab Content */}
       <div>
         {activeTab === 'management' && <CafeSubscriptionManagement showToast={showToast} />}
         {activeTab === 'billing' && <CafeSubscriptionBilling showToast={showToast} />}
+        {activeTab === 'tracking' && <CafeSubscriberTracking showToast={showToast} />}
       </div>
     </div>
   );
