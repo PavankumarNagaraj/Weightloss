@@ -1,6 +1,27 @@
 // Subscriber Meal and Physical Measurement Tracking Service
 import { supabase } from '../config/supabase';
 
+// ==================== SUBSCRIBER MANAGEMENT ====================
+
+export const getActiveSubscribersForTracking = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('cafe_subscriptions')
+      .select(`
+        *,
+        customer:cafe_customers(*)
+      `)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error getting active subscribers:', error);
+    return [];
+  }
+};
+
 // ==================== MEAL LOGGING ====================
 
 export const logMeal = async (mealData) => {

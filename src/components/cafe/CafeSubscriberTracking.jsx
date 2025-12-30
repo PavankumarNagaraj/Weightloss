@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, TrendingUp, Scale, Activity, Utensils, X, Edit, Trash2, Search } from 'lucide-react';
 import {
+  getActiveSubscribersForTracking,
   logMeal,
   getMealsBySubscriber,
   logPhysicalMeasurement,
@@ -67,9 +68,8 @@ const CafeSubscriberTracking = ({ showToast }) => {
   };
 
   const loadSubscribers = async () => {
-    // This would load from your subscription orders table
-    // For now, using a placeholder - you'll need to implement getActiveSubscribers
-    setSubscribers([]);
+    const subs = await getActiveSubscribersForTracking();
+    setSubscribers(subs);
   };
 
   const loadSubscriberData = async () => {
@@ -248,7 +248,7 @@ const CafeSubscriberTracking = ({ showToast }) => {
           <option value="">Choose a subscriber...</option>
           {subscribers.map(sub => (
             <option key={sub.id} value={sub.id}>
-              {sub.customer_name} - {sub.phone}
+              {sub.customer?.name || 'Unknown'} - {sub.customer?.phone || 'No phone'}
             </option>
           ))}
         </select>
@@ -256,13 +256,50 @@ const CafeSubscriberTracking = ({ showToast }) => {
 
       {selectedSubscriber && (
         <>
+          {/* Subscription Info Card */}
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
+            <h3 className="text-xl font-bold mb-4">Subscription Status</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <div className="text-sm opacity-90">Meals Consumed</div>
+                <div className="text-3xl font-black">
+                  {selectedSubscriber.meals_consumed || 0} / {selectedSubscriber.total_meals_allowed || 25}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm opacity-90">Meals Remaining</div>
+                <div className="text-3xl font-black">
+                  {(selectedSubscriber.total_meals_allowed || 25) - (selectedSubscriber.meals_consumed || 0)}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm opacity-90">Days Elapsed</div>
+                <div className="text-3xl font-black">
+                  {Math.floor((new Date() - new Date(selectedSubscriber.start_date)) / (1000 * 60 * 60 * 24))}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm opacity-90">Max Validity</div>
+                <div className="text-3xl font-black">
+                  {selectedSubscriber.max_validity_days || 45} days
+                </div>
+              </div>
+            </div>
+            {selectedSubscriber.last_meal_date && (
+              <div className="mt-4 pt-4 border-t border-white/20">
+                <span className="text-sm opacity-90">Last Meal: </span>
+                <span className="font-semibold">{selectedSubscriber.last_meal_date}</span>
+              </div>
+            )}
+          </div>
+
           {/* Progress Summary */}
           {progress && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-xl p-4 text-white">
                 <div className="flex items-center gap-2 mb-2">
                   <Utensils className="w-5 h-5" />
-                  <span className="text-sm font-semibold">Total Meals</span>
+                  <span className="text-sm font-semibold">Total Meals Logged</span>
                 </div>
                 <div className="text-3xl font-black">{progress.totalMeals}</div>
               </div>
