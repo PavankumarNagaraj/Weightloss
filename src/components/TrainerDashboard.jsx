@@ -40,6 +40,7 @@ import AddUserModal from './dashboard/AddUserModal';
 import Toast from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { useToast } from '../hooks/useToast';
+import { addCustomer } from '../services/cafeService';
 import { useConfirm } from '../hooks/useConfirm';
 import * as dataService from '../services/dataService';
 import { initializeExerciseLibrary } from '../utils/initializeExercises';
@@ -137,12 +138,32 @@ const TrainerDashboard = ({ onLogout }) => {
     navigate('/weightloss/login');
   };
 
-  const handleAddUser = (userIdOrData, userData = null) => {
+  const handleAddUser = async (userIdOrData, userData = null) => {
     try {
       // Check if this is an edit (two parameters) or add (one parameter)
       if (userData) {
         // Edit mode: first param is userId, second is userData
         const userId = userIdOrData;
+        
+        // If enrolling in cafe subscription, create cafe customer
+        if (userData.enrollInCafeSubscription && !userData.cafeCustomerId) {
+          try {
+            const existingUser = users.find(u => u.id === userId);
+            const cafeCustomer = await addCustomer({
+              name: userData.name || existingUser.name,
+              phone: existingUser.phone || '',
+              email: existingUser.email || null,
+              notes: `Linked to weight loss program user: ${existingUser.name}`,
+              customerType: 'weightloss_subscriber'
+            });
+            userData.cafeCustomerId = cafeCustomer.id;
+            showToast('Cafe customer account created successfully!', 'success');
+          } catch (cafeError) {
+            console.error('Error creating cafe customer:', cafeError);
+            showToast('User updated but cafe account creation failed', 'warning');
+          }
+        }
+        
         const updatedUser = dataService.updateUser(userId, userData);
         setUsers(users.map(u => u.id === userId ? updatedUser : u));
         setEditingUser(null);
@@ -151,6 +172,25 @@ const TrainerDashboard = ({ onLogout }) => {
       } else {
         // Add mode: first param is userData
         const newUserData = userIdOrData;
+        
+        // If enrolling in cafe subscription, create cafe customer first
+        if (newUserData.enrollInCafeSubscription) {
+          try {
+            const cafeCustomer = await addCustomer({
+              name: newUserData.name,
+              phone: newUserData.phone || '',
+              email: newUserData.email || null,
+              notes: `Linked to weight loss program user: ${newUserData.name}`,
+              customerType: 'weightloss_subscriber'
+            });
+            newUserData.cafeCustomerId = cafeCustomer.id;
+            showToast('Cafe customer account created!', 'success');
+          } catch (cafeError) {
+            console.error('Error creating cafe customer:', cafeError);
+            showToast('User created but cafe account creation failed', 'warning');
+          }
+        }
+        
         const newUser = dataService.addUser({
           ...newUserData,
           startDate: new Date().toISOString(),
