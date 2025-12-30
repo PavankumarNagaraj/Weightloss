@@ -2106,8 +2106,12 @@ export const addSubscription = async (subscriptionData) => {
         start_date: subscriptionData.startDate,
         end_date: subscriptionData.endDate,
         monthly_amount: subscriptionData.monthlyAmount,
+        total_meals_allowed: subscriptionData.totalMealsAllowed || 25,
+        max_validity_days: subscriptionData.maxValidityDays || 45,
+        breakfast_time: subscriptionData.breakfastTime || null,
+        lunch_time: subscriptionData.lunchTime || null,
+        dinner_time: subscriptionData.dinnerTime || null,
         status: subscriptionData.status || 'active',
-        delivery_time: subscriptionData.deliveryTime || null,
         special_instructions: subscriptionData.specialInstructions || null,
       }])
       .select()
@@ -2123,19 +2127,37 @@ export const addSubscription = async (subscriptionData) => {
 
 export const updateSubscription = async (subscriptionId, subscriptionData) => {
   try {
+    const updateData = {
+      plan_type: subscriptionData.planType,
+      meal_types: subscriptionData.mealTypes,
+      delivery_days: subscriptionData.deliveryDays,
+      start_date: subscriptionData.startDate,
+      end_date: subscriptionData.endDate,
+      monthly_amount: subscriptionData.monthlyAmount,
+      status: subscriptionData.status,
+      special_instructions: subscriptionData.specialInstructions,
+    };
+
+    // Add meal tracking fields if provided
+    if (subscriptionData.totalMealsAllowed !== undefined) {
+      updateData.total_meals_allowed = subscriptionData.totalMealsAllowed;
+    }
+    if (subscriptionData.maxValidityDays !== undefined) {
+      updateData.max_validity_days = subscriptionData.maxValidityDays;
+    }
+    if (subscriptionData.breakfastTime !== undefined) {
+      updateData.breakfast_time = subscriptionData.breakfastTime;
+    }
+    if (subscriptionData.lunchTime !== undefined) {
+      updateData.lunch_time = subscriptionData.lunchTime;
+    }
+    if (subscriptionData.dinnerTime !== undefined) {
+      updateData.dinner_time = subscriptionData.dinnerTime;
+    }
+
     const { data, error } = await supabase
       .from('cafe_subscriptions')
-      .update({
-        plan_type: subscriptionData.planType,
-        meal_types: subscriptionData.mealTypes,
-        delivery_days: subscriptionData.deliveryDays,
-        start_date: subscriptionData.startDate,
-        end_date: subscriptionData.endDate,
-        monthly_amount: subscriptionData.monthlyAmount,
-        status: subscriptionData.status,
-        delivery_time: subscriptionData.deliveryTime,
-        special_instructions: subscriptionData.specialInstructions,
-      })
+      .update(updateData)
       .eq('id', subscriptionId)
       .select()
       .single();

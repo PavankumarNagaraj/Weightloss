@@ -17,7 +17,11 @@ const CafeSubscriptionManagement = ({ showToast }) => {
     startDate: '',
     endDate: '',
     monthlyAmount: '',
-    deliveryTime: '8:00 AM',
+    totalMealsAllowed: 25,
+    maxValidityDays: 45,
+    breakfastTime: '08:00',
+    lunchTime: '12:30',
+    dinnerTime: '19:00',
     specialInstructions: '',
     status: 'active',
   });
@@ -78,7 +82,11 @@ const CafeSubscriptionManagement = ({ showToast }) => {
       startDate: subscription.start_date,
       endDate: subscription.end_date,
       monthlyAmount: subscription.monthly_amount,
-      deliveryTime: subscription.delivery_time || '8:00 AM',
+      totalMealsAllowed: subscription.total_meals_allowed || 25,
+      maxValidityDays: subscription.max_validity_days || 45,
+      breakfastTime: subscription.breakfast_time || '08:00',
+      lunchTime: subscription.lunch_time || '12:30',
+      dinnerTime: subscription.dinner_time || '19:00',
       specialInstructions: subscription.special_instructions || '',
       status: subscription.status,
     });
@@ -125,7 +133,11 @@ const CafeSubscriptionManagement = ({ showToast }) => {
       startDate: '',
       endDate: '',
       monthlyAmount: '',
-      deliveryTime: '8:00 AM',
+      totalMealsAllowed: 25,
+      maxValidityDays: 45,
+      breakfastTime: '08:00',
+      lunchTime: '12:30',
+      dinnerTime: '19:00',
       specialInstructions: '',
       status: 'active',
     });
@@ -530,17 +542,80 @@ const CafeSubscriptionManagement = ({ showToast }) => {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Total Meals Allowed *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={formData.totalMealsAllowed}
+                      onChange={(e) => setFormData({...formData, totalMealsAllowed: parseInt(e.target.value) || 25})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="25"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Total meals in subscription (e.g., 25, 30, 50)</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Max Validity Days *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={formData.maxValidityDays}
+                      onChange={(e) => setFormData({...formData, maxValidityDays: parseInt(e.target.value) || 45})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="45"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Maximum days to use all meals</p>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Preferred Delivery Time
+                    Preferred Meal Times
                   </label>
-                  <input
-                    type="text"
-                    value={formData.deliveryTime}
-                    onChange={(e) => setFormData({...formData, deliveryTime: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="8:00 AM"
-                  />
+                  <div className="grid grid-cols-3 gap-4">
+                    {formData.mealTypes.includes('Breakfast') && (
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Breakfast</label>
+                        <input
+                          type="time"
+                          value={formData.breakfastTime}
+                          onChange={(e) => setFormData({...formData, breakfastTime: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                    )}
+                    {formData.mealTypes.includes('Lunch') && (
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Lunch</label>
+                        <input
+                          type="time"
+                          value={formData.lunchTime}
+                          onChange={(e) => setFormData({...formData, lunchTime: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                    )}
+                    {formData.mealTypes.includes('Dinner') && (
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Dinner</label>
+                        <input
+                          type="time"
+                          value={formData.dinnerTime}
+                          onChange={(e) => setFormData({...formData, dinnerTime: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Set preferred delivery time for each meal type</p>
                 </div>
 
                 <div>
