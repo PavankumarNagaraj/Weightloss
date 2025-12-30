@@ -1,6 +1,9 @@
 -- Update subscription schema for meal time preferences
 -- Remove delivery_time, add breakfast/lunch/dinner times, make meals configurable
 
+-- First, drop the view that depends on delivery_time
+DROP VIEW IF EXISTS subscription_status_view;
+
 DO $$ 
 BEGIN
   -- Remove delivery_time column if it exists
