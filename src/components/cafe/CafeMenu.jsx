@@ -221,6 +221,9 @@ const CafeMenu = ({ showToast }) => {
           // Special handling for eggs: 1 egg = 45g
           const isEgg = material.name.toLowerCase().includes('egg');
           quantityInGrams = quantity * (isEgg ? 45 : 100);
+        } else if (material.unit === 'slice') {
+          // 1 slice of bread = approximately 30g
+          quantityInGrams = quantity * 30;
         }
         
         // Calculate base calories from inventory nutritional data
@@ -272,6 +275,9 @@ const CafeMenu = ({ showToast }) => {
           // Special handling for eggs: 1 egg = 45g
           const isEgg = material.name.toLowerCase().includes('egg');
           quantityInGrams = quantity * (isEgg ? 45 : 100);
+        } else if (material.unit === 'slice') {
+          // 1 slice of bread = approximately 30g
+          quantityInGrams = quantity * 30;
         }
         
         let protein = inventoryItem.proteinPer100g ? (inventoryItem.proteinPer100g * quantityInGrams) / 100 : 0;

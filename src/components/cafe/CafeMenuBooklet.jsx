@@ -57,6 +57,9 @@ const CafeMenuBooklet = ({ showToast }) => {
         } else if (material.unit === 'pcs') {
           const isEgg = material.name.toLowerCase().includes('egg');
           quantityInGrams = quantity * (isEgg ? 45 : 100);
+        } else if (material.unit === 'slice') {
+          // 1 slice of bread = approximately 30g
+          quantityInGrams = quantity * 30;
         }
         
         let protein = inventoryItem.protein_per_100g ? (inventoryItem.protein_per_100g * quantityInGrams) / 100 : 0;
