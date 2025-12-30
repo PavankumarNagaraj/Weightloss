@@ -588,109 +588,114 @@ const CafeMenu = ({ showToast }) => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                {/* Price and Type - 2 columns on mobile, 3 on desktop */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Customer Price (₹)</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Customer Price (₹)</label>
                     <input
                       type="number"
                       value={formData.customerPrice}
                       onChange={(e) => setFormData({...formData, customerPrice: parseFloat(e.target.value)})}
-                      className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-                      placeholder="e.g., 250"
+                      className="w-full px-2 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                      placeholder="250"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Trainer Price (₹)</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Trainer Price (₹)</label>
                     <input
                       type="number"
                       value={formData.trainerPrice}
                       onChange={(e) => setFormData({...formData, trainerPrice: parseFloat(e.target.value) || 0})}
-                      className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-                      placeholder="e.g., 0 (free)"
+                      className="w-full px-2 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                      placeholder="0"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Type</label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <div className="flex gap-3 sm:gap-4 mt-2">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
                         <input
                           type="radio"
                           checked={formData.isVeg === true}
                           onChange={() => setFormData({...formData, isVeg: true})}
                           className="w-4 h-4 text-green-600"
                         />
-                        <span className="text-sm font-medium text-gray-700">🟢 Veg</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-700">🟢 Veg</span>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
                         <input
                           type="radio"
                           checked={formData.isVeg === false}
                           onChange={() => setFormData({...formData, isVeg: false})}
                           className="w-4 h-4 text-red-600"
                         />
-                        <span className="text-sm font-medium text-gray-700">🔴 Non-Veg</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-700">🔴 Non-Veg</span>
                       </label>
                     </div>
                   </div>
                 </div>
 
-                {/* Macro Nutrients Section - Paragraph Format */}
+                {/* Macro Nutrients Section - Compact Mobile Layout */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Macro Nutrients per Serving {calculatedCalories > 0 ? '(Auto-calculated - editable)' : '(Optional)'}
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Macro Nutrients per Serving {calculatedCalories > 0 ? '(Auto-calc)' : '(Optional)'}
                   </label>
-                  <div className="p-4 bg-gradient-to-r from-green-50 to-orange-50 border border-gray-300 rounded-lg">
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-700">🔥 Calories:</span>
-                        <input
-                          type="number"
-                          step="0.1"
-                          value={formData.calories}
-                          onChange={(e) => setFormData({...formData, calories: e.target.value})}
-                          className={`w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 text-center ${calculatedCalories > 0 ? 'bg-green-100 font-bold text-green-700' : ''}`}
-                          placeholder="450"
-                        />
-                        <span className="text-gray-600">kcal</span>
-                      </div>
-                      <span className="text-gray-400">|</span>
-                      <div className="flex items-center gap-2">
+                  <div className="p-2 sm:p-4 bg-gradient-to-r from-green-50 to-orange-50 border border-gray-300 rounded-lg">
+                    {/* Calories - Full width on mobile */}
+                    <div className="flex items-center gap-2 mb-2 sm:mb-0 sm:inline-flex">
+                      <span className="font-semibold text-gray-700 text-xs sm:text-sm">🔥 Calories:</span>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.calories}
+                        onChange={(e) => setFormData({...formData, calories: e.target.value})}
+                        className={`w-16 sm:w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 text-center text-xs sm:text-sm ${calculatedCalories > 0 ? 'bg-green-100 font-bold text-green-700' : ''}`}
+                        placeholder="450"
+                      />
+                      <span className="text-gray-600 text-xs sm:text-sm">kcal</span>
+                    </div>
+                    
+                    {/* Macros Grid - 2x2 on mobile, inline on desktop */}
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3 text-xs sm:text-sm mt-2 sm:mt-0">
+                      <span className="hidden sm:inline text-gray-400">|</span>
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <span className="font-semibold text-gray-700">💪 Protein:</span>
-                        <span className={`px-2 py-1 rounded ${calculatedMacros.protein > 0 ? 'bg-blue-100 font-bold text-blue-700' : 'text-gray-500'}`}>
+                        <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs sm:text-sm ${calculatedMacros.protein > 0 ? 'bg-blue-100 font-bold text-blue-700' : 'text-gray-500'}`}>
                           {calculatedMacros.protein > 0 ? calculatedMacros.protein : '0'}g
                         </span>
                       </div>
-                      <span className="text-gray-400">|</span>
-                      <div className="flex items-center gap-2">
+                      <span className="hidden sm:inline text-gray-400">|</span>
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <span className="font-semibold text-gray-700">🍚 Carbs:</span>
-                        <span className={`px-2 py-1 rounded ${calculatedMacros.carbs > 0 ? 'bg-yellow-100 font-bold text-yellow-700' : 'text-gray-500'}`}>
+                        <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs sm:text-sm ${calculatedMacros.carbs > 0 ? 'bg-yellow-100 font-bold text-yellow-700' : 'text-gray-500'}`}>
                           {calculatedMacros.carbs > 0 ? calculatedMacros.carbs : '0'}g
                         </span>
                       </div>
-                      <span className="text-gray-400">|</span>
-                      <div className="flex items-center gap-2">
+                      <span className="hidden sm:inline text-gray-400">|</span>
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <span className="font-semibold text-gray-700">🥑 Fat:</span>
-                        <span className={`px-2 py-1 rounded ${calculatedMacros.fat > 0 ? 'bg-orange-100 font-bold text-orange-700' : 'text-gray-500'}`}>
+                        <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs sm:text-sm ${calculatedMacros.fat > 0 ? 'bg-orange-100 font-bold text-orange-700' : 'text-gray-500'}`}>
                           {calculatedMacros.fat > 0 ? calculatedMacros.fat : '0'}g
                         </span>
                       </div>
-                      <span className="text-gray-400">|</span>
-                      <div className="flex items-center gap-2">
+                      <span className="hidden sm:inline text-gray-400">|</span>
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <span className="font-semibold text-gray-700">🌾 Fiber:</span>
-                        <span className={`px-2 py-1 rounded ${calculatedMacros.fiber > 0 ? 'bg-green-100 font-bold text-green-700' : 'text-gray-500'}`}>
+                        <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs sm:text-sm ${calculatedMacros.fiber > 0 ? 'bg-green-100 font-bold text-green-700' : 'text-gray-500'}`}>
                           {calculatedMacros.fiber > 0 ? calculatedMacros.fiber : '0'}g
                         </span>
                       </div>
                     </div>
+                    
                     {calculatedCalories > 0 && (
                       <div className="mt-2 text-xs text-green-700 font-semibold">
-                        ✅ Auto-calculated from ingredients (each with its own cooking method)
+                        ✅ Auto-calculated from ingredients
                       </div>
                     )}
                     {formData.rawMaterials.length > 0 && calculatedCalories === 0 && (
                       <p className="text-xs text-amber-600 mt-2">
-                        ⚠️ Add nutrition data to inventory items to enable auto-calculation
+                        ⚠️ Add nutrition data to inventory items
                       </p>
                     )}
                   </div>
