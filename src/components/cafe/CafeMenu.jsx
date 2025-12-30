@@ -565,53 +565,53 @@ const CafeMenu = ({ showToast }) => {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl w-full max-w-4xl my-8">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold">{editingItem ? 'Edit' : 'Add'} Menu Item</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl w-full max-w-4xl my-4 sm:my-8">
+            <div className="p-3 sm:p-6">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-2xl font-bold">{editingItem ? 'Edit' : 'Add'} Menu Item</h3>
                 <button onClick={resetForm}>
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Dish Name</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Dish Name</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                     placeholder="e.g., Paneer Butter Masala"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Customer Price (₹)</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Customer Price (₹)</label>
                     <input
                       type="number"
                       value={formData.customerPrice}
                       onChange={(e) => setFormData({...formData, customerPrice: parseFloat(e.target.value)})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                       placeholder="e.g., 250"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Trainer Price (₹)</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Trainer Price (₹)</label>
                     <input
                       type="number"
                       value={formData.trainerPrice}
                       onChange={(e) => setFormData({...formData, trainerPrice: parseFloat(e.target.value) || 0})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
                       placeholder="e.g., 0 (free)"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Type</label>
                     <div className="flex gap-4">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -697,13 +697,13 @@ const CafeMenu = ({ showToast }) => {
                 </div>
 
                 {/* Raw Materials Section */}
-                <div className="border-t pt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Raw Materials</label>
+                <div className="border-t pt-3 sm:pt-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">Raw Materials</label>
                   
                   {/* Add Raw Material */}
-                  <div className="bg-gray-50 rounded-lg p-4 mb-3">
-                    {/* Headers */}
-                    <div className="grid grid-cols-12 gap-2 mb-2 text-xs font-semibold text-gray-600">
+                  <div className="bg-gray-50 rounded-lg p-2 sm:p-4 mb-2 sm:mb-3">
+                    {/* Headers - Hidden on mobile */}
+                    <div className="hidden sm:grid grid-cols-12 gap-2 mb-2 text-xs font-semibold text-gray-600">
                       <div className="col-span-3">Ingredient Name</div>
                       <div className="col-span-1">Quantity</div>
                       <div className="col-span-1">Unit</div>
@@ -711,9 +711,9 @@ const CafeMenu = ({ showToast }) => {
                       <div className="col-span-2">Extra Price (₹/unit)</div>
                       <div className="col-span-1">Action</div>
                     </div>
-                    <div className="grid grid-cols-12 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
                       {/* Searchable Material Dropdown */}
-                      <div className="col-span-3 relative">
+                      <div className="col-span-1 sm:col-span-3 relative">
                         <input
                           type="text"
                           placeholder="Search inventory..."
@@ -753,27 +753,29 @@ const CafeMenu = ({ showToast }) => {
                         )}
                       </div>
                       
-                      <input
-                        type="number"
-                        placeholder="Qty"
-                        value={currentMaterial.quantity}
-                        onChange={(e) => setCurrentMaterial({...currentMaterial, quantity: e.target.value})}
-                        className="col-span-1 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-                      />
-                      <select
-                        value={currentMaterial.unit}
-                        onChange={(e) => setCurrentMaterial({...currentMaterial, unit: e.target.value})}
-                        className="col-span-1 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-                      >
-                        <option value="gm">gm</option>
-                        <option value="ml">ml</option>
-                        <option value="pcs">pcs</option>
-                        <option value="slice">slice</option>
-                      </select>
+                      <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 col-span-1">
+                        <input
+                          type="number"
+                          placeholder="Qty"
+                          value={currentMaterial.quantity}
+                          onChange={(e) => setCurrentMaterial({...currentMaterial, quantity: e.target.value})}
+                          className="px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        />
+                        <select
+                          value={currentMaterial.unit}
+                          onChange={(e) => setCurrentMaterial({...currentMaterial, unit: e.target.value})}
+                          className="px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                        >
+                          <option value="gm">gm</option>
+                          <option value="ml">ml</option>
+                          <option value="pcs">pcs</option>
+                          <option value="slice">slice</option>
+                        </select>
+                      </div>
                       <select
                         value={currentMaterial.cookingMethod}
                         onChange={(e) => setCurrentMaterial({...currentMaterial, cookingMethod: e.target.value})}
-                        className="col-span-3 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-xs font-semibold"
+                        className="col-span-1 sm:col-span-3 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-xs font-semibold"
                       >
                         {Object.entries(COOKING_ADJUSTMENTS).map(([key, value]) => (
                           <option key={key} value={key}>{value.name}</option>
@@ -803,7 +805,7 @@ const CafeMenu = ({ showToast }) => {
 
                   {/* Raw Materials List */}
                   {formData.rawMaterials.length > 0 && (
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                    <div className="space-y-2 max-h-48 sm:max-h-40 overflow-y-auto">
                       {formData.rawMaterials.map((material, index) => (
                         <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
                           <div className="flex items-center justify-between">
@@ -868,14 +870,14 @@ const CafeMenu = ({ showToast }) => {
 
       {/* Calorie Chart Modal */}
       {showCalorieChart && selectedItemForChart && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">{selectedItemForChart.name}</h3>
-                <p className="text-sm text-gray-600">Nutrition Analysis by <span className="font-bold text-orange-700">AfterBurn, Gym Cafe</span> by Sutra Fitness</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-xl font-bold text-gray-900 truncate">{selectedItemForChart.name}</h3>
+                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Nutrition Analysis by <span className="font-bold text-orange-700">AfterBurn, Gym Cafe</span> by Sutra Fitness</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   onClick={async () => {
                     if (!recipientEmail) {
@@ -923,24 +925,24 @@ const CafeMenu = ({ showToast }) => {
                       showToast('❌ Failed to send email. Please try again.');
                     }
                   }}
-                  className="p-2 hover:bg-orange-50 rounded-lg transition text-orange-600"
+                  className="p-1.5 sm:p-2 hover:bg-orange-50 rounded-lg transition text-orange-600"
                   title="Email this nutrition chart"
                 >
-                  <Mail className="w-5 h-5" />
+                  <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button
                   onClick={() => {
                     setShowCalorieChart(false);
                     setSelectedItemForChart(null);
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition"
+                  className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
             
-            <div className="p-6">
+            <div className="p-3 sm:p-6">
               {(() => {
                 const breakdown = calculateCalories(selectedItemForChart.rawMaterials);
                 const totalCalories = parseFloat(breakdown.total) || 0;
@@ -1036,20 +1038,20 @@ const CafeMenu = ({ showToast }) => {
                 };
                 
                 return (
-                  <div className="space-y-4">
-                    {/* Top Row: Total Calories (30%) + Ingredient Breakdown (70%) */}
-                    <div className="flex gap-3">
-                      {/* Left: Total Calories - 30% */}
-                      <div className="w-[30%] bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-4 text-center flex flex-col justify-center">
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Top Row: Total Calories + Ingredient Breakdown */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      {/* Total Calories */}
+                      <div className="w-full sm:w-[30%] bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-3 sm:p-4 text-center flex flex-col justify-center">
                         <div className="text-xs text-gray-600 font-semibold">Total Calories</div>
-                        <div className="text-4xl font-bold text-orange-600 mt-1">🔥 {totalCalories}</div>
+                        <div className="text-3xl sm:text-4xl font-bold text-orange-600 mt-1">🔥 {totalCalories}</div>
                         <div className="text-xs text-gray-500 mt-1">kcal per serving</div>
                       </div>
                       
-                      {/* Right: Ingredient Breakdown Bar Chart - 70% */}
-                      <div className="w-[70%] bg-white border-2 border-gray-200 rounded-lg p-3">
+                      {/* Ingredient Breakdown Bar Chart */}
+                      <div className="w-full sm:w-[70%] bg-white border-2 border-gray-200 rounded-lg p-2 sm:p-3">
                         <h4 className="font-semibold text-gray-700 text-xs mb-2">Ingredient Breakdown</h4>
-                        <div className="space-y-1.5 max-h-64 overflow-y-auto pr-2">
+                        <div className="space-y-1.5 max-h-48 sm:max-h-64 overflow-y-auto pr-1 sm:pr-2">
                       {breakdown.breakdown.sort((a, b) => parseFloat(b.calories) - parseFloat(a.calories)).map((ingredient, index) => {
                         const calories = parseFloat(ingredient.calories) || 0;
                         const percentage = totalCalories > 0 ? (calories / totalCalories * 100).toFixed(1) : 0;
@@ -1057,20 +1059,20 @@ const CafeMenu = ({ showToast }) => {
                         const colorClass = colors[index % colors.length];
                         
                         return (
-                          <div key={index} className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center gap-1.5">
-                                <div className={`w-2 h-2 rounded ${colorClass}`}></div>
-                                <span className="font-semibold text-gray-700">
+                          <div key={index} className="space-y-1 sm:space-y-2">
+                            <div className="flex items-center justify-between text-xs sm:text-sm">
+                              <div className="flex items-center gap-1 sm:gap-1.5 flex-1 min-w-0">
+                                <div className={`w-2 h-2 rounded flex-shrink-0 ${colorClass}`}></div>
+                                <span className="font-semibold text-gray-700 truncate">
                                   {ingredient.name}
                                 </span>
-                                <span className="text-gray-500">
+                                <span className="text-gray-500 text-xs hidden sm:inline">
                                   ({ingredient.quantity}{ingredient.unit})
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-gray-900">{calories} cal</span>
-                                <span className="text-gray-500">({percentage}%)</span>
+                              <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+                                <span className="font-bold text-gray-900 text-xs sm:text-sm">{calories} cal</span>
+                                <span className="text-gray-500 text-xs hidden sm:inline">({percentage}%)</span>
                               </div>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
@@ -1087,13 +1089,12 @@ const CafeMenu = ({ showToast }) => {
                       </div>
                     </div>
                     
-                    {/* Bottom Row: Macro Nutrients Donut Chart (30%) + Table (70%) */}
-                    <div className="border-t pt-4">
-                      <div className="flex gap-3 items-start">
-                        {/* Donut Chart - 30% */}
-                        <div className="w-[30%] flex-shrink-0">
-                                                <h4 className="font-semibold text-gray-700 text-xs mb-3">Macro Nutrients Distribution</h4>
-
+                    {/* Bottom Row: Macro Nutrients - Hide chart on mobile */}
+                    <div className="border-t pt-3 sm:pt-4">
+                      <div className="flex flex-col sm:flex-row gap-3 items-start">
+                        {/* Donut Chart - Hidden on mobile */}
+                        <div className="w-full sm:w-[30%] flex-shrink-0 hidden sm:block">
+                          <h4 className="font-semibold text-gray-700 text-xs mb-3">Macro Nutrients Distribution</h4>
                           <svg width="160" height="160" viewBox="0 0 200 200" className="transform -rotate-90 mx-auto">
                             {donutSegments.map((segment, index) => (
                               <path
@@ -1112,42 +1113,42 @@ const CafeMenu = ({ showToast }) => {
                           </div>
                         </div>
                         
-                        {/* Macro Table - 70% */}
-                        <div className="w-[70%]">
+                        {/* Macro Table */}
+                        <div className="w-full sm:w-[70%]">
                           <table className="w-full">
                             <thead>
                               <tr className="border-b-2 border-gray-300">
-                                <th className="text-left px-2 text-xs font-semibold text-gray-600 uppercase">Nutrient</th>
-                                <th className="text-right px-2 text-xs font-semibold text-gray-600 uppercase">Amount</th>
-                                <th className="text-right px-2 text-xs font-semibold text-gray-600 uppercase">% of Total</th>
+                                <th className="text-left px-1 sm:px-2 text-xs font-semibold text-gray-600 uppercase">Nutrient</th>
+                                <th className="text-right px-1 sm:px-2 text-xs font-semibold text-gray-600 uppercase">Amount</th>
+                                <th className="text-right px-1 sm:px-2 text-xs font-semibold text-gray-600 uppercase">%</th>
                               </tr>
                             </thead>
                             <tbody>
                               {donutSegments.map((segment, index) => (
                                 <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
-                                  <td className="px-3 py-2">
-                                    <div className="flex items-center gap-1.5">
+                                  <td className="px-2 sm:px-3 py-1.5 sm:py-2">
+                                    <div className="flex items-center gap-1 sm:gap-1.5">
                                       <div 
-                                        className="w-3 h-3 rounded"
+                                        className="w-2 h-2 sm:w-3 sm:h-3 rounded flex-shrink-0"
                                         style={{ backgroundColor: segment.color }}
                                       ></div>
-                                      <span className="font-semibold text-gray-700 text-sm">
+                                      <span className="font-semibold text-gray-700 text-xs sm:text-sm">
                                         {segment.emoji} {segment.name}
                                       </span>
                                     </div>
                                   </td>
-                                  <td className="px-2 text-right">
-                                    <span className="font-bold text-gray-900 text-sm">{segment.value}g</span>
+                                  <td className="px-1 sm:px-2 text-right">
+                                    <span className="font-bold text-gray-900 text-xs sm:text-sm">{segment.value}g</span>
                                   </td>
-                                  <td className="px-2 text-right">
-                                    <span className="text-gray-600 text-sm">{segment.percentage}%</span>
+                                  <td className="px-1 sm:px-2 text-right">
+                                    <span className="text-gray-600 text-xs sm:text-sm">{segment.percentage}%</span>
                                   </td>
                                 </tr>
                               ))}
                               <tr className="bg-gray-100 font-bold">
-                                <td className="px-2 text-sm text-gray-900">Total</td>
-                                <td className="px-2 text-right text-sm text-gray-900">{totalMacros.toFixed(1)}g</td>
-                                <td className="px-2 text-right text-sm text-gray-900">100%</td>
+                                <td className="px-1 sm:px-2 text-xs sm:text-sm text-gray-900 py-1.5 sm:py-2">Total</td>
+                                <td className="px-1 sm:px-2 text-right text-xs sm:text-sm text-gray-900">{totalMacros.toFixed(1)}g</td>
+                                <td className="px-1 sm:px-2 text-right text-xs sm:text-sm text-gray-900">100%</td>
                               </tr>
                             </tbody>
                           </table>
