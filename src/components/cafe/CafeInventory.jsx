@@ -1484,6 +1484,7 @@ const CafeInventory = ({ showToast }) => {
                         <option value="gm">gm</option>
                         <option value="ml">ml</option>
                         <option value="pcs">pcs</option>
+                        <option value="slice">slice</option>
                       </select>
                     </div>
                   )}
