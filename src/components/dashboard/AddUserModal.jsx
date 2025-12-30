@@ -13,6 +13,7 @@ const AddUserModal = ({ onClose, onSubmit, trainers = [], batches = [], editUser
     currentWeight: editUser.currentWeight || '',
     trainer: editUser.trainer || (trainers.length > 0 ? trainers[0].name : 'Unassigned'),
     batchId: editUser.batchId || (batches.length > 0 ? batches[0].id : ''),
+    enrollInCafeSubscription: editUser.enrollInCafeSubscription || false,
   } : {
     name: '',
     gender: 'Male',
@@ -24,6 +25,7 @@ const AddUserModal = ({ onClose, onSubmit, trainers = [], batches = [], editUser
     currentWeight: '',
     trainer: trainers.length > 0 ? trainers[0].name : 'Unassigned',
     batchId: batches.length > 0 ? batches[0].id : '',
+    enrollInCafeSubscription: false,
   });
 
   const handleChange = (e) => {
@@ -252,6 +254,41 @@ const AddUserModal = ({ onClose, onSubmit, trainers = [], batches = [], editUser
                   <option key={batch.id} value={batch.id}>{batch.name}</option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          {/* Cafe Subscription Enrollment */}
+          <div className="border-t pt-6">
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="enrollInCafeSubscription"
+                  checked={formData.enrollInCafeSubscription}
+                  onChange={(e) => setFormData({ ...formData, enrollInCafeSubscription: e.target.checked })}
+                  className="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-2 focus:ring-orange-500 mt-0.5"
+                />
+                <div className="flex-1">
+                  <label htmlFor="enrollInCafeSubscription" className="block text-sm font-semibold text-gray-900 cursor-pointer">
+                    🍽️ Enroll in Cafe Subscription
+                  </label>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Enable this to assign meals from the cafe menu and track calorie intake for this subscriber. 
+                    This will create a linked cafe customer account for food management.
+                  </p>
+                  {formData.enrollInCafeSubscription && (
+                    <div className="mt-3 p-3 bg-white rounded border border-orange-200">
+                      <p className="text-xs font-semibold text-orange-700 mb-2">✅ Cafe Features Enabled:</p>
+                      <ul className="text-xs text-gray-700 space-y-1">
+                        <li>• Assign daily meals from cafe menu</li>
+                        <li>• Track calorie consumption automatically</li>
+                        <li>• Monitor macro nutrients (protein, carbs, fat)</li>
+                        <li>• View meal history and progress</li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
