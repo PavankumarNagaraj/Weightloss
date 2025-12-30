@@ -711,9 +711,9 @@ const CafeMenu = ({ showToast }) => {
                       <div className="col-span-2">Extra Price (₹/unit)</div>
                       <div className="col-span-1">Action</div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                    <div className="flex flex-col sm:grid sm:grid-cols-12 gap-2">
                       {/* Searchable Material Dropdown */}
-                      <div className="col-span-1 sm:col-span-3 relative">
+                      <div className="sm:col-span-3 relative">
                         <input
                           type="text"
                           placeholder="Search inventory..."
@@ -753,18 +753,19 @@ const CafeMenu = ({ showToast }) => {
                         )}
                       </div>
                       
-                      <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 col-span-1">
+                      {/* Quantity & Unit - Side by side on mobile */}
+                      <div className="grid grid-cols-2 gap-2 sm:contents">
                         <input
                           type="number"
                           placeholder="Qty"
                           value={currentMaterial.quantity}
                           onChange={(e) => setCurrentMaterial({...currentMaterial, quantity: e.target.value})}
-                          className="px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                          className="px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:col-span-1"
                         />
                         <select
                           value={currentMaterial.unit}
                           onChange={(e) => setCurrentMaterial({...currentMaterial, unit: e.target.value})}
-                          className="px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                          className="px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:col-span-1"
                         >
                           <option value="gm">gm</option>
                           <option value="ml">ml</option>
@@ -772,34 +773,39 @@ const CafeMenu = ({ showToast }) => {
                           <option value="slice">slice</option>
                         </select>
                       </div>
+                      
                       <select
                         value={currentMaterial.cookingMethod}
                         onChange={(e) => setCurrentMaterial({...currentMaterial, cookingMethod: e.target.value})}
-                        className="col-span-1 sm:col-span-3 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-xs font-semibold"
+                        className="sm:col-span-3 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-xs font-semibold"
                       >
                         {Object.entries(COOKING_ADJUSTMENTS).map(([key, value]) => (
                           <option key={key} value={key}>{value.name}</option>
                         ))}
                       </select>
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="Extra ₹/unit"
-                        value={currentMaterial.extraPrice === 0 ? '' : currentMaterial.extraPrice}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setCurrentMaterial({...currentMaterial, extraPrice: value === '' ? 0 : parseFloat(value) || 0});
-                        }}
-                        className="col-span-2 px-2 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-                        title="Price per unit when customer adds extra"
-                      />
-                      <button
-                        type="button"
-                        onClick={addRawMaterial}
-                        className="col-span-1 px-2 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition text-sm"
-                      >
-                        Add
-                      </button>
+                      
+                      {/* Extra Price & Add Button - Side by side on mobile */}
+                      <div className="grid grid-cols-2 gap-2 sm:contents">
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="Extra ₹"
+                          value={currentMaterial.extraPrice === 0 ? '' : currentMaterial.extraPrice}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setCurrentMaterial({...currentMaterial, extraPrice: value === '' ? 0 : parseFloat(value) || 0});
+                          }}
+                          className="sm:col-span-2 px-2 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                          title="Price per unit when customer adds extra"
+                        />
+                        <button
+                          type="button"
+                          onClick={addRawMaterial}
+                          className="sm:col-span-1 px-2 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition text-sm"
+                        >
+                          Add
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -807,14 +813,14 @@ const CafeMenu = ({ showToast }) => {
                   {formData.rawMaterials.length > 0 && (
                     <div className="space-y-2 max-h-48 sm:max-h-40 overflow-y-auto">
                       {formData.rawMaterials.map((material, index) => (
-                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
+                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-2 sm:p-3">
                           <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <span className="font-semibold text-gray-900">{material.name}</span>
-                              <span className="text-gray-600 ml-2">- {material.quantity} {material.unit}</span>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-semibold text-gray-900 text-sm">{material.name}</span>
+                              <span className="text-gray-600 ml-2 text-xs sm:text-sm">({material.quantity}{material.unit})</span>
                               {material.extraPrice > 0 && (
-                                <span className="text-orange-600 ml-2 text-xs font-semibold">
-                                  (Extra: ₹{material.extraPrice}/{material.unit})
+                                <span className="text-orange-600 ml-2 text-xs">
+                                  +₹{material.extraPrice}/{material.unit}
                                 </span>
                               )}
                             </div>
