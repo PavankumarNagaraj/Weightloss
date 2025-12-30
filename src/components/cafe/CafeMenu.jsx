@@ -764,11 +764,11 @@ const CafeMenu = ({ showToast }) => {
                         value={currentMaterial.unit}
                         onChange={(e) => setCurrentMaterial({...currentMaterial, unit: e.target.value})}
                         className="col-span-1 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-                        disabled={currentMaterial.name && inventoryItems.find(item => item.name === currentMaterial.name)}
                       >
                         <option value="gm">gm</option>
                         <option value="ml">ml</option>
                         <option value="pcs">pcs</option>
+                        <option value="slice">slice</option>
                       </select>
                       <select
                         value={currentMaterial.cookingMethod}
