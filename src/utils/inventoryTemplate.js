@@ -119,8 +119,8 @@ export const inventoryTemplate = [
   { name: 'Fruit Juice (Mixed)', unit: 'ml', category: 'Refrigerated', minStock: 10000 },
   
   // Bakery Supplies
-  { name: 'Bread (White)', unit: 'pcs', category: 'Dry Store', minStock: 20 },
-  { name: 'Bread (Brown)', unit: 'pcs', category: 'Dry Store', minStock: 15 },
+  { name: 'Bread (White)', unit: 'slice', category: 'Dry Store', minStock: 20 },
+  { name: 'Bread (Brown)', unit: 'slice', category: 'Dry Store', minStock: 15 },
   { name: 'Burger Buns', unit: 'pcs', category: 'Dry Store', minStock: 50 },
   { name: 'Hot Dog Buns', unit: 'pcs', category: 'Dry Store', minStock: 30 },
   { name: 'Pizza Base', unit: 'pcs', category: 'Frozen', minStock: 20 },

@@ -7,8 +7,11 @@ const CafeSubscriptionManagement = ({ showToast }) => {
   const [customers, setCustomers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showExpiryModal, setShowExpiryModal] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState(null);
   const [subscriptionToDelete, setSubscriptionToDelete] = useState(null);
+  const [subscriptionToExpire, setSubscriptionToExpire] = useState(null);
+  const [expiryReason, setExpiryReason] = useState('');
   const [formData, setFormData] = useState({
     customerId: '',
     planType: 'monthly',
@@ -121,6 +124,34 @@ const CafeSubscriptionManagement = ({ showToast }) => {
     } catch (error) {
       showToast('❌ Error updating status');
       console.error(error);
+    }
+  };
+
+  const handleExpireClick = (subscription) => {
+    setSubscriptionToExpire(subscription);
+    setExpiryReason('');
+    setShowExpiryModal(true);
+  };
+
+  const confirmExpire = async () => {
+    if (subscriptionToExpire && expiryReason.trim()) {
+      try {
+        await updateSubscription(subscriptionToExpire.id, { 
+          status: 'expired',
+          special_instructions: (subscriptionToExpire.special_instructions || '') + 
+            `\n[EXPIRED: ${new Date().toLocaleDateString()}] Reason: ${expiryReason}`
+        });
+        showToast('✅ Subscription expired');
+        setShowExpiryModal(false);
+        setSubscriptionToExpire(null);
+        setExpiryReason('');
+        await loadData();
+      } catch (error) {
+        showToast('❌ Error expiring subscription');
+        console.error(error);
+      }
+    } else {
+      showToast('⚠️ Please provide a reason for expiry');
     }
   };
 
@@ -364,7 +395,7 @@ const CafeSubscriptionManagement = ({ showToast }) => {
                             <Pause className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleStatusChange(subscription, 'expired')}
+                            onClick={() => handleExpireClick(subscription)}
                             className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
                             title="Manually expire subscription"
                           >
@@ -382,7 +413,7 @@ const CafeSubscriptionManagement = ({ showToast }) => {
                             <Play className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleStatusChange(subscription, 'expired')}
+                            onClick={() => handleExpireClick(subscription)}
                             className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
                             title="Manually expire subscription"
                           >
@@ -703,6 +734,59 @@ const CafeSubscriptionManagement = ({ showToast }) => {
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition"
                 >
                   Delete Subscription
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expiry Reason Modal */}
+      {showExpiryModal && subscriptionToExpire && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-orange-600">Expire Subscription</h3>
+                <button onClick={() => setShowExpiryModal(false)}>
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-gray-700 mb-2">Please provide a reason for expiring this subscription:</p>
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-3">
+                  <p className="text-sm font-semibold text-gray-900">{subscriptionToExpire.customer?.name}</p>
+                  <p className="text-sm text-gray-600">{subscriptionToExpire.plan_type} - ₹{subscriptionToExpire.monthly_amount}</p>
+                </div>
+                
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Reason for Expiry *
+                  </label>
+                  <textarea
+                    value={expiryReason}
+                    onChange={(e) => setExpiryReason(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="e.g., Customer requested cancellation, Payment issues, Moved to different location..."
+                    rows="4"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowExpiryModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmExpire}
+                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition"
+                >
+                  Expire Subscription
                 </button>
               </div>
             </div>
