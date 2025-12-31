@@ -44,6 +44,7 @@ import { addCustomer, addSubscription } from '../services/cafeService';
 import { useConfirm } from '../hooks/useConfirm';
 import * as dataService from '../services/dataService';
 import { initializeExerciseLibrary } from '../utils/initializeExercises';
+import { useTenant } from '../contexts/TenantContext';
 
 const TrainerDashboard = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -56,11 +57,14 @@ const TrainerDashboard = ({ onLogout }) => {
   const { confirmState, confirm, closeConfirm } = useConfirm();
   const [editingUser, setEditingUser] = useState(null);
   const { toasts, showToast, removeToast } = useToast();
+  const { currentUser, currentTenant, userRole, isAdmin, isSuperAdmin } = useTenant();
   
-  // Get current user role and info
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-  const userRole = localStorage.getItem('userRole') || 'admin';
-  const isAdmin = userRole === 'admin';
+  // Fallback to localStorage for backward compatibility
+  const localUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const localRole = localStorage.getItem('userRole') || 'admin';
+  const effectiveUser = currentUser || localUser;
+  const effectiveRole = userRole || localRole;
+  const effectiveIsAdmin = isAdmin || effectiveRole === 'admin';
 
   // Filter tabs based on role
   const allTabs = [
