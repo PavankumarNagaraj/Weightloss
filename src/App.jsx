@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './components/HomePage';
-import TrainerLogin from './components/TrainerLogin';
 import TrainerDashboard from './components/TrainerDashboard';
 import UserDashboard from './components/UserDashboard';
 import UserLogin from './components/UserLogin';
 import NutrientCalculator from './components/NutrientCalculator';
 import CafeManagement from './components/CafeManagement';
 import ProtectedRoute from './components/ProtectedRoute';
-import SupabaseLogin from './components/SupabaseLogin';
-import SupabaseGoogleLogin from './components/SupabaseGoogleLogin';
+import UnifiedLogin from './components/UnifiedLogin';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
 import GoogleFitDashboard from './components/GoogleFitDashboard';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsConditions from './components/TermsConditions';
-import { useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { TenantProvider } from './contexts/TenantContext';
 import { migrateOrderDates } from './services/cafeService';
 
 function App() {
@@ -38,7 +38,9 @@ function App() {
 
   return (
     <Router>
-      <Routes>
+      <AuthProvider>
+        <TenantProvider>
+          <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/cafe/*" element={<CafeManagement />} />
         <Route path="/calculator" element={<NutrientCalculator />} />
@@ -48,16 +50,14 @@ function App() {
         {/* Weight Loss Routes */}
         <Route path="/weightloss" element={<Navigate to="/weightloss/auth" replace />} />
         
-        {/* New Supabase Auth Routes with Google OAuth */}
-        <Route path="/weightloss/auth" element={<SupabaseGoogleLogin />} />
-        <Route path="/weightloss/google-fit/:userId" element={<GoogleFitDashboard />} />
+        {/* Unified Authentication */}
+        <Route path="/weightloss/auth" element={<UnifiedLogin />} />
+        <Route path="/weightloss/login" element={<Navigate to="/weightloss/auth" replace />} />
         
-        {/* Legacy Routes (still supported) */}
-        <Route 
-          path="/weightloss/login" 
-          element={isAuthenticated ? <Navigate to="/weightloss/dashboard" /> : <TrainerLogin onLogin={handleLogin} />} 
-        />
-        <Route path="/weightloss/user-login" element={<UserLogin />} />
+        {/* Super Admin Dashboard */}
+        <Route path="/weightloss/super-admin" element={<SuperAdminDashboard />} />
+        
+        {/* Admin/Trainer Dashboard */}
         <Route 
           path="/weightloss/dashboard/*" 
           element={
@@ -66,14 +66,20 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
+        {/* User Routes */}
+        <Route path="/weightloss/user-login" element={<UserLogin />} />
         <Route path="/weightloss/user/:userId" element={<UserDashboard />} />
+        <Route path="/weightloss/google-fit/:userId" element={<GoogleFitDashboard />} />
         
         {/* Legacy redirects for backward compatibility */}
-        <Route path="/login" element={<Navigate to="/weightloss/login" replace />} />
+        <Route path="/login" element={<Navigate to="/weightloss/auth" replace />} />
         <Route path="/user-login" element={<Navigate to="/weightloss/user-login" replace />} />
         <Route path="/dashboard/*" element={<Navigate to="/weightloss/dashboard" replace />} />
         <Route path="/user/:userId" element={<Navigate to="/weightloss/user/:userId" replace />} />
-      </Routes>
+          </Routes>
+        </TenantProvider>
+      </AuthProvider>
     </Router>
   );
 }
