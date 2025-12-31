@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Heart, Footprints, Flame, Moon, RefreshCw, ChevronLeft, ChevronRight, Database, Cloud, Calendar, Download } from 'lucide-react';
+import { Activity, Heart, Footprints, Flame, Moon, RefreshCw, ChevronLeft, ChevronRight, Database, Cloud, Calendar, Download, Chrome } from 'lucide-react';
 import { isConnected } from '../services/googleFitClient';
 import { getFitnessData, syncFitnessDataForDate } from '../services/googleFitSync';
 import { getRangeStats, syncDateRange } from '../services/googleFitRanges';
 import { useAuth } from '../contexts/AuthContext';
+import supabase from '../config/supabaseClient';
 
 const GoogleFitWidget = () => {
   const { user } = useAuth();
@@ -102,24 +103,71 @@ const GoogleFitWidget = () => {
     );
   }
 
+  const handleConnectGoogleFit = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}${window.location.pathname}`,
+          scopes: [
+            'https://www.googleapis.com/auth/fitness.activity.read',
+            'https://www.googleapis.com/auth/fitness.body.read',
+            'https://www.googleapis.com/auth/fitness.heart_rate.read',
+            'https://www.googleapis.com/auth/fitness.sleep.read',
+            'https://www.googleapis.com/auth/fitness.location.read'
+          ].join(' '),
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error connecting Google Fit:', err);
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   if (!connected) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <div className="flex items-start gap-3">
-          <Activity className="w-6 h-6 text-blue-600 flex-shrink-0" />
-          <div>
-            <h3 className="font-semibold text-blue-900 mb-1">
-              Google Fit Not Connected
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="bg-blue-100 p-3 rounded-full">
+            <Activity className="w-8 h-8 text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-blue-900 mb-2">
+              🏃 Connect Google Fit
             </h3>
-            <p className="text-sm text-blue-700 mb-3">
-              Connect Google Fit to automatically track activity, heart rate, and sleep data.
+            <p className="text-sm text-blue-700 mb-4">
+              Automatically sync your activity, steps, heart rate, sleep, and calories burned from Google Fit.
             </p>
+            <div className="bg-white rounded-lg p-4 mb-4 border border-blue-200">
+              <p className="text-xs font-semibold text-blue-900 mb-2">✨ Features you'll get:</p>
+              <ul className="text-xs text-gray-700 space-y-1">
+                <li>• 📊 Real-time activity tracking</li>
+                <li>• 👟 Daily step count and distance</li>
+                <li>• ❤️ Heart rate monitoring</li>
+                <li>• 🔥 Calories burned tracking</li>
+                <li>• 😴 Sleep quality analysis</li>
+                <li>• 📈 Historical data sync (last 30 days)</li>
+              </ul>
+            </div>
             <button
-              onClick={() => window.location.href = '/weightloss/auth'}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
+              onClick={handleConnectGoogleFit}
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition shadow-lg disabled:opacity-50"
             >
-              Connect Google Fit
+              <Chrome className="w-5 h-5" />
+              {loading ? 'Connecting...' : 'Connect with Google'}
             </button>
+            <p className="text-xs text-gray-500 mt-3">
+              🔒 Secure OAuth connection • Your data stays private
+            </p>
           </div>
         </div>
       </div>
