@@ -85,7 +85,7 @@ const TrainerDashboard = ({ onLogout }) => {
     { name: 'Settings', path: '/weightloss/dashboard/settings', icon: SettingsIcon, roles: ['admin'] },
   ];
   
-  const tabs = allTabs.filter(tab => tab.roles.includes(userRole));
+  const tabs = allTabs.filter(tab => tab.roles.includes(effectiveRole));
 
   useEffect(() => {
     // Initialize exercise library on first load
