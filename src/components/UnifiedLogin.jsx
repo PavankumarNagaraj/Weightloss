@@ -44,7 +44,7 @@ const UnifiedLogin = () => {
               name: formData.name,
               role: formData.role,
             },
-            emailRedirectTo: `${window.location.origin}/weightloss/auth`,
+            emailRedirectTo: 'https://afterburn.fit/weightloss/auth',
           },
         });
 
