@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, X, Users, Phone, Mail, MapPin, Search } from 'lucide-react';
-import { getCustomers, addCustomer, updateCustomer, deleteCustomer } from '../../services/cafeService';
+import { getCustomers, addCustomer, updateCustomer, deleteCustomer, addSubscription } from '../../services/cafeService';
 
 const CafeCustomers = ({ showToast }) => {
   const [customers, setCustomers] = useState([]);
@@ -35,8 +35,38 @@ const CafeCustomers = ({ showToast }) => {
         await updateCustomer(editingCustomer.id, formData);
         showToast('✅ Customer updated successfully');
       } else {
-        await addCustomer(formData);
+        const newCustomer = await addCustomer(formData);
         showToast('✅ Customer added successfully');
+        
+        // If customer type is subscription, automatically create a subscription
+        if (formData.customerType === 'subscription') {
+          try {
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setMonth(endDate.getMonth() + 1); // Default 1 month
+            
+            await addSubscription({
+              customerId: newCustomer.id,
+              planType: 'custom',
+              mealTypes: ['lunch', 'dinner'],
+              deliveryDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+              startDate: startDate.toISOString().split('T')[0],
+              endDate: endDate.toISOString().split('T')[0],
+              monthlyAmount: 0,
+              totalMealsAllowed: 25,
+              maxValidityDays: 45,
+              breakfastTime: '08:00',
+              lunchTime: '13:00',
+              dinnerTime: '20:00',
+              status: 'active',
+              specialInstructions: 'Auto-created subscription for new subscriber'
+            });
+            showToast('✅ Subscription created automatically!');
+          } catch (subError) {
+            console.error('Error creating subscription:', subError);
+            showToast('⚠️ Customer added but subscription creation failed');
+          }
+        }
       }
 
       resetForm();
