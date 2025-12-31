@@ -86,6 +86,17 @@ const TrainerDashboard = ({ onLogout }) => {
   ];
   
   const tabs = allTabs.filter(tab => tab.roles.includes(effectiveRole));
+  
+  // Debug logging
+  console.log('TrainerDashboard Debug:', {
+    userRole,
+    localRole,
+    effectiveRole,
+    effectiveIsAdmin,
+    tabsCount: tabs.length,
+    currentUser,
+    localUser
+  });
 
   useEffect(() => {
     // Initialize exercise library on first load
