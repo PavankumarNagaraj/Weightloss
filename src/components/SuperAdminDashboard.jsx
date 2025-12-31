@@ -124,7 +124,12 @@ const SuperAdminDashboard = () => {
   };
 
   const viewTenant = (tenantId) => {
+    // Set authentication and tenant context
+    localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('currentTenantId', tenantId);
+    localStorage.setItem('userRole', 'admin');
+    
+    // Navigate to tenant dashboard
     navigate('/weightloss/dashboard');
   };
 
