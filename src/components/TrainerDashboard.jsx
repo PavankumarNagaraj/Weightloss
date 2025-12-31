@@ -40,7 +40,7 @@ import AddUserModal from './dashboard/AddUserModal';
 import Toast from './Toast';
 import ConfirmModal from './ConfirmModal';
 import { useToast } from '../hooks/useToast';
-import { addCustomer } from '../services/cafeService';
+import { addCustomer, addSubscription } from '../services/cafeService';
 import { useConfirm } from '../hooks/useConfirm';
 import * as dataService from '../services/dataService';
 import { initializeExerciseLibrary } from '../utils/initializeExercises';
@@ -145,7 +145,7 @@ const TrainerDashboard = ({ onLogout }) => {
         // Edit mode: first param is userId, second is userData
         const userId = userIdOrData;
         
-        // If enrolling in cafe subscription, create cafe customer
+        // If enrolling in cafe subscription, create cafe customer and subscription
         if (userData.enrollInCafeSubscription && !userData.cafeCustomerId) {
           try {
             const existingUser = users.find(u => u.id === userId);
@@ -157,10 +157,33 @@ const TrainerDashboard = ({ onLogout }) => {
               customerType: 'weightloss_subscriber'
             });
             userData.cafeCustomerId = cafeCustomer.id;
-            showToast('Cafe customer account created successfully!', 'success');
+            
+            // Create default cafe subscription
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + (userData.programType === '90-day' ? 90 : 60));
+            
+            const subscription = await addSubscription({
+              customerId: cafeCustomer.id,
+              planType: 'custom',
+              mealTypes: ['lunch', 'dinner'],
+              deliveryDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+              startDate: startDate.toISOString().split('T')[0],
+              endDate: endDate.toISOString().split('T')[0],
+              monthlyAmount: 0,
+              totalMealsAllowed: userData.programType === '90-day' ? 180 : 120,
+              maxValidityDays: userData.programType === '90-day' ? 90 : 60,
+              breakfastTime: '08:00',
+              lunchTime: '13:00',
+              dinnerTime: '20:00',
+              status: 'active',
+              specialInstructions: `Weight loss program: ${userData.programType}, Meal plan: ${userData.mealPlan}`
+            });
+            userData.cafeSubscriptionId = subscription.id;
+            showToast('Cafe subscription created successfully!', 'success');
           } catch (cafeError) {
-            console.error('Error creating cafe customer:', cafeError);
-            showToast('User updated but cafe account creation failed', 'warning');
+            console.error('Error creating cafe subscription:', cafeError);
+            showToast('User updated but cafe subscription creation failed', 'warning');
           }
         }
         
@@ -173,7 +196,7 @@ const TrainerDashboard = ({ onLogout }) => {
         // Add mode: first param is userData
         const newUserData = userIdOrData;
         
-        // If enrolling in cafe subscription, create cafe customer first
+        // If enrolling in cafe subscription, create cafe customer and subscription
         if (newUserData.enrollInCafeSubscription) {
           try {
             const cafeCustomer = await addCustomer({
@@ -184,10 +207,33 @@ const TrainerDashboard = ({ onLogout }) => {
               customerType: 'weightloss_subscriber'
             });
             newUserData.cafeCustomerId = cafeCustomer.id;
-            showToast('Cafe customer account created!', 'success');
+            
+            // Create default cafe subscription
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + (newUserData.programType === '90-day' ? 90 : 60));
+            
+            const subscription = await addSubscription({
+              customerId: cafeCustomer.id,
+              planType: 'custom',
+              mealTypes: ['lunch', 'dinner'],
+              deliveryDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+              startDate: startDate.toISOString().split('T')[0],
+              endDate: endDate.toISOString().split('T')[0],
+              monthlyAmount: 0,
+              totalMealsAllowed: newUserData.programType === '90-day' ? 180 : 120,
+              maxValidityDays: newUserData.programType === '90-day' ? 90 : 60,
+              breakfastTime: '08:00',
+              lunchTime: '13:00',
+              dinnerTime: '20:00',
+              status: 'active',
+              specialInstructions: `Weight loss program: ${newUserData.programType}, Meal plan: ${newUserData.mealPlan}`
+            });
+            newUserData.cafeSubscriptionId = subscription.id;
+            showToast('Cafe subscription created successfully!', 'success');
           } catch (cafeError) {
-            console.error('Error creating cafe customer:', cafeError);
-            showToast('User created but cafe account creation failed', 'warning');
+            console.error('Error creating cafe subscription:', cafeError);
+            showToast('User created but cafe subscription creation failed', 'warning');
           }
         }
         

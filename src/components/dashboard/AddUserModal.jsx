@@ -217,6 +217,7 @@ const AddUserModal = ({ onClose, onSubmit, trainers = [], batches = [], editUser
               >
                 <option value="Veg">Vegetarian</option>
                 <option value="Non-Veg">Non-Vegetarian</option>
+                <option value="Weightloss Mix">Weightloss Mix</option>
                 <option value="Detox">Detox</option>
                 <option value="Custom">Custom</option>
               </select>
