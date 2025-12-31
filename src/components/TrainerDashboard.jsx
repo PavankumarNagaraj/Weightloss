@@ -63,8 +63,9 @@ const TrainerDashboard = ({ onLogout }) => {
   const localUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
   const localRole = localStorage.getItem('userRole') || 'admin';
   const effectiveUser = currentUser || localUser;
-  const effectiveRole = userRole || localRole;
-  const effectiveIsAdmin = isAdmin || effectiveRole === 'admin';
+  // Map super_admin to admin for dashboard access
+  const effectiveRole = (userRole === 'super_admin' || localRole === 'super_admin') ? 'admin' : (userRole || localRole);
+  const effectiveIsAdmin = isAdmin || effectiveRole === 'admin' || isSuperAdmin;
 
   // Filter tabs based on role
   const allTabs = [
