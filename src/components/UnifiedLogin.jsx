@@ -35,40 +35,102 @@ const UnifiedLogin = () => {
 
     try {
       if (isSignUp) {
-        // Sign up
-        await signUp(formData.email, formData.password, {
-          name: formData.name,
-          role: formData.role,
+        // Sign up with Supabase Auth
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              name: formData.name,
+              role: formData.role,
+            },
+            emailRedirectTo: `${window.location.origin}/weightloss/auth`,
+          },
         });
-        alert('Account created! Please check your email to verify your account.');
+
+        if (signUpError) throw signUpError;
+
+        // Create user record in database
+        if (authData.user) {
+          const { error: dbError } = await supabase
+            .from('users')
+            .insert([{
+              id: authData.user.id,
+              email: formData.email,
+              name: formData.name,
+              role: formData.role,
+              tenant_id: formData.role === 'super_admin' ? null : undefined,
+              created_at: new Date().toISOString(),
+            }]);
+
+          if (dbError) {
+            console.error('Error creating user record:', dbError);
+            // Don't throw - auth user is created, they can login after verification
+          }
+        }
+
+        // Check if email confirmation is required
+        if (authData.user && !authData.user.confirmed_at) {
+          alert('Account created! Please check your email to verify your account. Check spam folder if you don\'t see it.');
+        } else {
+          alert('Account created successfully! You can now login.');
+        }
         setIsSignUp(false);
       } else {
         // Sign in
-        await signIn(formData.email, formData.password);
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) {
+          // Check if it's an email not confirmed error
+          if (signInError.message.includes('Email not confirmed')) {
+            setError('Please verify your email before logging in. Check your inbox and spam folder.');
+            return;
+          }
+          throw signInError;
+        }
         
         // Fetch user role and tenant from database
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('id, email, name, role, tenant_id')
-          .eq('email', formData.email)
+          .eq('id', signInData.user.id)
           .single();
 
-        if (userError) throw userError;
+        if (userError) {
+          // User exists in auth but not in users table - create it
+          if (userError.code === 'PGRST116') {
+            const { error: createError } = await supabase
+              .from('users')
+              .insert([{
+                id: signInData.user.id,
+                email: signInData.user.email,
+                name: signInData.user.user_metadata?.name || 'User',
+                role: signInData.user.user_metadata?.role || 'user',
+                created_at: new Date().toISOString(),
+              }]);
 
-        // Route based on role
-        switch (userData.role) {
-          case 'super_admin':
-            navigate('/weightloss/super-admin');
-            break;
-          case 'admin':
-          case 'trainer':
-            navigate('/weightloss/dashboard');
-            break;
-          case 'user':
-            navigate(`/weightloss/user/${userData.id}`);
-            break;
-          default:
-            navigate('/weightloss/dashboard');
+            if (createError) throw createError;
+
+            // Fetch again
+            const { data: newUserData, error: fetchError } = await supabase
+              .from('users')
+              .select('id, email, name, role, tenant_id')
+              .eq('id', signInData.user.id)
+              .single();
+
+            if (fetchError) throw fetchError;
+            
+            // Route based on role
+            routeByRole(newUserData);
+          } else {
+            throw userError;
+          }
+        } else {
+          // Route based on role
+          routeByRole(userData);
         }
       }
     } catch (err) {
@@ -76,6 +138,23 @@ const UnifiedLogin = () => {
       setError(err.message || 'Authentication failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const routeByRole = (userData) => {
+    switch (userData.role) {
+      case 'super_admin':
+        navigate('/weightloss/super-admin');
+        break;
+      case 'admin':
+      case 'trainer':
+        navigate('/weightloss/dashboard');
+        break;
+      case 'user':
+        navigate(`/weightloss/user/${userData.id}`);
+        break;
+      default:
+        navigate('/weightloss/dashboard');
     }
   };
 
