@@ -202,6 +202,7 @@ const AddUserModal = ({ onClose, onSubmit, trainers = [], batches = [], editUser
               >
                 <option value="60-day">60 Days</option>
                 <option value="90-day">90 Days</option>
+                <option value="unlimited">Unlimited</option>
               </select>
             </div>
 

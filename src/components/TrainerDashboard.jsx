@@ -161,7 +161,11 @@ const TrainerDashboard = ({ onLogout }) => {
             // Create default cafe subscription
             const startDate = new Date();
             const endDate = new Date();
-            endDate.setDate(endDate.getDate() + (userData.programType === '90-day' ? 90 : 60));
+            if (userData.programType === 'unlimited') {
+              endDate.setFullYear(endDate.getFullYear() + 10); // 10 years for unlimited
+            } else {
+              endDate.setDate(endDate.getDate() + (userData.programType === '90-day' ? 90 : 60));
+            }
             
             const subscription = await addSubscription({
               customerId: cafeCustomer.id,
@@ -171,8 +175,8 @@ const TrainerDashboard = ({ onLogout }) => {
               startDate: startDate.toISOString().split('T')[0],
               endDate: endDate.toISOString().split('T')[0],
               monthlyAmount: 0,
-              totalMealsAllowed: userData.programType === '90-day' ? 180 : 120,
-              maxValidityDays: userData.programType === '90-day' ? 90 : 60,
+              totalMealsAllowed: userData.programType === 'unlimited' ? 9999 : (userData.programType === '90-day' ? 180 : 120),
+              maxValidityDays: userData.programType === 'unlimited' ? 3650 : (userData.programType === '90-day' ? 90 : 60),
               breakfastTime: '08:00',
               lunchTime: '13:00',
               dinnerTime: '20:00',
@@ -211,7 +215,11 @@ const TrainerDashboard = ({ onLogout }) => {
             // Create default cafe subscription
             const startDate = new Date();
             const endDate = new Date();
-            endDate.setDate(endDate.getDate() + (newUserData.programType === '90-day' ? 90 : 60));
+            if (newUserData.programType === 'unlimited') {
+              endDate.setFullYear(endDate.getFullYear() + 10); // 10 years for unlimited
+            } else {
+              endDate.setDate(endDate.getDate() + (newUserData.programType === '90-day' ? 90 : 60));
+            }
             
             const subscription = await addSubscription({
               customerId: cafeCustomer.id,
@@ -221,8 +229,8 @@ const TrainerDashboard = ({ onLogout }) => {
               startDate: startDate.toISOString().split('T')[0],
               endDate: endDate.toISOString().split('T')[0],
               monthlyAmount: 0,
-              totalMealsAllowed: newUserData.programType === '90-day' ? 180 : 120,
-              maxValidityDays: newUserData.programType === '90-day' ? 90 : 60,
+              totalMealsAllowed: newUserData.programType === 'unlimited' ? 9999 : (newUserData.programType === '90-day' ? 180 : 120),
+              maxValidityDays: newUserData.programType === 'unlimited' ? 3650 : (newUserData.programType === '90-day' ? 90 : 60),
               breakfastTime: '08:00',
               lunchTime: '13:00',
               dinnerTime: '20:00',
