@@ -47,6 +47,7 @@ import { initializeExerciseLibrary } from '../utils/initializeExercises';
 import { useTenant } from '../contexts/TenantContext';
 import { createUserWithAuth } from '../utils/userAuthHelper';
 import supabase from '../config/supabaseClient';
+import { ArrowLeft } from 'lucide-react';
 
 const TrainerDashboard = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -432,6 +433,16 @@ const TrainerDashboard = ({ onLogout }) => {
   };
 
   const currentPath = location.pathname;
+  const isSuperAdminViewing = localStorage.getItem('superAdminSession') === 'true';
+
+  const returnToSuperAdmin = () => {
+    // Clear viewing session
+    localStorage.removeItem('superAdminSession');
+    localStorage.removeItem('viewingTenantId');
+    localStorage.removeItem('currentTenantId');
+    localStorage.setItem('userRole', 'super_admin');
+    navigate('/weightloss/super-admin');
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -439,6 +450,15 @@ const TrainerDashboard = ({ onLogout }) => {
       <div className="w-64 bg-white shadow-lg flex flex-col h-screen">
         {/* Header */}
         <div className="p-6 border-b flex-shrink-0">
+          {isSuperAdminViewing && (
+            <button
+              onClick={returnToSuperAdmin}
+              className="mb-3 flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Super Admin
+            </button>
+          )}
           <h1 className="text-2xl font-bold text-primary">Weight Loss</h1>
           <p className="text-sm text-gray-600">{effectiveIsAdmin ? 'Admin' : 'Trainer'} Dashboard</p>
           {!effectiveIsAdmin && effectiveUser.name && (

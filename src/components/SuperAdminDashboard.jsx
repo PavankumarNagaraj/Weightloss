@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Plus, Edit, Trash2, Users, Settings, LogOut, X } from 'lucide-react';
+import { Building2, Plus, Edit, Trash2, Users, Settings, LogOut, X, UserPlus } from 'lucide-react';
 import supabase from '../config/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { useTenant } from '../contexts/TenantContext';
@@ -13,6 +13,8 @@ const SuperAdminDashboard = () => {
   const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState(null);
   const [editingTenant, setEditingTenant] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -20,6 +22,11 @@ const SuperAdminDashboard = () => {
     contact_email: '',
     contact_phone: '',
     subscription_plan: 'basic',
+  });
+  const [adminFormData, setAdminFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
   });
 
   useEffect(() => {
@@ -124,13 +131,71 @@ const SuperAdminDashboard = () => {
   };
 
   const viewTenant = (tenantId) => {
-    // Set authentication and tenant context
+    // Preserve super admin session
+    localStorage.setItem('superAdminSession', 'true');
+    localStorage.setItem('originalRole', 'super_admin');
+    
+    // Set authentication and tenant context for viewing
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('currentTenantId', tenantId);
     localStorage.setItem('userRole', 'admin');
+    localStorage.setItem('viewingTenantId', tenantId);
     
     // Navigate to tenant dashboard
     navigate('/weightloss/dashboard');
+  };
+
+  const openAdminModal = (tenant) => {
+    setSelectedTenant(tenant);
+    setAdminFormData({ name: '', email: '', phone: '' });
+    setShowAdminModal(true);
+  };
+
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+    try {
+      // Generate temporary password
+      const tempPassword = `${adminFormData.name.substring(0, 3).toLowerCase()}${adminFormData.phone?.slice(-4) || '1234'}!`;
+
+      // Create Supabase auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: adminFormData.email,
+        password: tempPassword,
+        options: {
+          data: {
+            name: adminFormData.name,
+            phone: adminFormData.phone,
+            role: 'admin'
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      // Create user record in database
+      const { error: dbError } = await supabase
+        .from('users')
+        .insert([{
+          id: authData.user.id,
+          email: adminFormData.email,
+          name: adminFormData.name,
+          phone: adminFormData.phone,
+          role: 'admin',
+          tenant_id: selectedTenant.id,
+          created_at: new Date().toISOString(),
+        }]);
+
+      if (dbError) throw dbError;
+
+      alert(`Admin created successfully!\n\nLogin Credentials:\nEmail: ${adminFormData.email}\nPassword: ${tempPassword}\n\nPlease share these credentials with the admin.`);
+      
+      setShowAdminModal(false);
+      setAdminFormData({ name: '', email: '', phone: '' });
+      fetchTenants();
+    } catch (error) {
+      console.error('Error creating admin:', error);
+      alert('Error creating admin: ' + error.message);
+    }
   };
 
   return (
@@ -297,6 +362,13 @@ const SuperAdminDashboard = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
                           <button
+                            onClick={() => openAdminModal(tenant)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
+                            title="Add admin"
+                          >
+                            <UserPlus className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => viewTenant(tenant.id)}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                             title="View tenant"
@@ -428,6 +500,97 @@ const SuperAdminDashboard = () => {
                   className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg font-bold hover:shadow-lg transition"
                 >
                   {editingTenant ? 'Update Tenant' : 'Create Tenant'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Admin Modal */}
+      {showAdminModal && selectedTenant && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">
+                Add Admin for {selectedTenant.name}
+              </h3>
+              <button 
+                onClick={() => setShowAdminModal(false)} 
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateAdmin} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Admin Name *
+                </label>
+                <input
+                  type="text"
+                  value={adminFormData.name}
+                  onChange={(e) => setAdminFormData({...adminFormData, name: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  value={adminFormData.email}
+                  onChange={(e) => setAdminFormData({...adminFormData, email: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="admin@example.com"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This will be used for login
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={adminFormData.phone}
+                  onChange={(e) => setAdminFormData({...adminFormData, phone: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="9876543210"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Used for password generation
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> A temporary password will be generated and displayed after creation. 
+                  Please share it with the admin securely.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAdminModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-bold hover:shadow-lg transition"
+                >
+                  Create Admin
                 </button>
               </div>
             </form>
