@@ -155,7 +155,7 @@ const SuperAdminDashboard = () => {
     e.preventDefault();
     try {
       // Generate temporary password
-      const tempPassword = `${adminFormData.name.substring(0, 3).toLowerCase()}${adminFormData.phone?.slice(-4) || '1234'}!`;
+      const tempPassword = 'User@123';
 
       // Create Supabase auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({

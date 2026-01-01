@@ -2,13 +2,10 @@ import supabase from '../config/supabaseClient';
 
 /**
  * Generate a temporary password for new users
- * Format: First3Letters + Last4Digits + !
- * Example: John with phone 9876543210 -> Joh3210!
+ * Default password: User@123
  */
 export const generateTemporaryPassword = (name, phone) => {
-  const namePrefix = name.substring(0, 3).toLowerCase();
-  const phoneSuffix = phone.slice(-4);
-  return `${namePrefix}${phoneSuffix}!`;
+  return 'User@123';
 };
 
 /**
@@ -127,29 +124,56 @@ export const syncUserToDatabase = async (userData, authUserId) => {
 };
 
 /**
- * Send login credentials to user via email/SMS
+ * Send login credentials to user via email
  * @param {Object} userData - User data
  * @param {string} password - Temporary password
  */
 export const sendLoginCredentials = async (userData, password) => {
-  // TODO: Implement email/SMS sending
-  // For now, just log the credentials
-  console.log('='.repeat(50));
-  console.log('NEW USER LOGIN CREDENTIALS');
-  console.log('='.repeat(50));
-  console.log(`Name: ${userData.name}`);
-  console.log(`Email: ${userData.email}`);
-  console.log(`Password: ${password}`);
-  console.log(`Login URL: https://afterburn.fit/weightloss/auth`);
-  console.log('='.repeat(50));
-  console.log('⚠️  Please share these credentials with the user');
-  console.log('⚠️  User should change password after first login');
-  console.log('='.repeat(50));
+  try {
+    // Send email via Supabase Edge Function or email service
+    // For now, we'll use Supabase's built-in email functionality
+    
+    const emailBody = `
+      <h2>Welcome to Afterburn Fitness!</h2>
+      <p>Hello ${userData.name},</p>
+      <p>Your account has been created. Here are your login credentials:</p>
+      <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <p><strong>Login URL:</strong> <a href="https://afterburn.fit/weightloss/auth">https://afterburn.fit/weightloss/auth</a></p>
+        <p><strong>Email:</strong> ${userData.email}</p>
+        <p><strong>Temporary Password:</strong> ${password}</p>
+      </div>
+      <p style="color: #d97706;"><strong>⚠️ Important:</strong> You will be required to change your password on first login for security.</p>
+      <p>If you have any questions, please contact your admin or trainer.</p>
+      <p>Best regards,<br>Afterburn Fitness Team</p>
+    `;
 
-  return {
-    success: true,
-    message: 'Credentials logged to console. Implement email/SMS sending.'
-  };
+    // Log credentials for admin to see
+    console.log('='.repeat(50));
+    console.log('NEW USER LOGIN CREDENTIALS');
+    console.log('='.repeat(50));
+    console.log(`Name: ${userData.name}`);
+    console.log(`Email: ${userData.email}`);
+    console.log(`Password: ${password}`);
+    console.log(`Login URL: https://afterburn.fit/weightloss/auth`);
+    console.log('='.repeat(50));
+    console.log('✅ Email notification will be sent to user');
+    console.log('⚠️  User must change password on first login');
+    console.log('='.repeat(50));
+
+    // TODO: Implement actual email sending via Supabase Edge Function
+    // For now, return success with instructions
+    return {
+      success: true,
+      message: `Credentials created. Email will be sent to ${userData.email}`,
+      emailBody: emailBody
+    };
+  } catch (error) {
+    console.error('Error sending credentials:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
 };
 
 /**

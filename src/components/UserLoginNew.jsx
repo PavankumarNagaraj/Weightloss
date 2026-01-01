@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import supabase from '../config/supabaseClient';
+import ForcePasswordChange from './ForcePasswordChange';
 
 const UserLoginNew = () => {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ const UserLoginNew = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     // If already logged in, redirect to dashboard
@@ -67,6 +70,17 @@ const UserLoginNew = () => {
         throw signInError;
       }
 
+      // Check if this is first login (password not changed)
+      const passwordChanged = signInData.user.user_metadata?.password_changed;
+      
+      if (!passwordChanged && password === 'User@123') {
+        // First time login with default password - force password change
+        setCurrentUser(signInData.user);
+        setShowPasswordChange(true);
+        setLoading(false);
+        return;
+      }
+
       // Check user role and redirect
       await checkUserAndRedirect(signInData.user.id);
 
@@ -76,6 +90,19 @@ const UserLoginNew = () => {
       setLoading(false);
     }
   };
+
+  const handlePasswordChanged = async () => {
+    // After password change, redirect to appropriate dashboard
+    setShowPasswordChange(false);
+    if (currentUser) {
+      await checkUserAndRedirect(currentUser.id);
+    }
+  };
+
+  // Show password change screen if needed
+  if (showPasswordChange && currentUser) {
+    return <ForcePasswordChange user={currentUser} onPasswordChanged={handlePasswordChanged} />;
+  }
 
   const handleForgotPassword = async () => {
     if (!email) {

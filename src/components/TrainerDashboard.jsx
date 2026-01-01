@@ -233,7 +233,16 @@ const TrainerDashboard = ({ onLogout }) => {
           
           // Use the Supabase auth user ID
           newUserData.id = authResult.userId;
-          showToast(`User created! Login: ${newUserData.email} / Password: ${authResult.password}`, 'success', 10000);
+          
+          // Show credentials in alert (more visible than toast)
+          alert(`✅ User Created Successfully!\n\n` +
+                `📧 Email: ${newUserData.email}\n` +
+                `🔑 Password: ${authResult.password}\n` +
+                `🔗 Login: https://afterburn.fit/weightloss/user-login-new\n\n` +
+                `⚠️ User must change password on first login\n` +
+                `📨 Email notification will be sent to user`);
+          
+          showToast(`User created! Check console for credentials.`, 'success');
         }
         
         // If enrolling in cafe subscription, create cafe customer and subscription

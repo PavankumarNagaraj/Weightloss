@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Dumbbell, Mail, Lock, User, Chrome, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { Dumbbell, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import supabase from '../config/supabaseClient';
+import ForcePasswordChange from './ForcePasswordChange';
 
 const UnifiedLogin = () => {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ const UnifiedLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -91,6 +94,17 @@ const UnifiedLogin = () => {
           }
           throw signInError;
         }
+
+        // Check if this is first login (password not changed)
+        const passwordChanged = signInData.user.user_metadata?.password_changed;
+        
+        if (!passwordChanged && formData.password === 'User@123') {
+          // First time login with default password - force password change
+          setCurrentUser(signInData.user);
+          setShowPasswordChange(true);
+          setLoading(false);
+          return;
+        }
         
         // Fetch user role and tenant from database
         const { data: userData, error: userError } = await supabase
@@ -157,6 +171,27 @@ const UnifiedLogin = () => {
         navigate('/weightloss/dashboard');
     }
   };
+
+  const handlePasswordChanged = async () => {
+    // After password change, fetch user data and redirect
+    setShowPasswordChange(false);
+    if (currentUser) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, email, name, role, tenant_id')
+        .eq('id', currentUser.id)
+        .single();
+      
+      if (userData) {
+        routeByRole(userData);
+      }
+    }
+  };
+
+  // Show password change screen if needed
+  if (showPasswordChange && currentUser) {
+    return <ForcePasswordChange user={currentUser} onPasswordChanged={handlePasswordChanged} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
