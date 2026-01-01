@@ -26,7 +26,7 @@ const Navbar = () => {
             </div>
             <div className="hidden sm:block">
               <span className="text-2xl font-black bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                AFTERBURN
+                Afterburn Cafe Weightloss
               </span>
               <div className="text-xs text-gray-400 font-medium">Premium Meal Plans</div>
             </div>
@@ -34,6 +34,12 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
+            <button
+              onClick={() => navigate('/privacy-policy')}
+              className="text-gray-300 hover:text-white text-sm font-medium transition"
+            >
+              Privacy Policy
+            </button>
             <button
               onClick={() => navigate('/')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
@@ -163,6 +169,16 @@ const Navbar = () => {
             >
               <TrendingDown className="w-5 h-5" />
               <span className="font-semibold">Weight Loss</span>
+            </button>
+
+            <button
+              onClick={() => {
+                navigate('/privacy-policy');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg transition text-sm"
+            >
+              Privacy Policy
             </button>
 
             <a 
