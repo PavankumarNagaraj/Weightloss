@@ -4,6 +4,8 @@ import { X } from 'lucide-react';
 const AddUserModal = ({ onClose, onSubmit, trainers = [], batches = [], editUser = null }) => {
   const [formData, setFormData] = useState(editUser ? {
     name: editUser.name || '',
+    email: editUser.email || '',
+    phone: editUser.phone || '',
     gender: editUser.gender || 'Male',
     age: editUser.age || '',
     height: editUser.height || '',
@@ -16,6 +18,8 @@ const AddUserModal = ({ onClose, onSubmit, trainers = [], batches = [], editUser
     enrollInCafeSubscription: editUser.enrollInCafeSubscription || false,
   } : {
     name: '',
+    email: '',
+    phone: '',
     gender: 'Male',
     age: '',
     height: '',
@@ -39,8 +43,15 @@ const AddUserModal = ({ onClose, onSubmit, trainers = [], batches = [], editUser
     e.preventDefault();
     
     // Validate
-    if (!formData.name || !formData.goalWeight || !formData.currentWeight || !formData.height) {
-      alert('Please fill in all required fields');
+    if (!formData.name || !formData.email || !formData.goalWeight || !formData.currentWeight || !formData.height) {
+      alert('Please fill in all required fields (Name, Email, Height, Current Weight, Goal Weight)');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      alert('Please enter a valid email address');
       return;
     }
 
@@ -109,6 +120,35 @@ const AddUserModal = ({ onClose, onSubmit, trainers = [], batches = [], editUser
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                placeholder="user@example.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                placeholder="9876543210"
               />
             </div>
 
