@@ -99,11 +99,6 @@ const UserLoginNew = () => {
     }
   };
 
-  // Show password change screen if needed
-  if (showPasswordChange && currentUser) {
-    return <ForcePasswordChange user={currentUser} onPasswordChanged={handlePasswordChanged} />;
-  }
-
   const handleForgotPassword = async () => {
     if (!email) {
       setError('Please enter your email address first');
@@ -125,6 +120,11 @@ const UserLoginNew = () => {
       setLoading(false);
     }
   };
+
+  // Show password change screen if needed
+  if (showPasswordChange && currentUser) {
+    return <ForcePasswordChange user={currentUser} onPasswordChanged={handlePasswordChanged} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
