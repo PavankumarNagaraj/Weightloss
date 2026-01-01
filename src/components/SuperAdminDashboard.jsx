@@ -131,15 +131,29 @@ const SuperAdminDashboard = () => {
   };
 
   const viewTenant = (tenantId) => {
-    // Preserve super admin session
-    localStorage.setItem('superAdminSession', 'true');
-    localStorage.setItem('originalRole', 'super_admin');
+    // Preserve super admin session - store current user info
+    if (currentUser) {
+      localStorage.setItem('superAdminSession', 'true');
+      localStorage.setItem('originalRole', 'super_admin');
+      localStorage.setItem('superAdminUserId', currentUser.id);
+      localStorage.setItem('superAdminEmail', currentUser.email);
+    }
     
     // Set authentication and tenant context for viewing
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('currentTenantId', tenantId);
     localStorage.setItem('userRole', 'admin');
     localStorage.setItem('viewingTenantId', tenantId);
+    
+    // Store current user as JSON for reference
+    if (currentUser) {
+      localStorage.setItem('currentUser', JSON.stringify({
+        id: currentUser.id,
+        email: currentUser.email,
+        name: currentUser.name,
+        role: 'super_admin'
+      }));
+    }
     
     // Navigate to tenant dashboard
     navigate('/weightloss/dashboard');
