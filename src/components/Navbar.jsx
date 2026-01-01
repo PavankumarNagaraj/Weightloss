@@ -26,9 +26,9 @@ const Navbar = () => {
             </div>
             <div className="hidden sm:block">
               <span className="text-2xl font-black bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                Afterburn Cafe Weightloss
+                Afterburn
               </span>
-              <div className="text-xs text-gray-400 font-medium">Premium Meal Plans</div>
+              <div className="text-xs text-gray-400 font-medium">Nutrition Meal Plans</div>
             </div>
           </div>
 
