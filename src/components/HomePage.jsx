@@ -701,18 +701,18 @@ const HomePage = () => {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-gray-400">&copy; 2025 Afterburn Cafe Weightloss. All rights reserved.</p>
               <div className="flex gap-6">
-                <button
-                  onClick={() => navigate('/privacy-policy')}
-                  className="text-gray-400 hover:text-yellow-400 transition text-sm"
+                <a
+                  href="/privacy-policy"
+                  className="text-gray-400 hover:text-yellow-400 transition text-sm underline"
                 >
                   Privacy Policy
-                </button>
-                <button
-                  onClick={() => navigate('/terms-conditions')}
-                  className="text-gray-400 hover:text-yellow-400 transition text-sm"
+                </a>
+                <a
+                  href="/terms-conditions"
+                  className="text-gray-400 hover:text-yellow-400 transition text-sm underline"
                 >
                   Terms & Conditions
-                </button>
+                </a>
               </div>
             </div>
           </div>
