@@ -69,6 +69,23 @@ const UserLogin = () => {
             <p className="text-gray-600">Access your meal plan dashboard</p>
           </div>
 
+          {/* New Login Notice */}
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800 font-semibold mb-2">
+              📧 New User? Use Email Login
+            </p>
+            <p className="text-xs text-blue-700 mb-3">
+              If your account was created by an admin, use the new email-based login.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/weightloss/user-login-new')}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition text-sm"
+            >
+              Go to New Login Page →
+            </button>
+          </div>
+
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Phone Number */}
