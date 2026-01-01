@@ -305,7 +305,9 @@ export const getWeeklySummary = async () => {
 export const isConnected = async () => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
-    return !!(session?.provider_token && session?.user?.app_metadata?.provider === 'google');
+    // Check if we have a provider_token (Google OAuth token)
+    // User might have signed in with email but linked Google Fit later
+    return !!(session?.provider_token);
   } catch (error) {
     return false;
   }
