@@ -4,6 +4,7 @@ import { Target, TrendingDown, Calendar, Utensils, Activity, AlertCircle } from 
 import * as dataService from '../services/dataService';
 import { Line } from 'react-chartjs-2';
 import AttendanceCalendar from './dashboard/AttendanceCalendar';
+import GoogleFitWidget from './GoogleFitWidget';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -420,6 +421,11 @@ const UserDashboard = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Google Fit Widget */}
+        <div className="mb-8">
+          <GoogleFitWidget userId={userId} />
         </div>
 
         {/* Calorie Intake Tile */}

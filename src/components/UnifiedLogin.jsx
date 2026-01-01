@@ -188,33 +188,6 @@ const UnifiedLogin = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setLoading(true);
-      setError('');
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/weightloss/auth`,
-          scopes: 'https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read https://www.googleapis.com/auth/fitness.location.read',
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      // OAuth redirect will happen automatically
-    } catch (err) {
-      console.error('Google sign-in error:', err);
-      setError(err.message || 'Failed to sign in with Google. Please try again.');
-      setLoading(false);
-    }
-  };
-
   // Show password change screen if needed
   if (showPasswordChange && currentUser) {
     return <ForcePasswordChange user={currentUser} onPasswordChanged={handlePasswordChanged} />;
@@ -351,30 +324,6 @@ const UnifiedLogin = () => {
               )}
             </button>
           </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/20"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white/10 text-gray-400">Or continue with</span>
-            </div>
-          </div>
-
-          {/* Google Sign In */}
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="w-full py-3 bg-white text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 border border-gray-300"
-          >
-            <Chrome className="w-5 h-5" />
-            <span>Sign in with Google</span>
-          </button>
-          <p className="mt-2 text-xs text-center text-gray-400">
-            Automatically connects your Google Fit data
-          </p>
 
           <div className="mt-6 text-center">
             <button
