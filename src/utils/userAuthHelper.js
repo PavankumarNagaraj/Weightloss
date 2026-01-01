@@ -84,33 +84,43 @@ export const createSupabaseAuthUser = async (userData) => {
  */
 export const syncUserToDatabase = async (userData, authUserId) => {
   try {
+    // Prepare data object with proper null handling
+    const dbData = {
+      id: authUserId,
+      email: userData.email,
+      name: userData.name,
+      phone: userData.phone || null,
+      role: 'user',
+      tenant_id: userData.tenant_id || null,
+      start_weight: userData.startWeight || null,
+      current_weight: userData.currentWeight || null,
+      goal_weight: userData.goalWeight || null,
+      height: userData.height || null,
+      age: userData.age || null,
+      gender: userData.gender || null,
+      meal_plan: userData.mealPlan || null,
+      workout_type: userData.workoutType || null,
+      batch_id: userData.batchId || null,
+      trainer_id: userData.trainerId || null,
+      subscription_status: 'active',
+      subscription_start_date: userData.subscriptionStartDate || new Date().toISOString().split('T')[0],
+      subscription_end_date: userData.subscriptionEndDate || null,
+      subscription_amount: userData.subscriptionAmount || null,
+      start_date: new Date().toISOString().split('T')[0],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    // Remove undefined values to prevent empty strings
+    Object.keys(dbData).forEach(key => {
+      if (dbData[key] === undefined || dbData[key] === '') {
+        dbData[key] = null;
+      }
+    });
+
     const { error } = await supabase
       .from('users')
-      .upsert({
-        id: authUserId,
-        email: userData.email,
-        name: userData.name,
-        phone: userData.phone,
-        role: 'user',
-        tenant_id: userData.tenant_id || null,
-        start_weight: userData.startWeight,
-        current_weight: userData.currentWeight,
-        goal_weight: userData.goalWeight,
-        height: userData.height,
-        age: userData.age,
-        gender: userData.gender,
-        meal_plan: userData.mealPlan,
-        workout_type: userData.workoutType,
-        batch_id: userData.batchId,
-        trainer_id: userData.trainerId,
-        subscription_status: 'active',
-        subscription_start_date: userData.subscriptionStartDate || new Date().toISOString().split('T')[0],
-        subscription_end_date: userData.subscriptionEndDate,
-        subscription_amount: userData.subscriptionAmount,
-        start_date: new Date().toISOString().split('T')[0],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }, {
+      .upsert(dbData, {
         onConflict: 'id'
       });
 
