@@ -269,11 +269,30 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-5xl mx-auto text-center">
             <div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 leading-tight">
-                <span className="bg-gradient-to-r from-white via-yellow-400 to-orange-500 bg-clip-text text-transparent"> 
-                  Transform Your Body & Mind
-                </span>
-              </h1>
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <div className="p-3 bg-white/10 backdrop-blur-sm rounded-2xl">
+                  <Dumbbell className="w-12 h-12 text-white" />
+                </div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">Afterburn Cafe Weightloss</h1>
+              </div>
+              <p className="text-xl md:text-2xl mb-4 text-white/90">
+                Transform Your Body, Fuel Your Goals
+              </p>
+              <div className="mb-6">
+                <button
+                  onClick={() => navigate('/privacy-policy')}
+                  className="text-white/90 hover:text-white underline text-sm font-medium"
+                >
+                  Privacy Policy
+                </button>
+                <span className="text-white/60 mx-3">|</span>
+                <button
+                  onClick={() => navigate('/terms-conditions')}
+                  className="text-white/90 hover:text-white underline text-sm font-medium"
+                >
+                  Terms & Conditions
+                </button>
+              </div>
               
 
               {/* Meal Selector */}
@@ -411,7 +430,7 @@ const HomePage = () => {
       <section id="features" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose AFTERBURN?</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Afterburn Cafe Weightloss?</h2>
             <p className="text-xl text-gray-600">Everything you need for your fitness journey</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -648,7 +667,7 @@ const HomePage = () => {
                 <div className="p-2 bg-primary rounded-lg">
                   <Dumbbell className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-2xl font-bold">AFTERBURN</span>
+                <span className="text-2xl font-bold">Afterburn Cafe Weightloss</span>
               </div>
               <p className="text-gray-400">Transform your body, fuel your goals.</p>
             </div>
@@ -680,7 +699,7 @@ const HomePage = () => {
           </div>
           <div className="border-t border-gray-800 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-gray-400">&copy; 2025 AFTERBURN. All rights reserved.</p>
+              <p className="text-gray-400">&copy; 2025 Afterburn Cafe Weightloss. All rights reserved.</p>
               <div className="flex gap-6">
                 <button
                   onClick={() => navigate('/privacy-policy')}
