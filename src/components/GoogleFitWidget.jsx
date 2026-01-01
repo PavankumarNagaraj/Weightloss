@@ -106,10 +106,17 @@ const GoogleFitWidget = () => {
   const handleConnectGoogleFit = async () => {
     try {
       setLoading(true);
+      
+      // Store current user ID before OAuth redirect
+      if (user?.id) {
+        localStorage.setItem('pendingGoogleFitConnection', user.id);
+        localStorage.setItem('returnToUserDashboard', window.location.pathname);
+      }
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://afterburn.fit/weightloss/dashboard',
+          redirectTo: `${window.location.origin}/weightloss/user/${user?.id || 'me'}`,
           scopes: [
             'https://www.googleapis.com/auth/fitness.activity.read',
             'https://www.googleapis.com/auth/fitness.body.read',
@@ -120,6 +127,8 @@ const GoogleFitWidget = () => {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
+            // Skip account selection if already logged in
+            login_hint: user?.email,
           },
         },
       });
