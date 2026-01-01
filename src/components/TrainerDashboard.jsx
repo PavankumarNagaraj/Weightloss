@@ -45,6 +45,8 @@ import { useConfirm } from '../hooks/useConfirm';
 import * as dataService from '../services/dataService';
 import { initializeExerciseLibrary } from '../utils/initializeExercises';
 import { useTenant } from '../contexts/TenantContext';
+import { createUserWithAuth } from '../utils/userAuthHelper';
+import supabase from '../config/supabaseClient';
 
 const TrainerDashboard = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -215,6 +217,23 @@ const TrainerDashboard = ({ onLogout }) => {
       } else {
         // Add mode: first param is userData
         const newUserData = userIdOrData;
+        
+        // Create Supabase auth account for new user
+        if (newUserData.email) {
+          const authResult = await createUserWithAuth({
+            ...newUserData,
+            tenant_id: currentTenant?.id || null
+          });
+          
+          if (!authResult.success) {
+            showToast(`Failed to create user account: ${authResult.error}`, 'error');
+            return;
+          }
+          
+          // Use the Supabase auth user ID
+          newUserData.id = authResult.userId;
+          showToast(`User created! Login: ${newUserData.email} / Password: ${authResult.password}`, 'success', 10000);
+        }
         
         // If enrolling in cafe subscription, create cafe customer and subscription
         if (newUserData.enrollInCafeSubscription) {

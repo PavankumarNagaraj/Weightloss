@@ -4,6 +4,7 @@ import HomePage from './components/HomePage';
 import TrainerDashboard from './components/TrainerDashboard';
 import UserDashboard from './components/UserDashboard';
 import UserLogin from './components/UserLogin';
+import UserLoginNew from './components/UserLoginNew';
 import NutrientCalculator from './components/NutrientCalculator';
 import CafeManagement from './components/CafeManagement';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -68,7 +69,8 @@ function App() {
         />
         
         {/* User Routes */}
-        <Route path="/weightloss/user-login" element={<UserLogin />} />
+        <Route path="/weightloss/user-login" element={<UserLogin />} /> {/* Legacy PIN login */}
+        <Route path="/weightloss/user-login-new" element={<UserLoginNew />} /> {/* New Supabase login */}
         <Route path="/weightloss/user/:userId" element={<UserDashboard />} />
         <Route path="/weightloss/google-fit/:userId" element={<GoogleFitDashboard />} />
         
