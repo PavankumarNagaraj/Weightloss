@@ -22,6 +22,22 @@ export const createSupabaseAuthUser = async (userData) => {
       throw new Error('Valid email is required for user creation');
     }
 
+    // Check if user already exists in auth
+    const { data: existingUsers } = await supabase.auth.admin.listUsers();
+    const userExists = existingUsers?.users?.some(u => u.email === email);
+    
+    if (userExists) {
+      // User already exists in auth, try to get their ID
+      const existingUser = existingUsers.users.find(u => u.email === email);
+      return {
+        success: true,
+        authUserId: existingUser.id,
+        password: 'User@123',
+        message: 'User already exists in authentication system. Using existing account.',
+        isExisting: true
+      };
+    }
+
     // Generate temporary password
     const tempPassword = generateTemporaryPassword(name, phone || '0000');
 
@@ -38,6 +54,11 @@ export const createSupabaseAuthUser = async (userData) => {
     });
 
     if (authError) {
+      // Check if error is due to duplicate email
+      if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
+        throw new Error(`Email ${email} is already registered. Please use a different email or contact support.`);
+      }
+      
       // If admin API not available, use regular signup
       const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email: email,
@@ -51,7 +72,12 @@ export const createSupabaseAuthUser = async (userData) => {
         }
       });
 
-      if (signupError) throw signupError;
+      if (signupError) {
+        if (signupError.message.includes('already registered') || signupError.message.includes('already exists')) {
+          throw new Error(`Email ${email} is already registered. Please use a different email.`);
+        }
+        throw signupError;
+      }
 
       return {
         success: true,
