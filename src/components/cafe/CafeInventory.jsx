@@ -28,6 +28,29 @@ const CafeInventory = ({ showToast }) => {
     carbsPer100g: '',
     fatPer100g: '',
     fiberPer100g: '',
+    // Micronutrients - Vitamins
+    vitaminAMcg: '',
+    vitaminCMg: '',
+    vitaminDMcg: '',
+    vitaminEMg: '',
+    vitaminKMcg: '',
+    vitaminB1Mg: '',
+    vitaminB2Mg: '',
+    vitaminB3Mg: '',
+    vitaminB6Mg: '',
+    vitaminB12Mcg: '',
+    folateMcg: '',
+    // Micronutrients - Minerals
+    calciumMg: '',
+    ironMg: '',
+    magnesiumMg: '',
+    phosphorusMg: '',
+    potassiumMg: '',
+    sodiumMg: '',
+    zincMg: '',
+    copperMg: '',
+    manganeseMg: '',
+    seleniumMcg: '',
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
@@ -1636,6 +1659,263 @@ const CafeInventory = ({ showToast }) => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
                         placeholder="0.4"
                       />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Micronutrients Section */}
+                <div className="col-span-full border-t-2 border-gray-200 pt-4">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    🧪 Micro Nutrients (per 100g/ml)
+                    <span className="text-xs font-normal text-gray-500">- Optional but helpful for detailed nutrition tracking</span>
+                  </h3>
+                  
+                  {/* Vitamins */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                      💊 Vitamins
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Vitamin A (mcg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.vitaminAMcg}
+                          onChange={(e) => setFormData({...formData, vitaminAMcg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Vitamin C (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.vitaminCMg}
+                          onChange={(e) => setFormData({...formData, vitaminCMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Vitamin D (mcg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.vitaminDMcg}
+                          onChange={(e) => setFormData({...formData, vitaminDMcg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Vitamin E (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.vitaminEMg}
+                          onChange={(e) => setFormData({...formData, vitaminEMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Vitamin K (mcg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.vitaminKMcg}
+                          onChange={(e) => setFormData({...formData, vitaminKMcg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Vitamin B1 (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.vitaminB1Mg}
+                          onChange={(e) => setFormData({...formData, vitaminB1Mg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Vitamin B2 (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.vitaminB2Mg}
+                          onChange={(e) => setFormData({...formData, vitaminB2Mg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Vitamin B3 (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.vitaminB3Mg}
+                          onChange={(e) => setFormData({...formData, vitaminB3Mg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Vitamin B6 (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.vitaminB6Mg}
+                          onChange={(e) => setFormData({...formData, vitaminB6Mg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Vitamin B12 (mcg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.vitaminB12Mcg}
+                          onChange={(e) => setFormData({...formData, vitaminB12Mcg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Folate (mcg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.folateMcg}
+                          onChange={(e) => setFormData({...formData, folateMcg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Minerals */}
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                      ⚡ Minerals
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Calcium (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.calciumMg}
+                          onChange={(e) => setFormData({...formData, calciumMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Iron (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.ironMg}
+                          onChange={(e) => setFormData({...formData, ironMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Magnesium (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.magnesiumMg}
+                          onChange={(e) => setFormData({...formData, magnesiumMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Phosphorus (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.phosphorusMg}
+                          onChange={(e) => setFormData({...formData, phosphorusMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Potassium (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.potassiumMg}
+                          onChange={(e) => setFormData({...formData, potassiumMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Sodium (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.sodiumMg}
+                          onChange={(e) => setFormData({...formData, sodiumMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Zinc (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.zincMg}
+                          onChange={(e) => setFormData({...formData, zincMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Copper (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.copperMg}
+                          onChange={(e) => setFormData({...formData, copperMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Manganese (mg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.manganeseMg}
+                          onChange={(e) => setFormData({...formData, manganeseMg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Selenium (mcg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={formData.seleniumMcg}
+                          onChange={(e) => setFormData({...formData, seleniumMcg: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+                          placeholder="0"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

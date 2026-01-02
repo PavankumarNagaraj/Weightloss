@@ -149,6 +149,29 @@ export const addInventoryItem = async (itemData) => {
         carbs_per_100g: itemData.carbsPer100g || null,
         fat_per_100g: itemData.fatPer100g || null,
         fiber_per_100g: itemData.fiberPer100g || null,
+        // Micronutrients - Vitamins
+        vitamin_a_mcg: itemData.vitaminAMcg || null,
+        vitamin_c_mg: itemData.vitaminCMg || null,
+        vitamin_d_mcg: itemData.vitaminDMcg || null,
+        vitamin_e_mg: itemData.vitaminEMg || null,
+        vitamin_k_mcg: itemData.vitaminKMcg || null,
+        vitamin_b1_mg: itemData.vitaminB1Mg || null,
+        vitamin_b2_mg: itemData.vitaminB2Mg || null,
+        vitamin_b3_mg: itemData.vitaminB3Mg || null,
+        vitamin_b6_mg: itemData.vitaminB6Mg || null,
+        vitamin_b12_mcg: itemData.vitaminB12Mcg || null,
+        folate_mcg: itemData.folateMcg || null,
+        // Micronutrients - Minerals
+        calcium_mg: itemData.calciumMg || null,
+        iron_mg: itemData.ironMg || null,
+        magnesium_mg: itemData.magnesiumMg || null,
+        phosphorus_mg: itemData.phosphorusMg || null,
+        potassium_mg: itemData.potassiumMg || null,
+        sodium_mg: itemData.sodiumMg || null,
+        zinc_mg: itemData.zincMg || null,
+        copper_mg: itemData.copperMg || null,
+        manganese_mg: itemData.manganeseMg || null,
+        selenium_mcg: itemData.seleniumMcg || null,
       }])
       .select()
       .single();
@@ -222,6 +245,73 @@ export const updateInventoryItem = async (itemId, updates) => {
     }
     if (updates.fiberPer100g !== undefined) {
       updateData.fiber_per_100g = updates.fiberPer100g;
+    }
+    
+    // Micronutrients - Vitamins
+    if (updates.vitaminAMcg !== undefined) {
+      updateData.vitamin_a_mcg = updates.vitaminAMcg;
+    }
+    if (updates.vitaminCMg !== undefined) {
+      updateData.vitamin_c_mg = updates.vitaminCMg;
+    }
+    if (updates.vitaminDMcg !== undefined) {
+      updateData.vitamin_d_mcg = updates.vitaminDMcg;
+    }
+    if (updates.vitaminEMg !== undefined) {
+      updateData.vitamin_e_mg = updates.vitaminEMg;
+    }
+    if (updates.vitaminKMcg !== undefined) {
+      updateData.vitamin_k_mcg = updates.vitaminKMcg;
+    }
+    if (updates.vitaminB1Mg !== undefined) {
+      updateData.vitamin_b1_mg = updates.vitaminB1Mg;
+    }
+    if (updates.vitaminB2Mg !== undefined) {
+      updateData.vitamin_b2_mg = updates.vitaminB2Mg;
+    }
+    if (updates.vitaminB3Mg !== undefined) {
+      updateData.vitamin_b3_mg = updates.vitaminB3Mg;
+    }
+    if (updates.vitaminB6Mg !== undefined) {
+      updateData.vitamin_b6_mg = updates.vitaminB6Mg;
+    }
+    if (updates.vitaminB12Mcg !== undefined) {
+      updateData.vitamin_b12_mcg = updates.vitaminB12Mcg;
+    }
+    if (updates.folateMcg !== undefined) {
+      updateData.folate_mcg = updates.folateMcg;
+    }
+    
+    // Micronutrients - Minerals
+    if (updates.calciumMg !== undefined) {
+      updateData.calcium_mg = updates.calciumMg;
+    }
+    if (updates.ironMg !== undefined) {
+      updateData.iron_mg = updates.ironMg;
+    }
+    if (updates.magnesiumMg !== undefined) {
+      updateData.magnesium_mg = updates.magnesiumMg;
+    }
+    if (updates.phosphorusMg !== undefined) {
+      updateData.phosphorus_mg = updates.phosphorusMg;
+    }
+    if (updates.potassiumMg !== undefined) {
+      updateData.potassium_mg = updates.potassiumMg;
+    }
+    if (updates.sodiumMg !== undefined) {
+      updateData.sodium_mg = updates.sodiumMg;
+    }
+    if (updates.zincMg !== undefined) {
+      updateData.zinc_mg = updates.zincMg;
+    }
+    if (updates.copperMg !== undefined) {
+      updateData.copper_mg = updates.copperMg;
+    }
+    if (updates.manganeseMg !== undefined) {
+      updateData.manganese_mg = updates.manganeseMg;
+    }
+    if (updates.seleniumMcg !== undefined) {
+      updateData.selenium_mcg = updates.seleniumMcg;
     }
     
     // Only include expiry date if provided
