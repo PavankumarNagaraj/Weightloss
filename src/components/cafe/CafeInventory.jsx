@@ -383,38 +383,43 @@ const CafeInventory = ({ showToast }) => {
   };
 
   const handleNutritionSelect = (nutritionItem) => {
-    // Check if item already exists in inventory
-    const existingItem = inventory.find(item => item.name.toLowerCase() === nutritionItem.ingredient_name.toLowerCase());
-    
-    if (existingItem) {
-      // Load existing inventory item
-      handleMaterialSelect(existingItem.name);
-    } else {
-      // Populate with nutrition reference data
-      setFormData({
-        name: nutritionItem.ingredient_name,
-        currentStock: 0,
-        minStock: '',
-        unit: nutritionItem.common_unit || 'gm',
-        category: nutritionItem.category || 'Dry Store',
-        expiryDate: '',
-        lastUsedDate: null,
-        stockAdjustment: '',
-        caloriesPer100g: nutritionItem.calories || '',
-        proteinPer100g: nutritionItem.protein || '',
-        carbsPer100g: nutritionItem.carbs || '',
-        fatPer100g: nutritionItem.fat || '',
-        fiberPer100g: nutritionItem.fiber || '',
-      });
-      setSearchTerm(nutritionItem.ingredient_name);
-    }
+    setFormData({
+      ...formData,
+      name: nutritionItem.ingredient_name,
+      caloriesPer100g: nutritionItem.calories || '',
+      proteinPer100g: nutritionItem.protein || '',
+      carbsPer100g: nutritionItem.carbs || '',
+      fatPer100g: nutritionItem.fat || '',
+      fiberPer100g: nutritionItem.fiber || '',
+      // Auto-fill micronutrients from nutrition database
+      vitaminAMcg: nutritionItem.vitamin_a_mcg || '',
+      vitaminCMg: nutritionItem.vitamin_c_mg || '',
+      vitaminDMcg: nutritionItem.vitamin_d_mcg || '',
+      vitaminEMg: nutritionItem.vitamin_e_mg || '',
+      vitaminKMcg: nutritionItem.vitamin_k_mcg || '',
+      vitaminB1Mg: nutritionItem.vitamin_b1_mg || '',
+      vitaminB2Mg: nutritionItem.vitamin_b2_mg || '',
+      vitaminB3Mg: nutritionItem.vitamin_b3_mg || '',
+      vitaminB6Mg: nutritionItem.vitamin_b6_mg || '',
+      vitaminB12Mcg: nutritionItem.vitamin_b12_mcg || '',
+      folateMcg: nutritionItem.folate_mcg || '',
+      calciumMg: nutritionItem.calcium_mg || '',
+      ironMg: nutritionItem.iron_mg || '',
+      magnesiumMg: nutritionItem.magnesium_mg || '',
+      phosphorusMg: nutritionItem.phosphorus_mg || '',
+      potassiumMg: nutritionItem.potassium_mg || '',
+      sodiumMg: nutritionItem.sodium_mg || '',
+      zincMg: nutritionItem.zinc_mg || '',
+      copperMg: nutritionItem.copper_mg || '',
+      manganeseMg: nutritionItem.manganese_mg || '',
+      seleniumMcg: nutritionItem.selenium_mcg || '',
+    });
+    setSearchTerm(nutritionItem.ingredient_name);
     setShowDropdown(false);
-    setNutritionSuggestions([]);
   };
 
   const handleSearchChange = async (value) => {
     setSearchTerm(value);
-    setFormData({ ...formData, name: value });
     setShowDropdown(true);
     
     // Search nutrition reference database
@@ -1370,9 +1375,9 @@ const CafeInventory = ({ showToast }) => {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-2xl">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl w-full max-w-2xl my-8 max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-gray-200 flex-shrink-0">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold">{editingItem ? 'Update' : 'Add'} Inventory Item</h3>
                 <button onClick={resetForm}>
@@ -1380,7 +1385,11 @@ const CafeInventory = ({ showToast }) => {
                 </button>
               </div>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
+            </div>
+            
+            {/* Scrollable Form Content */}
+            <div className="flex-1 overflow-y-auto px-6">
+              <form onSubmit={handleSubmit} className="space-y-4 py-4">
                 {/* Current Stock Display (Read-only) */}
                 {formData.currentStock > 0 && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -1929,22 +1938,30 @@ const CafeInventory = ({ showToast }) => {
                   </div>
                 )}
 
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition"
-                  >
-                    {editingItem ? 'Update' : 'Add'} Item
-                  </button>
-                </div>
               </form>
+            </div>
+            
+            {/* Fixed Footer with Action Buttons */}
+            <div className="p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                  }}
+                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition"
+                >
+                  {editingItem ? 'Update' : 'Add'} Item
+                </button>
+              </div>
             </div>
           </div>
         </div>
