@@ -18,10 +18,6 @@ const CafeMenu = ({ showToast }) => {
     isVeg: true,
     rawMaterials: [],
     calories: '',
-    protein: '',
-    carbs: '',
-    fat: '',
-    fiber: '',
   });
   const [currentMaterial, setCurrentMaterial] = useState({ name: '', quantity: '', unit: 'gm', extraPrice: 0, cookingMethod: 'sauteed' });
   const [inventoryItems, setInventoryItems] = useState([]);
@@ -165,7 +161,7 @@ const CafeMenu = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '', protein: '', carbs: '', fat: '', fiber: '' });
+    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '' });
     setCurrentMaterial({ name: '', quantity: '', unit: 'gm', extraPrice: 0, cookingMethod: 'sauteed' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
@@ -349,14 +345,7 @@ const CafeMenu = ({ showToast }) => {
       
       // Only auto-update if there's actual calorie data
       if (adjustedCalories > 0) {
-        setFormData(prev => ({ 
-          ...prev, 
-          calories: adjustedCalories.toFixed(1),
-          protein: macros.totals.protein.toFixed(1),
-          carbs: macros.totals.carbs.toFixed(1),
-          fat: macros.totals.fat.toFixed(1),
-          fiber: macros.totals.fiber.toFixed(1),
-        }));
+        setFormData(prev => ({ ...prev, calories: adjustedCalories.toFixed(1) }));
       }
     } else {
       setCalculatedCalories(0);
