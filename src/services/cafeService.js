@@ -70,6 +70,10 @@ export const updateMenuItem = async (itemId, updates) => {
       is_veg: updates.isVeg,
       raw_materials: updates.rawMaterials,
       calories: updates.calories ? parseFloat(updates.calories) : null,
+      protein: updates.protein ? parseFloat(updates.protein) : null,
+      carbs: updates.carbs ? parseFloat(updates.carbs) : null,
+      fat: updates.fat ? parseFloat(updates.fat) : null,
+      fiber: updates.fiber ? parseFloat(updates.fiber) : null,
     };
 
     const { data, error } = await supabase
@@ -80,6 +84,16 @@ export const updateMenuItem = async (itemId, updates) => {
       .single();
 
     if (error) throw error;
+    
+    // Update existing subscription orders with new dish data
+    try {
+      const updateResult = await updateExistingSubscriptionOrders(itemId);
+      console.log('🔄 Updated existing subscription orders:', updateResult);
+    } catch (subscriptionError) {
+      console.error('Error updating subscription orders:', subscriptionError);
+      // Don't fail the menu update, just log the error
+    }
+    
     return data;
   } catch (error) {
     console.error('Error updating menu item:', error);
@@ -2639,39 +2653,96 @@ export const getCustomerSubscriptions = async (customerId) => {
 };
 
 export const getSubscriptionOrders = async (subscriptionId) => {
-  try {
-    const { data, error } = await supabase
-      .from('cafe_orders')
-      .select('*')
-      .eq('subscription_id', subscriptionId)
-      .order('date', { ascending: false });
+try {
+  const { data, error } = await supabase
+    .from('cafe_orders')
+    .select('*')
+    .eq('subscription_id', subscriptionId)
+    .order('date', { ascending: false });
 
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error('Error fetching subscription orders:', error);
-    return [];
-  }
+  if (error) throw error;
+  return data || [];
+} catch (error) {
+  console.error('Error fetching subscription orders:', error);
+  return [];
+}
 };
 
-export const getExpiredSubscriptions = async () => {
+export const updateExistingSubscriptionOrders = async (dishId) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
-    
-    const { data, error } = await supabase
-      .from('cafe_subscriptions')
-      .select(`
-        *,
-        customer:cafe_customers(*)
-      `)
-      .eq('status', 'active')
-      .lt('end_date', today);
+    // Get current dish data
+    const { data: currentDish, error: dishError } = await supabase
+      .from('cafe_menu')
+      .select('*')
+      .eq('id', dishId)
+      .single();
 
-    if (error) throw error;
-    return data || [];
+    if (dishError || !currentDish) {
+      throw new Error('Dish not found');
+    }
+
+    // Find all subscription orders that contain this dish
+    const { data: existingOrders, error: orderError } = await supabase
+      .from('cafe_orders')
+      .select('*')
+      .eq('customer_type', 'subscription')
+      .like('items', `%${dishId}%`);
+
+    if (orderError) throw orderError;
+
+    if (!existingOrders || existingOrders.length === 0) {
+      return { success: true, updatedOrders: 0, message: 'No existing subscription orders found for this dish' };
+    }
+
+    // Update each order item with current dish data
+    const updatedOrders = [];
+    for (const order of existingOrders) {
+      const updatedItems = order.items.map(item => {
+        if (item.id === dishId) {
+          return {
+            ...item,
+            name: currentDish.name,
+            price: currentDish.customer_price || currentDish.price || 0,
+            calories: currentDish.calories || 0,
+            protein: currentDish.protein || 0,
+            carbs: currentDish.carbs || 0,
+            fat: currentDish.fat || 0,
+            fiber: currentDish.fiber || 0,
+          };
+        }
+        return item;
+      });
+
+      // Update the order with new item data and recalculate totals
+      const newSubtotal = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const { data: updatedOrder, error: updateError } = await supabase
+        .from('cafe_orders')
+        .update({
+          items: updatedItems,
+          subtotal: newSubtotal,
+          total_amount: newSubtotal - (order.discount || 0),
+          payment_received: order.payment_received || newSubtotal,
+        })
+        .eq('id', order.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+      updatedOrders.push(updatedOrder);
+    }
+
+    return { 
+      success: true, 
+      updatedOrders: updatedOrders.length,
+      message: `Updated ${updatedOrders.length} existing subscription orders` 
+    };
   } catch (error) {
-    console.error('Error fetching expired subscriptions:', error);
-    return [];
+    console.error('Error updating existing subscription orders:', error);
+    return { 
+      success: false, 
+      updatedOrders: 0, 
+      error: error.message 
+    };
   }
 };
 
