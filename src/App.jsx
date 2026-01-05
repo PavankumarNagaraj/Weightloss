@@ -13,6 +13,7 @@ import SuperAdminDashboard from './components/SuperAdminDashboard';
 import GoogleFitDashboard from './components/GoogleFitDashboard';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsConditions from './components/TermsConditions';
+import PublicMealPlan from './components/PublicMealPlan';
 import { AuthProvider } from './contexts/AuthContext';
 import { TenantProvider } from './contexts/TenantContext';
 import { migrateOrderDates } from './services/cafeService';
@@ -47,6 +48,9 @@ function App() {
         <Route path="/calculator" element={<NutrientCalculator />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-conditions" element={<TermsConditions />} />
+        
+        {/* Public Meal Plan Route - Standalone like login page */}
+        <Route path="/cafe/weekly-menu/:planId" element={<PublicMealPlan />} />
         
         {/* Weight Loss Routes */}
         <Route path="/weightloss" element={<Navigate to="/weightloss/auth" replace />} />

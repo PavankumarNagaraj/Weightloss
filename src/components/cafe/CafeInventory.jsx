@@ -115,6 +115,10 @@ const CafeInventory = ({ showToast }) => {
 
   // Auto-update nutrition data for items without it (background process)
   const autoUpdateNutrition = async (items) => {
+    // DISABLED: Micronutrient data is now populated via SQL migration
+    // This function was causing infinite reload loops
+    return;
+    
     // Find items without nutrition data
     const itemsNeedingUpdate = items.filter(item => 
       !item.caloriesPer100g && !item.proteinPer100g && !item.carbsPer100g
@@ -153,6 +157,28 @@ const CafeInventory = ({ showToast }) => {
             carbsPer100g: match.carbs,
             fatPer100g: match.fat,
             fiberPer100g: match.fiber,
+            // Include micronutrients from nutrition reference
+            vitaminAMcg: match.vitamin_a_mcg,
+            vitaminCMg: match.vitamin_c_mg,
+            vitaminDMcg: match.vitamin_d_mcg,
+            vitaminEMg: match.vitamin_e_mg,
+            vitaminKMcg: match.vitamin_k_mcg,
+            vitaminB1Mg: match.vitamin_b1_mg,
+            vitaminB2Mg: match.vitamin_b2_mg,
+            vitaminB3Mg: match.vitamin_b3_mg,
+            vitaminB6Mg: match.vitamin_b6_mg,
+            vitaminB12Mcg: match.vitamin_b12_mcg,
+            folateMcg: match.folate_mcg,
+            calciumMg: match.calcium_mg,
+            ironMg: match.iron_mg,
+            magnesiumMg: match.magnesium_mg,
+            phosphorusMg: match.phosphorus_mg,
+            potassiumMg: match.potassium_mg,
+            sodiumMg: match.sodium_mg,
+            zincMg: match.zinc_mg,
+            copperMg: match.copper_mg,
+            manganeseMg: match.manganese_mg,
+            seleniumMcg: match.selenium_mcg,
           });
           updatedCount++;
         }
@@ -184,6 +210,28 @@ const CafeInventory = ({ showToast }) => {
       carbsPer100g: item.carbs_per_100g ?? item.carbsPer100g,
       fatPer100g: item.fat_per_100g ?? item.fatPer100g,
       fiberPer100g: item.fiber_per_100g ?? item.fiberPer100g,
+      // Map micronutrient fields
+      vitamin_a_mcg: item.vitamin_a_mcg,
+      vitamin_c_mg: item.vitamin_c_mg,
+      vitamin_d_mcg: item.vitamin_d_mcg,
+      vitamin_e_mg: item.vitamin_e_mg,
+      vitamin_k_mcg: item.vitamin_k_mcg,
+      vitamin_b1_mg: item.vitamin_b1_mg,
+      vitamin_b2_mg: item.vitamin_b2_mg,
+      vitamin_b3_mg: item.vitamin_b3_mg,
+      vitamin_b6_mg: item.vitamin_b6_mg,
+      vitamin_b12_mcg: item.vitamin_b12_mcg,
+      folate_mcg: item.folate_mcg,
+      calcium_mg: item.calcium_mg,
+      iron_mg: item.iron_mg,
+      magnesium_mg: item.magnesium_mg,
+      phosphorus_mg: item.phosphorus_mg,
+      potassium_mg: item.potassium_mg,
+      sodium_mg: item.sodium_mg,
+      zinc_mg: item.zinc_mg,
+      copper_mg: item.copper_mg,
+      manganese_mg: item.manganese_mg,
+      selenium_mcg: item.selenium_mcg,
     }));
     setInventory(mappedItems);
     
@@ -302,6 +350,28 @@ const CafeInventory = ({ showToast }) => {
         carbsPer100g: formData.carbsPer100g ? parseFloat(formData.carbsPer100g) : null,
         fatPer100g: formData.fatPer100g ? parseFloat(formData.fatPer100g) : null,
         fiberPer100g: formData.fiberPer100g ? parseFloat(formData.fiberPer100g) : null,
+        // Include micronutrients
+        vitaminAMcg: formData.vitaminAMcg ? parseFloat(formData.vitaminAMcg) : null,
+        vitaminCMg: formData.vitaminCMg ? parseFloat(formData.vitaminCMg) : null,
+        vitaminDMcg: formData.vitaminDMcg ? parseFloat(formData.vitaminDMcg) : null,
+        vitaminEMg: formData.vitaminEMg ? parseFloat(formData.vitaminEMg) : null,
+        vitaminKMcg: formData.vitaminKMcg ? parseFloat(formData.vitaminKMcg) : null,
+        vitaminB1Mg: formData.vitaminB1Mg ? parseFloat(formData.vitaminB1Mg) : null,
+        vitaminB2Mg: formData.vitaminB2Mg ? parseFloat(formData.vitaminB2Mg) : null,
+        vitaminB3Mg: formData.vitaminB3Mg ? parseFloat(formData.vitaminB3Mg) : null,
+        vitaminB6Mg: formData.vitaminB6Mg ? parseFloat(formData.vitaminB6Mg) : null,
+        vitaminB12Mcg: formData.vitaminB12Mcg ? parseFloat(formData.vitaminB12Mcg) : null,
+        folateMcg: formData.folateMcg ? parseFloat(formData.folateMcg) : null,
+        calciumMg: formData.calciumMg ? parseFloat(formData.calciumMg) : null,
+        ironMg: formData.ironMg ? parseFloat(formData.ironMg) : null,
+        magnesiumMg: formData.magnesiumMg ? parseFloat(formData.magnesiumMg) : null,
+        phosphorusMg: formData.phosphorusMg ? parseFloat(formData.phosphorusMg) : null,
+        potassiumMg: formData.potassiumMg ? parseFloat(formData.potassiumMg) : null,
+        sodiumMg: formData.sodiumMg ? parseFloat(formData.sodiumMg) : null,
+        zincMg: formData.zincMg ? parseFloat(formData.zincMg) : null,
+        copperMg: formData.copperMg ? parseFloat(formData.copperMg) : null,
+        manganeseMg: formData.manganeseMg ? parseFloat(formData.manganeseMg) : null,
+        seleniumMcg: formData.seleniumMcg ? parseFloat(formData.seleniumMcg) : null,
       });
       
       if (formData.stockAdjustment !== '') {
@@ -371,6 +441,28 @@ const CafeInventory = ({ showToast }) => {
         carbsPer100g: existingItem.carbsPer100g || existingItem.carbs_per_100g || '',
         fatPer100g: existingItem.fatPer100g || existingItem.fat_per_100g || '',
         fiberPer100g: existingItem.fiberPer100g || existingItem.fiber_per_100g || '',
+        // Load micronutrients from existing item
+        vitaminAMcg: existingItem.vitamin_a_mcg || '',
+        vitaminCMg: existingItem.vitamin_c_mg || '',
+        vitaminDMcg: existingItem.vitamin_d_mcg || '',
+        vitaminEMg: existingItem.vitamin_e_mg || '',
+        vitaminKMcg: existingItem.vitamin_k_mcg || '',
+        vitaminB1Mg: existingItem.vitamin_b1_mg || '',
+        vitaminB2Mg: existingItem.vitamin_b2_mg || '',
+        vitaminB3Mg: existingItem.vitamin_b3_mg || '',
+        vitaminB6Mg: existingItem.vitamin_b6_mg || '',
+        vitaminB12Mcg: existingItem.vitamin_b12_mcg || '',
+        folateMcg: existingItem.folate_mcg || '',
+        calciumMg: existingItem.calcium_mg || '',
+        ironMg: existingItem.iron_mg || '',
+        magnesiumMg: existingItem.magnesium_mg || '',
+        phosphorusMg: existingItem.phosphorus_mg || '',
+        potassiumMg: existingItem.potassium_mg || '',
+        sodiumMg: existingItem.sodium_mg || '',
+        zincMg: existingItem.zinc_mg || '',
+        copperMg: existingItem.copper_mg || '',
+        manganeseMg: existingItem.manganese_mg || '',
+        seleniumMcg: existingItem.selenium_mcg || '',
       });
     } else {
       setFormData({
@@ -1349,6 +1441,28 @@ const CafeInventory = ({ showToast }) => {
                               carbsPer100g: item.carbsPer100g || '',
                               fatPer100g: item.fatPer100g || '',
                               fiberPer100g: item.fiberPer100g || '',
+                              // Load micronutrients from existing item
+                              vitaminAMcg: item.vitamin_a_mcg || '',
+                              vitaminCMg: item.vitamin_c_mg || '',
+                              vitaminDMcg: item.vitamin_d_mcg || '',
+                              vitaminEMg: item.vitamin_e_mg || '',
+                              vitaminKMcg: item.vitamin_k_mcg || '',
+                              vitaminB1Mg: item.vitamin_b1_mg || '',
+                              vitaminB2Mg: item.vitamin_b2_mg || '',
+                              vitaminB3Mg: item.vitamin_b3_mg || '',
+                              vitaminB6Mg: item.vitamin_b6_mg || '',
+                              vitaminB12Mcg: item.vitamin_b12_mcg || '',
+                              folateMcg: item.folate_mcg || '',
+                              calciumMg: item.calcium_mg || '',
+                              ironMg: item.iron_mg || '',
+                              magnesiumMg: item.magnesium_mg || '',
+                              phosphorusMg: item.phosphorus_mg || '',
+                              potassiumMg: item.potassium_mg || '',
+                              sodiumMg: item.sodium_mg || '',
+                              zincMg: item.zinc_mg || '',
+                              copperMg: item.copper_mg || '',
+                              manganeseMg: item.manganese_mg || '',
+                              seleniumMcg: item.selenium_mcg || '',
                             });
                             setSearchTerm(item.name);
                             setShowModal(true);

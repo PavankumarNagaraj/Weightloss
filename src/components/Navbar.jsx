@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Calculator, Phone, Menu, X, Flame, Coffee, TrendingDown } from 'lucide-react';
+import { Home, Calculator, Phone, Menu, X, Flame, Coffee, TrendingDown, Calendar } from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -68,6 +68,18 @@ const Navbar = () => {
             >
               <Coffee className="w-5 h-5" />
               <span className="font-semibold">Cafe</span>
+            </button>
+            
+            <button
+              onClick={() => navigate('/cafe/weekly-menu/this-week')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+                location.pathname === '/cafe/weekly-menu/this-week' 
+                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-bold shadow-lg' 
+                  : 'text-gray-300 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="font-semibold">This Week's Menu</span>
             </button>
             
             <button
@@ -148,6 +160,21 @@ const Navbar = () => {
             >
               <Coffee className="w-5 h-5" />
               <span className="font-semibold">Cafe</span>
+            </button>
+            
+            <button
+              onClick={() => {
+                navigate('/cafe/weekly-menu/this-week');
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                location.pathname === '/cafe/weekly-menu/this-week' 
+                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-bold' 
+                  : 'text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="font-semibold">This Week's Menu</span>
             </button>
             
             <button

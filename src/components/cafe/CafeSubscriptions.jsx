@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Calendar, CreditCard, TrendingUp } from 'lucide-react';
+import { Calendar, CreditCard, TrendingUp, CalendarDays } from 'lucide-react';
 import CafeSubscriptionManagement from './CafeSubscriptionManagement';
 import CafeSubscriptionBilling from './CafeSubscriptionBilling';
 import CafeSubscriberTracking from './CafeSubscriberTracking';
+import CafeWeeklyMealPlan from './CafeWeeklyMealPlan';
 
 const CafeSubscriptions = ({ showToast }) => {
   const [activeTab, setActiveTab] = useState('management');
@@ -56,6 +57,17 @@ const CafeSubscriptions = ({ showToast }) => {
           <TrendingUp className="w-4 h-4" />
           Tracking
         </button>
+        <button
+          onClick={() => setActiveTab('weekly-plan')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${
+            activeTab === 'weekly-plan'
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <CalendarDays className="w-4 h-4" />
+          Weekly Plans
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -63,6 +75,7 @@ const CafeSubscriptions = ({ showToast }) => {
         {activeTab === 'management' && <CafeSubscriptionManagement showToast={showToast} />}
         {activeTab === 'billing' && <CafeSubscriptionBilling showToast={showToast} />}
         {activeTab === 'tracking' && <CafeSubscriberTracking showToast={showToast} />}
+        {activeTab === 'weekly-plan' && <CafeWeeklyMealPlan showToast={showToast} />}
       </div>
     </div>
   );

@@ -28,6 +28,8 @@ const CafeMenu = ({ showToast }) => {
   const [expandedCalories, setExpandedCalories] = useState({});
   const [calculatedMacros, setCalculatedMacros] = useState({ protein: 0, carbs: 0, fat: 0, fiber: 0 });
   const [macroBreakdown, setMacroBreakdown] = useState([]);
+  const [showIngredients, setShowIngredients] = useState(false);
+  const [showMicronutrients, setShowMicronutrients] = useState(false);
   const [showCalorieChart, setShowCalorieChart] = useState(false);
   const [selectedItemForChart, setSelectedItemForChart] = useState(null);
   const [recipientEmail, setRecipientEmail] = useState('');
@@ -881,7 +883,7 @@ const CafeMenu = ({ showToast }) => {
 
       {/* Calorie Chart Modal */}
       {showCalorieChart && selectedItemForChart && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-2 sm:p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
               <div className="flex-1 min-w-0">
@@ -1050,121 +1052,214 @@ const CafeMenu = ({ showToast }) => {
                 
                 return (
                   <div className="space-y-3 sm:space-y-4">
-                    {/* Top Row: Total Calories + Ingredient Breakdown */}
+                    {/* Top Row: Total Calories + Macro Nutrients */}
                     <div className="flex flex-col sm:flex-row gap-3">
                       {/* Total Calories */}
-                      <div className="w-full sm:w-[30%] bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-3 sm:p-4 text-center flex flex-col justify-center">
+                      <div className="w-full sm:w-[35%] bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-3 sm:p-4 text-center flex flex-col justify-center">
                         <div className="text-xs text-gray-600 font-semibold">Total Calories</div>
                         <div className="text-3xl sm:text-4xl font-bold text-orange-600 mt-1">🔥 {totalCalories}</div>
                         <div className="text-xs text-gray-500 mt-1">kcal per serving</div>
                       </div>
-                      
-                      {/* Ingredient Breakdown Bar Chart */}
-                      <div className="w-full sm:w-[70%] bg-white border-2 border-gray-200 rounded-lg p-2 sm:p-3">
-                        <h4 className="font-semibold text-gray-700 text-xs mb-2">Ingredient Breakdown</h4>
-                        <div className="space-y-1.5 max-h-48 sm:max-h-64 overflow-y-auto pr-1 sm:pr-2">
-                      {breakdown.breakdown.sort((a, b) => parseFloat(b.calories) - parseFloat(a.calories)).map((ingredient, index) => {
-                        const calories = parseFloat(ingredient.calories) || 0;
-                        const percentage = totalCalories > 0 ? (calories / totalCalories * 100).toFixed(1) : 0;
-                        const barWidth = maxCalories > 0 ? (calories / maxCalories * 100).toFixed(1) : 0;
-                        const colorClass = colors[index % colors.length];
-                        
+
+                      {/* Macro Table */}
+                      <div className="w-full sm:w-[65%] bg-white border-2 border-gray-200 rounded-lg p-2">
+                        <h4 className="font-semibold text-gray-700 text-xs mb-2">Macro Nutrients</h4>
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b-2 border-gray-300">
+                              <th className="text-left px-1 text-xs font-semibold text-gray-600 uppercase">Nutrient</th>
+                              <th className="text-right px-1 text-xs font-semibold text-gray-600 uppercase">Amount</th>
+                              <th className="text-right px-1 text-xs font-semibold text-gray-600 uppercase">%</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {donutSegments.map((segment, index) => (
+                              <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
+                                <td className="px-1 py-1">
+                                  <div className="flex items-center gap-1">
+                                    <div 
+                                      className="w-2 h-2 rounded flex-shrink-0"
+                                      style={{ backgroundColor: segment.color }}
+                                    ></div>
+                                    <span className="font-semibold text-gray-700 text-xs">
+                                      {segment.emoji} {segment.name}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="px-1 text-right">
+                                  <span className="font-bold text-gray-900 text-xs">{segment.value}g</span>
+                                </td>
+                                <td className="px-1 text-right">
+                                  <span className="text-gray-600 text-xs">{segment.percentage}%</span>
+                                </td>
+                              </tr>
+                            ))}
+                            <tr className="bg-gray-100 font-bold">
+                              <td className="px-1 text-xs text-gray-900 py-1">Total</td>
+                              <td className="px-1 text-right text-xs text-gray-900">{totalMacros.toFixed(1)}g</td>
+                              <td className="px-1 text-right text-xs text-gray-900">100%</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Micronutrients Section - Always Visible */}
+                    <div className="border-t pt-3">
+                      <h4 className="font-semibold text-gray-700 text-sm mb-2">💊 Micronutrients (Vitamins & Minerals)</h4>
+                      {(() => {
+                        // Calculate micronutrients from ingredients
+                        const micronutrients = {
+                          vitaminA: 0, vitaminC: 0, vitaminD: 0, vitaminE: 0, vitaminK: 0,
+                          vitaminB1: 0, vitaminB2: 0, vitaminB3: 0, vitaminB6: 0, vitaminB12: 0, folate: 0,
+                          calcium: 0, iron: 0, magnesium: 0, phosphorus: 0, potassium: 0, sodium: 0,
+                          zinc: 0, copper: 0, manganese: 0, selenium: 0
+                        };
+
+                        selectedItemForChart.rawMaterials?.forEach(material => {
+                          const inventoryItem = inventoryItems.find(inv => inv.name === material.name);
+                          if (inventoryItem) {
+                            const qty = parseFloat(material.quantity) || 0;
+                            const factor = qty / 100;
+
+                            micronutrients.vitaminA += (inventoryItem.vitamin_a_mcg || 0) * factor;
+                            micronutrients.vitaminC += (inventoryItem.vitamin_c_mg || 0) * factor;
+                            micronutrients.vitaminD += (inventoryItem.vitamin_d_mcg || 0) * factor;
+                            micronutrients.vitaminE += (inventoryItem.vitamin_e_mg || 0) * factor;
+                            micronutrients.vitaminK += (inventoryItem.vitamin_k_mcg || 0) * factor;
+                            micronutrients.vitaminB1 += (inventoryItem.vitamin_b1_mg || 0) * factor;
+                            micronutrients.vitaminB2 += (inventoryItem.vitamin_b2_mg || 0) * factor;
+                            micronutrients.vitaminB3 += (inventoryItem.vitamin_b3_mg || 0) * factor;
+                            micronutrients.vitaminB6 += (inventoryItem.vitamin_b6_mg || 0) * factor;
+                            micronutrients.vitaminB12 += (inventoryItem.vitamin_b12_mcg || 0) * factor;
+                            micronutrients.folate += (inventoryItem.folate_mcg || 0) * factor;
+                            micronutrients.calcium += (inventoryItem.calcium_mg || 0) * factor;
+                            micronutrients.iron += (inventoryItem.iron_mg || 0) * factor;
+                            micronutrients.magnesium += (inventoryItem.magnesium_mg || 0) * factor;
+                            micronutrients.phosphorus += (inventoryItem.phosphorus_mg || 0) * factor;
+                            micronutrients.potassium += (inventoryItem.potassium_mg || 0) * factor;
+                            micronutrients.sodium += (inventoryItem.sodium_mg || 0) * factor;
+                            micronutrients.zinc += (inventoryItem.zinc_mg || 0) * factor;
+                            micronutrients.copper += (inventoryItem.copper_mg || 0) * factor;
+                            micronutrients.manganese += (inventoryItem.manganese_mg || 0) * factor;
+                            micronutrients.selenium += (inventoryItem.selenium_mcg || 0) * factor;
+                          }
+                        });
+
+                        const vitamins = [
+                          { name: '🥕 Vitamin A', value: micronutrients.vitaminA, unit: 'mcg', color: 'text-orange-600' },
+                          { name: '🍊 Vitamin C', value: micronutrients.vitaminC, unit: 'mg', color: 'text-orange-500' },
+                          { name: '☀️ Vitamin D', value: micronutrients.vitaminD, unit: 'mcg', color: 'text-yellow-600' },
+                          { name: '🌰 Vitamin E', value: micronutrients.vitaminE, unit: 'mg', color: 'text-amber-600' },
+                          { name: '🥬 Vitamin K', value: micronutrients.vitaminK, unit: 'mcg', color: 'text-green-600' },
+                          { name: '🌾 Vitamin B1', value: micronutrients.vitaminB1, unit: 'mg', color: 'text-yellow-700' },
+                          { name: '🥛 Vitamin B2', value: micronutrients.vitaminB2, unit: 'mg', color: 'text-blue-600' },
+                          { name: '🍗 Vitamin B3', value: micronutrients.vitaminB3, unit: 'mg', color: 'text-red-600' },
+                          { name: '🥑 Vitamin B6', value: micronutrients.vitaminB6, unit: 'mg', color: 'text-green-700' },
+                          { name: '🥩 Vitamin B12', value: micronutrients.vitaminB12, unit: 'mcg', color: 'text-red-700' },
+                          { name: '🥗 Folate', value: micronutrients.folate, unit: 'mcg', color: 'text-green-500' },
+                        ];
+
+                        const minerals = [
+                          { name: '🦴 Calcium', value: micronutrients.calcium, unit: 'mg', color: 'text-gray-600' },
+                          { name: '🩸 Iron', value: micronutrients.iron, unit: 'mg', color: 'text-red-800' },
+                          { name: '💪 Magnesium', value: micronutrients.magnesium, unit: 'mg', color: 'text-purple-600' },
+                          { name: '🧠 Phosphorus', value: micronutrients.phosphorus, unit: 'mg', color: 'text-indigo-600' },
+                          { name: '❤️ Potassium', value: micronutrients.potassium, unit: 'mg', color: 'text-pink-600' },
+                          { name: '🧂 Sodium', value: micronutrients.sodium, unit: 'mg', color: 'text-blue-400' },
+                          { name: '🛡️ Zinc', value: micronutrients.zinc, unit: 'mg', color: 'text-cyan-600' },
+                          { name: '🔶 Copper', value: micronutrients.copper, unit: 'mg', color: 'text-orange-700' },
+                          { name: '🌿 Manganese', value: micronutrients.manganese, unit: 'mg', color: 'text-lime-600' },
+                          { name: '⚡ Selenium', value: micronutrients.selenium, unit: 'mcg', color: 'text-teal-600' },
+                        ];
+
+                        // Normalize values to mg for proper sorting (mcg to mg conversion)
+                        const normalizeToMg = (value, unit) => {
+                          return unit === 'mcg' ? value / 1000 : value;
+                        };
+
                         return (
-                          <div key={index} className="space-y-1 sm:space-y-2">
-                            <div className="flex items-center justify-between text-xs sm:text-sm">
-                              <div className="flex items-center gap-1 sm:gap-1.5 flex-1 min-w-0">
-                                <div className={`w-2 h-2 rounded flex-shrink-0 ${colorClass}`}></div>
-                                <span className="font-semibold text-gray-700 truncate">
-                                  {ingredient.name}
-                                </span>
-                                <span className="text-gray-500 text-xs hidden sm:inline">
-                                  ({ingredient.quantity}{ingredient.unit})
-                                </span>
+                          <div className="p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {/* Vitamins */}
+                              <div>
+                                <h5 className="font-semibold text-xs text-gray-700 mb-2 uppercase">Vitamins</h5>
+                                <div className="space-y-1 max-h-64 overflow-y-auto">
+                                  {vitamins
+                                    .filter(v => v.value > 0.01)
+                                    .sort((a, b) => {
+                                      const aNormalized = normalizeToMg(a.value, a.unit);
+                                      const bNormalized = normalizeToMg(b.value, b.unit);
+                                      return bNormalized - aNormalized;
+                                    })
+                                    .map((vitamin, idx) => (
+                                      <div key={idx} className="flex justify-between items-center text-xs bg-white/70 rounded px-2 py-1">
+                                        <span className={`font-medium ${vitamin.color}`}>{vitamin.name}</span>
+                                        <span className="font-bold text-gray-900">{vitamin.value.toFixed(2)} {vitamin.unit}</span>
+                                      </div>
+                                    ))}
+                                  {vitamins.filter(v => v.value > 0.01).length === 0 && (
+                                    <p className="text-xs text-gray-500 italic">No vitamin data available</p>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
-                                <span className="font-bold text-gray-900 text-xs sm:text-sm">{calories} cal</span>
-                                <span className="text-gray-500 text-xs hidden sm:inline">({percentage}%)</span>
-                              </div>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
-                              <div 
-                                className={`${colorClass} h-full rounded-full transition-all duration-500`}
-                                style={{ width: `${barWidth}%` }}
-                              >
+
+                              {/* Minerals */}
+                              <div>
+                                <h5 className="font-semibold text-xs text-gray-700 mb-2 uppercase">Minerals</h5>
+                                <div className="space-y-1 max-h-64 overflow-y-auto">
+                                  {minerals
+                                    .filter(m => m.value > 0.01)
+                                    .sort((a, b) => {
+                                      const aNormalized = normalizeToMg(a.value, a.unit);
+                                      const bNormalized = normalizeToMg(b.value, b.unit);
+                                      return bNormalized - aNormalized;
+                                    })
+                                    .map((mineral, idx) => (
+                                      <div key={idx} className="flex justify-between items-center text-xs bg-white/70 rounded px-2 py-1">
+                                        <span className={`font-medium ${mineral.color}`}>{mineral.name}</span>
+                                        <span className="font-bold text-gray-900">{mineral.value.toFixed(2)} {mineral.unit}</span>
+                                      </div>
+                                    ))}
+                                  {minerals.filter(m => m.value > 0.01).length === 0 && (
+                                    <p className="text-xs text-gray-500 italic">No mineral data available</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
                         );
-                      })}
-                        </div>
-                      </div>
+                      })()}
                     </div>
-                    
-                    {/* Bottom Row: Macro Nutrients - Hide chart on mobile */}
-                    <div className="border-t pt-3 sm:pt-4">
-                      <div className="flex flex-col sm:flex-row gap-3 items-start">
-                        {/* Donut Chart - Hidden on mobile */}
-                        <div className="w-full sm:w-[30%] flex-shrink-0 hidden sm:block">
-                          <h4 className="font-semibold text-gray-700 text-xs mb-3">Macro Nutrients Distribution</h4>
-                          <svg width="160" height="160" viewBox="0 0 200 200" className="transform -rotate-90 mx-auto">
-                            {donutSegments.map((segment, index) => (
-                              <path
-                                key={index}
-                                d={createArc(segment.startAngle, segment.endAngle, 60, 90)}
-                                fill={segment.color}
-                                className="hover:opacity-80 transition-opacity cursor-pointer"
-                              />
-                            ))}
-                            {/* Center circle for donut hole */}
-                            <circle cx="100" cy="100" r="60" fill="white" />
-                          </svg>
-                          <div className="text-center -mt-28">
-                            <div className="text-xl font-bold text-gray-900">{totalMacros.toFixed(1)}g</div>
-                            <div className="text-[10px] text-gray-500">Total Macros</div>
+
+                    {/* Collapsible Ingredient Details */}
+                    <div className="border-t pt-3">
+                      <button
+                        onClick={() => setShowIngredients(!showIngredients)}
+                        className="w-full flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition"
+                      >
+                        <h4 className="font-semibold text-gray-700 text-sm">📋 Ingredient Details</h4>
+                        {showIngredients ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </button>
+                      {showIngredients && (
+                        <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {breakdown.breakdown.sort((a, b) => parseFloat(b.calories) - parseFloat(a.calories)).map((ingredient, index) => {
+                              const calories = parseFloat(ingredient.calories) || 0;
+                              const percentage = totalCalories > 0 ? (calories / totalCalories * 100).toFixed(1) : 0;
+                              return (
+                                <div key={index} className="flex justify-between items-center text-xs border-b border-gray-200 pb-2">
+                                  <span className="font-medium text-gray-700">{ingredient.name}</span>
+                                  <div className="flex gap-3 text-gray-600">
+                                    <span>{ingredient.quantity}{ingredient.unit}</span>
+                                    <span className="font-semibold">{calories.toFixed(1)} cal ({percentage}%)</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
-                        
-                        {/* Macro Table */}
-                        <div className="w-full sm:w-[70%]">
-                          <table className="w-full">
-                            <thead>
-                              <tr className="border-b-2 border-gray-300">
-                                <th className="text-left px-1 sm:px-2 text-xs font-semibold text-gray-600 uppercase">Nutrient</th>
-                                <th className="text-right px-1 sm:px-2 text-xs font-semibold text-gray-600 uppercase">Amount</th>
-                                <th className="text-right px-1 sm:px-2 text-xs font-semibold text-gray-600 uppercase">%</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {donutSegments.map((segment, index) => (
-                                <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
-                                  <td className="px-2 sm:px-3 py-1.5 sm:py-2">
-                                    <div className="flex items-center gap-1 sm:gap-1.5">
-                                      <div 
-                                        className="w-2 h-2 sm:w-3 sm:h-3 rounded flex-shrink-0"
-                                        style={{ backgroundColor: segment.color }}
-                                      ></div>
-                                      <span className="font-semibold text-gray-700 text-xs sm:text-sm">
-                                        {segment.emoji} {segment.name}
-                                      </span>
-                                    </div>
-                                  </td>
-                                  <td className="px-1 sm:px-2 text-right">
-                                    <span className="font-bold text-gray-900 text-xs sm:text-sm">{segment.value}g</span>
-                                  </td>
-                                  <td className="px-1 sm:px-2 text-right">
-                                    <span className="text-gray-600 text-xs sm:text-sm">{segment.percentage}%</span>
-                                  </td>
-                                </tr>
-                              ))}
-                              <tr className="bg-gray-100 font-bold">
-                                <td className="px-1 sm:px-2 text-xs sm:text-sm text-gray-900 py-1.5 sm:py-2">Total</td>
-                                <td className="px-1 sm:px-2 text-right text-xs sm:text-sm text-gray-900">{totalMacros.toFixed(1)}g</td>
-                                <td className="px-1 sm:px-2 text-right text-xs sm:text-sm text-gray-900">100%</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 );
