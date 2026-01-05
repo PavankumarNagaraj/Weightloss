@@ -493,8 +493,11 @@ const CafeOrders = ({ showToast }) => {
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-600">
                       {order.items?.map((item, index) => (
-                        <div key={index}>
-                          {item.name} × {item.quantity}
+                        <div key={index} className="mb-1">
+                          <div className="font-medium">{item.name} × {item.quantity}</div>
+                          {item.calories && (
+                            <div className="text-xs text-orange-600">{item.calories} cal each</div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -607,6 +610,12 @@ const CafeOrders = ({ showToast }) => {
                             ) : (
                               <span className="text-red-600">-₹{(order.totalAmount - order.paymentReceived).toFixed(2)} pending</span>
                             )}
+                          </div>
+                        )}
+                        {/* Calculate and display total calories */}
+                        {order.items && order.items.length > 0 && (
+                          <div className="text-xs font-semibold text-orange-600 mt-1">
+                            Total: {order.items.reduce((sum, item) => sum + ((item.calories || 0) * item.quantity), 0)} cal
                           </div>
                         )}
                         <button
