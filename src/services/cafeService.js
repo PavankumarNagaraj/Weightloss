@@ -2494,6 +2494,21 @@ export const generateSubscriptionOrders = async (date) => {
             subscription_id: subscription.id,
             notes: `Subscription Order - ${mealType}`,
           };
+          
+          console.log('🔍 DEBUG: Order data being saved:', {
+            dishId: currentDish.id,
+            dishName: currentDish.name,
+            dishCalories: currentDish.calories,
+            orderCalories: currentDish.calories || 0,
+            dishProtein: currentDish.protein,
+            orderProtein: currentDish.protein || 0,
+            dishCarbs: currentDish.carbs,
+            orderCarbs: currentDish.carbs || 0,
+            dishFat: currentDish.fat,
+            orderFat: currentDish.fat || 0,
+            dishFiber: currentDish.fiber,
+            orderFiber: currentDish.fiber || 0
+          });
 
           ordersToInsert.push(orderData);
         }
@@ -2518,6 +2533,16 @@ export const generateSubscriptionOrders = async (date) => {
           .select('*');
 
         if (!menuItemsForDeduction) throw new Error('Failed to fetch menu items for inventory deduction');
+        
+        console.log('🔍 DEBUG: Menu items for deduction:', menuItemsForDeduction?.map(m => ({
+          id: m.id,
+          name: m.name,
+          calories: m.calories,
+          protein: m.protein,
+          carbs: m.carbs,
+          fat: m.fat,
+          fiber: m.fiber
+        })));
 
         for (const order of ordersToInsert) {
           for (const orderItem of order.items) {
