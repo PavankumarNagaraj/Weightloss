@@ -2509,6 +2509,66 @@ export const generateSubscriptionOrders = async (date) => {
 
       if (orderError) throw orderError;
       generatedOrders.push(...(orders || []));
+
+      // Deduct inventory for subscription orders
+      try {
+        // Get all menu items for inventory deduction
+        const { data: menuItemsForDeduction } = await supabase
+          .from('cafe_menu')
+          .select('*');
+
+        if (!menuItemsForDeduction) throw new Error('Failed to fetch menu items for inventory deduction');
+
+        for (const order of ordersToInsert) {
+          for (const orderItem of order.items) {
+            const menuItem = menuItemsForDeduction.find(m => m.id === orderItem.id);
+            
+            if (menuItem && menuItem.raw_materials && menuItem.raw_materials.length > 0) {
+              for (const material of menuItem.raw_materials) {
+                // Find inventory item
+                const { data: inventoryItems } = await supabase
+                  .from('cafe_inventory')
+                  .select('*')
+                  .ilike('name', material.name)
+                  .limit(1);
+
+                if (inventoryItems && inventoryItems.length > 0) {
+                  const inventoryItem = inventoryItems[0];
+                  
+                  // Calculate quantity to deduct
+                  const recipeQuantity = parseFloat(material.quantity) * orderItem.quantity;
+                  const cookingMethod = material.cookingMethod || 'raw';
+                  let quantityToDeduct = recipeQuantity;
+                  
+                  // Apply cooking adjustments if needed
+                  const inventoryState = inventoryItem.inventory_state || 'raw';
+                  if (inventoryState === 'raw' && cookingMethod !== 'raw' && cookingMethod !== 'none') {
+                    const COOKING_ADJUSTMENTS = {
+                      grilled: 0.20,
+                      boiled: 0.15,
+                      steamed: 0.10,
+                      baked: 0.18,
+                      fried: 0.10,
+                    };
+                    const adjustment = COOKING_ADJUSTMENTS[cookingMethod] || 0;
+                    quantityToDeduct = recipeQuantity / (1 - adjustment);
+                  }
+                  
+                  // Update inventory
+                  const newStock = parseFloat(inventoryItem.current_stock) - quantityToDeduct;
+                  await supabase
+                    .from('cafe_inventory')
+                    .update({ current_stock: newStock })
+                    .eq('id', inventoryItem.id);
+                }
+              }
+            }
+          }
+        }
+      } catch (deductionError) {
+        console.error('Inventory deduction error for subscription orders:', deductionError);
+        // Don't fail the order generation, just log the error
+      }
     }
 
     return { 
