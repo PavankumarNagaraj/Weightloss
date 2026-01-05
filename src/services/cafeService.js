@@ -2437,6 +2437,18 @@ export const generateSubscriptionOrders = async (date) => {
         const meal = weeklyPlan.plan_data[dayOfWeek]?.[mealType];
         
         if (meal) {
+          // Fetch current dish data to get updated calories and nutrition
+          const { data: currentDish, error: dishError } = await supabase
+            .from('cafe_menu_items')
+            .select('*')
+            .eq('id', meal.id)
+            .single();
+
+          if (dishError || !currentDish) {
+            console.error(`Error fetching dish ${meal.id}:`, dishError);
+            continue;
+          }
+
           // Check for duplicate order
           const { data: existingOrder } = await supabase
             .from('cafe_orders')
@@ -2451,7 +2463,7 @@ export const generateSubscriptionOrders = async (date) => {
             continue;
           }
 
-          // Create order with proper field names
+          // Create order with current dish data
           const orderData = {
             order_number: `ORD${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`,
             order_type: 'delivery',
@@ -2459,16 +2471,21 @@ export const generateSubscriptionOrders = async (date) => {
             customer_phone: subscription.customer?.phone || '',
             customer_type: 'subscription',
             items: [{
-              id: meal.id,
-              name: meal.name,
-              price: meal.price || 0,
+              id: currentDish.id,
+              name: currentDish.name,
+              price: currentDish.price || 0,
               quantity: 1,
+              calories: currentDish.calories || 0,
+              protein: currentDish.protein || 0,
+              carbs: currentDish.carbs || 0,
+              fat: currentDish.fat || 0,
+              fiber: currentDish.fiber || 0,
             }],
-            subtotal: meal.price || 0,
+            subtotal: currentDish.price || 0,
             discount: 0,
-            total_amount: meal.price || 0,
+            total_amount: currentDish.price || 0,
             payment_method: 'subscription',
-            payment_received: meal.price || 0,
+            payment_received: currentDish.price || 0,
             status: 'completed',
             date: today,
             delivery_address: subscription.customer?.address || '',
