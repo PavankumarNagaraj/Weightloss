@@ -70,10 +70,6 @@ export const updateMenuItem = async (itemId, updates) => {
       is_veg: updates.isVeg,
       raw_materials: updates.rawMaterials,
       calories: updates.calories ? parseFloat(updates.calories) : null,
-      protein: updates.protein ? parseFloat(updates.protein) : null,
-      carbs: updates.carbs ? parseFloat(updates.carbs) : null,
-      fat: updates.fat ? parseFloat(updates.fat) : null,
-      fiber: updates.fiber ? parseFloat(updates.fiber) : null,
     };
 
     const { data, error } = await supabase
@@ -84,17 +80,6 @@ export const updateMenuItem = async (itemId, updates) => {
       .single();
 
     if (error) throw error;
-    
-    // Update existing subscription orders with new dish data
-    console.log('🔄 Updating existing subscription orders for dish:', itemId);
-    try {
-      const updateResult = await updateExistingSubscriptionOrders(itemId);
-      console.log('✅ Subscription orders update result:', updateResult);
-    } catch (subscriptionError) {
-      console.error('❌ Error updating subscription orders:', subscriptionError);
-      // Don't fail the menu update, just log the error
-    }
-    
     return data;
   } catch (error) {
     console.error('Error updating menu item:', error);
@@ -2452,6 +2437,18 @@ export const generateSubscriptionOrders = async (date) => {
         const meal = weeklyPlan.plan_data[dayOfWeek]?.[mealType];
         
         if (meal) {
+          // Fetch CURRENT dish data from menu (not cached data from plan)
+          const { data: currentDish, error: dishError } = await supabase
+            .from('cafe_menu')
+            .select('*')
+            .eq('id', meal.id)
+            .single();
+
+          if (dishError || !currentDish) {
+            console.error(`Dish ${meal.id} not found in menu, skipping`);
+            continue;
+          }
+
           // Check for duplicate order
           const { data: existingOrder } = await supabase
             .from('cafe_orders')
@@ -2466,7 +2463,7 @@ export const generateSubscriptionOrders = async (date) => {
             continue;
           }
 
-          // Create order with proper field names
+          // Create order with CURRENT dish data
           const orderData = {
             order_number: `ORD${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`,
             order_type: 'delivery',
@@ -2474,16 +2471,21 @@ export const generateSubscriptionOrders = async (date) => {
             customer_phone: subscription.customer?.phone || '',
             customer_type: 'subscription',
             items: [{
-              id: meal.id,
-              name: meal.name,
-              price: meal.price || 0,
+              id: currentDish.id,
+              name: currentDish.name,
+              price: currentDish.customer_price || currentDish.price || 0,
               quantity: 1,
+              calories: currentDish.calories || 0,
+              protein: currentDish.protein || 0,
+              carbs: currentDish.carbs || 0,
+              fat: currentDish.fat || 0,
+              fiber: currentDish.fiber || 0,
             }],
-            subtotal: meal.price || 0,
+            subtotal: currentDish.customer_price || currentDish.price || 0,
             discount: 0,
-            total_amount: meal.price || 0,
+            total_amount: currentDish.customer_price || currentDish.price || 0,
             payment_method: 'subscription',
-            payment_received: meal.price || 0,
+            payment_received: currentDish.customer_price || currentDish.price || 0,
             status: 'completed',
             date: today,
             delivery_address: subscription.customer?.address || '',
@@ -2564,114 +2566,6 @@ export const getSubscriptionOrders = async (subscriptionId) => {
   } catch (error) {
     console.error('Error fetching subscription orders:', error);
     return [];
-  }
-};
-
-export const updateExistingSubscriptionOrders = async (dishId) => {
-  try {
-    // Get current dish data
-    const { data: currentDish, error: dishError } = await supabase
-      .from('cafe_menu')
-      .select('*')
-      .eq('id', dishId)
-      .single();
-
-    if (dishError || !currentDish) {
-      console.error('Dish not found:', dishId);
-      return { success: false, updatedOrders: 0, message: 'Dish not found' };
-    }
-
-    console.log('📋 Current dish data:', {
-      id: currentDish.id,
-      name: currentDish.name,
-      calories: currentDish.calories,
-      protein: currentDish.protein,
-      carbs: currentDish.carbs,
-      fat: currentDish.fat,
-      fiber: currentDish.fiber
-    });
-
-    // Get ALL subscription orders
-    const { data: allOrders, error: orderError } = await supabase
-      .from('cafe_orders')
-      .select('*')
-      .eq('customer_type', 'subscription');
-
-    if (orderError) {
-      console.error('Error fetching orders:', orderError);
-      throw orderError;
-    }
-
-    if (!allOrders || allOrders.length === 0) {
-      console.log('No subscription orders found');
-      return { success: true, updatedOrders: 0, message: 'No subscription orders found' };
-    }
-
-    // Filter orders that contain this dish
-    const ordersWithDish = allOrders.filter(order => {
-      if (!order.items || !Array.isArray(order.items)) return false;
-      return order.items.some(item => item.id === dishId);
-    });
-
-    console.log(`Found ${ordersWithDish.length} orders containing dish ${dishId}`);
-
-    if (ordersWithDish.length === 0) {
-      return { success: true, updatedOrders: 0, message: 'No orders found with this dish' };
-    }
-
-    // Update each order
-    const updatedOrders = [];
-    for (const order of ordersWithDish) {
-      const updatedItems = order.items.map(item => {
-        if (item.id === dishId) {
-          console.log(`Updating item in order ${order.id}:`, {
-            oldCalories: item.calories,
-            newCalories: currentDish.calories,
-            oldProtein: item.protein,
-            newProtein: currentDish.protein
-          });
-          return {
-            ...item,
-            name: currentDish.name,
-            price: currentDish.customer_price || currentDish.price || item.price || 0,
-            calories: currentDish.calories || 0,
-            protein: currentDish.protein || 0,
-            carbs: currentDish.carbs || 0,
-            fat: currentDish.fat || 0,
-            fiber: currentDish.fiber || 0,
-          };
-        }
-        return item;
-      });
-
-      // Update the order
-      const { data: updatedOrder, error: updateError } = await supabase
-        .from('cafe_orders')
-        .update({ items: updatedItems })
-        .eq('id', order.id)
-        .select()
-        .single();
-
-      if (updateError) {
-        console.error(`Error updating order ${order.id}:`, updateError);
-      } else {
-        updatedOrders.push(updatedOrder);
-        console.log(`✅ Updated order ${order.id}`);
-      }
-    }
-
-    return { 
-      success: true, 
-      updatedOrders: updatedOrders.length,
-      message: `Updated ${updatedOrders.length} subscription orders` 
-    };
-  } catch (error) {
-    console.error('Error updating existing subscription orders:', error);
-    return { 
-      success: false, 
-      updatedOrders: 0, 
-      error: error.message 
-    };
   }
 };
 
