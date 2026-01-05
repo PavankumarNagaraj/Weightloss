@@ -18,6 +18,10 @@ const CafeMenu = ({ showToast }) => {
     isVeg: true,
     rawMaterials: [],
     calories: '',
+    protein: '',
+    carbs: '',
+    fat: '',
+    fiber: '',
   });
   const [currentMaterial, setCurrentMaterial] = useState({ name: '', quantity: '', unit: 'gm', extraPrice: 0, cookingMethod: 'sauteed' });
   const [inventoryItems, setInventoryItems] = useState([]);
@@ -138,12 +142,6 @@ const CafeMenu = ({ showToast }) => {
       ...formData,
       customerPrice: formData.customerPrice === '' ? 0 : parseFloat(formData.customerPrice) || 0,
       trainerPrice: formData.trainerPrice === '' ? 0 : parseFloat(formData.trainerPrice) || 0,
-      // Include calculated macros from ingredient changes
-      calories: calculatedCalories || formData.calories,
-      protein: calculatedMacros.protein || 0,
-      carbs: calculatedMacros.carbs || 0,
-      fat: calculatedMacros.fat || 0,
-      fiber: calculatedMacros.fiber || 0,
     };
     
     if (editingItem) {
@@ -167,7 +165,7 @@ const CafeMenu = ({ showToast }) => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '' });
+    setFormData({ name: '', category: 'main-course', customerPrice: '', trainerPrice: '', description: '', isVeg: true, rawMaterials: [], calories: '', protein: '', carbs: '', fat: '', fiber: '' });
     setCurrentMaterial({ name: '', quantity: '', unit: 'gm', extraPrice: 0, cookingMethod: 'sauteed' });
     setMaterialSearchTerm('');
     setShowMaterialDropdown(false);
@@ -351,7 +349,14 @@ const CafeMenu = ({ showToast }) => {
       
       // Only auto-update if there's actual calorie data
       if (adjustedCalories > 0) {
-        setFormData(prev => ({ ...prev, calories: adjustedCalories.toFixed(1) }));
+        setFormData(prev => ({ 
+          ...prev, 
+          calories: adjustedCalories.toFixed(1),
+          protein: macros.totals.protein.toFixed(1),
+          carbs: macros.totals.carbs.toFixed(1),
+          fat: macros.totals.fat.toFixed(1),
+          fiber: macros.totals.fiber.toFixed(1),
+        }));
       }
     } else {
       setCalculatedCalories(0);
