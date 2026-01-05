@@ -2463,7 +2463,7 @@ export const generateSubscriptionOrders = async (date) => {
             continue;
           }
 
-          // Create order with CURRENT dish data
+          // Create order with CURRENT dish data including raw_materials
           const orderData = {
             order_number: `ORD${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`,
             order_type: 'delivery',
@@ -2480,6 +2480,7 @@ export const generateSubscriptionOrders = async (date) => {
               carbs: currentDish.carbs || 0,
               fat: currentDish.fat || 0,
               fiber: currentDish.fiber || 0,
+              raw_materials: currentDish.raw_materials || [],
             }],
             subtotal: currentDish.customer_price || currentDish.price || 0,
             discount: 0,
