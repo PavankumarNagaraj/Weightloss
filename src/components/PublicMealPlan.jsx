@@ -172,37 +172,37 @@ const PublicMealPlan = () => {
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="max-w-7xl mx-auto p-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">{plan.plan_name}</h1>
-          <p className="text-gray-600 mt-1">Weekly Meal Schedule & Nutrition Summary</p>
-          <p className="text-sm text-gray-500 mt-1">
+      <div className="max-w-7xl mx-auto p-3 sm:p-6 md:p-8">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{plan.plan_name}</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Weekly Meal Schedule & Nutrition Summary</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
             {new Date(plan.week_start_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })} - {new Date(plan.week_end_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
           </p>
         </div>
 
-        <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-4 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-3">📊 Weekly Nutrition Summary</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">📊 Weekly Nutrition Summary</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{summary.totalCalories.toFixed(0)}</div>
-              <div className="text-xs text-gray-600">Total Calories</div>
+              <div className="text-xl sm:text-2xl font-bold text-orange-600">{summary.totalCalories.toFixed(0)}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Total Calories</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{summary.totalProtein.toFixed(1)}g</div>
-              <div className="text-xs text-gray-600">Protein</div>
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">{summary.totalProtein.toFixed(1)}g</div>
+              <div className="text-xs sm:text-sm text-gray-600">Protein</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">{summary.totalCarbs.toFixed(1)}g</div>
-              <div className="text-xs text-gray-600">Carbs</div>
+              <div className="text-xl sm:text-2xl font-bold text-yellow-600">{summary.totalCarbs.toFixed(1)}g</div>
+              <div className="text-xs sm:text-sm text-gray-600">Carbs</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{summary.totalFat.toFixed(1)}g</div>
-              <div className="text-xs text-gray-600">Fat</div>
+              <div className="text-xl sm:text-2xl font-bold text-red-600">{summary.totalFat.toFixed(1)}g</div>
+              <div className="text-xs sm:text-sm text-gray-600">Fat</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{summary.totalFiber.toFixed(1)}g</div>
-              <div className="text-xs text-gray-600">Fiber</div>
+              <div className="text-xl sm:text-2xl font-bold text-green-600">{summary.totalFiber.toFixed(1)}g</div>
+              <div className="text-xs sm:text-sm text-gray-600">Fiber</div>
             </div>
           </div>
           <div className="mt-3 text-center text-sm text-gray-600">
@@ -211,8 +211,8 @@ const PublicMealPlan = () => {
           </div>
           
           <div className="mt-4 pt-4 border-t-2 border-orange-200">
-            <h3 className="text-lg font-bold text-gray-900 mb-3">�� Weekly Micronutrients Total</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-3">💎 Weekly Micronutrients Total</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <h4 className="font-semibold text-sm text-gray-700 mb-2 uppercase">Vitamins</h4>
                 <div className="space-y-1">
@@ -263,9 +263,10 @@ const PublicMealPlan = () => {
           </div>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-3">📅 Weekly Meal Schedule</h2>
-          <table className="w-full border-collapse border border-gray-300">
+        <div className="mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">📅 Weekly Meal Schedule</h2>
+          <div className="overflow-x-auto -mx-3 sm:mx-0">
+          <table className="w-full border-collapse border border-gray-300 min-w-[640px]">
             <thead>
               <tr className="bg-gray-100">
                 <th className="border border-gray-300 px-3 py-2 text-left font-semibold">Day</th>
@@ -319,12 +320,13 @@ const PublicMealPlan = () => {
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Detailed Nutrition Breakdown - All Items */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-3">🍽️ Detailed Nutrition Breakdown - All Items</h2>
-          <div className="space-y-6">
+        <div className="mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">🍽️ Detailed Nutrition Breakdown - All Items</h2>
+          <div className="space-y-3 sm:space-y-6">
             {daysOfWeek.map(day => {
               const dayItems = [];
               mealTypes.forEach(type => {
@@ -345,9 +347,8 @@ const PublicMealPlan = () => {
                 <div key={day} className="border border-gray-300 rounded-lg bg-white">
                   <button
                     onClick={toggleDay}
-                    className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
-                  >
-                    <h3 className="font-bold text-lg text-gray-900">
+                    className="w-full flex items-center justify-between p-2 sm:p-3 hover:bg-gray-50 transition-colors">
+                    <h3 className="font-bold text-base sm:text-lg text-gray-900">
                       {day} - {getDayCalories(plan, day).toFixed(0)} cal
                     </h3>
                     {isExpanded ? (
@@ -357,7 +358,7 @@ const PublicMealPlan = () => {
                     )}
                   </button>
                   {isExpanded && (
-                    <div className="space-y-4 p-3 pt-0 border-t border-gray-200">
+                    <div className="space-y-3 sm:space-y-4 p-2 sm:p-3 pt-0 border-t border-gray-200">
                     {dayItems.map((item, idx) => {
                       const totalMacros = (parseFloat(item.protein) || 0) + (parseFloat(item.carbs) || 0) + (parseFloat(item.fat) || 0);
                       const proteinPct = totalMacros > 0 ? ((parseFloat(item.protein) || 0) / totalMacros * 100).toFixed(1) : 0;
@@ -429,23 +430,23 @@ const PublicMealPlan = () => {
                       ];
                       
                       return (
-                        <div key={idx} className="border border-gray-200 rounded p-3 bg-gray-50">
-                          <div className="mb-3">
+                        <div key={idx} className="border border-gray-200 rounded p-2 sm:p-3 bg-gray-50">
+                          <div className="mb-2 sm:mb-3">
                             <div className="flex items-center justify-between mb-1">
                               <div>
-                                <h4 className="font-bold text-base text-gray-900">{item.name}</h4>
-                                <p className="text-sm text-gray-500">({item.mealType})</p>
+                                <h4 className="font-bold text-sm sm:text-base text-gray-900">{item.name}</h4>
+                                <p className="text-xs sm:text-sm text-gray-500">({item.mealType})</p>
                               </div>
                               <div className="text-right">
-                                <div className="text-xl font-bold text-orange-600">{parseFloat(item.calories).toFixed(0)}</div>
+                                <div className="text-lg sm:text-xl font-bold text-orange-600">{parseFloat(item.calories).toFixed(0)}</div>
                                 <div className="text-xs text-gray-600">cal</div>
                               </div>
                             </div>
                           </div>
                           
-                          <div className="mb-3">
-                            <h5 className="font-semibold text-sm text-gray-700 mb-2">🍴 Macros</h5>
-                            <div className="grid grid-cols-2 gap-2">
+                          <div className="mb-2 sm:mb-3">
+                            <h5 className="font-semibold text-xs sm:text-sm text-gray-700 mb-1 sm:mb-2">🍴 Macros</h5>
+                            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                               <div className="bg-white rounded p-2 border border-gray-200">
                                 <div className="flex items-center justify-between">
                                   <span className="text-xs font-medium text-gray-700">🥩 Protein</span>
@@ -486,8 +487,8 @@ const PublicMealPlan = () => {
                           </div>
                           
                           <div>
-                            <h5 className="font-semibold text-sm text-gray-700 mb-2">💊 Vitamins & Minerals</h5>
-                            <div className="grid grid-cols-2 gap-3">
+                            <h5 className="font-semibold text-xs sm:text-sm text-gray-700 mb-1 sm:mb-2">💊 Vitamins & Minerals</h5>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                               <div>
                                 <h6 className="font-semibold text-xs text-gray-700 mb-1 uppercase">Vitamins</h6>
                                 <div className="space-y-1">
@@ -530,7 +531,7 @@ const PublicMealPlan = () => {
           </div>
         </div>
 
-        <div className="text-center text-sm text-gray-500 mt-8 pt-4 border-t border-gray-300">
+        <div className="text-center text-xs sm:text-sm text-gray-500 mt-6 sm:mt-8 pt-3 sm:pt-4 border-t border-gray-300">
           <p className="font-bold">AfterBurn Gym Cafe by Sutra Fitness</p>
           <p>Prepared on {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
         </div>
