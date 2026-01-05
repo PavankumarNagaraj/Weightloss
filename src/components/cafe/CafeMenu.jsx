@@ -138,6 +138,12 @@ const CafeMenu = ({ showToast }) => {
       ...formData,
       customerPrice: formData.customerPrice === '' ? 0 : parseFloat(formData.customerPrice) || 0,
       trainerPrice: formData.trainerPrice === '' ? 0 : parseFloat(formData.trainerPrice) || 0,
+      // Include calculated macros from ingredient changes
+      calories: calculatedCalories || formData.calories,
+      protein: calculatedMacros.protein || 0,
+      carbs: calculatedMacros.carbs || 0,
+      fat: calculatedMacros.fat || 0,
+      fiber: calculatedMacros.fiber || 0,
     };
     
     if (editingItem) {
